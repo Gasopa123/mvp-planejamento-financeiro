@@ -1,0 +1,353 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { createClienteCompleto } from "@/app/carteira/novo/actions";
+import { ESTADOS_CIVIS_COM_CONJUGE, wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
+import {
+  WIZARD_STEPS,
+  criarObjetivoVazio,
+  criarPessoaVazia,
+  criarPropriedadeVazia,
+  criarWizardDraftInicial,
+} from "@/lib/wizard/types";
+import type { WizardDraft } from "@/lib/wizard/types";
+import { validateStep, type StepErrors } from "@/lib/wizard/validate-step";
+import { StepPessoal } from "./steps/step-pessoal";
+import { StepConjuge } from "./steps/step-conjuge";
+import { StepFilhos } from "./steps/step-filhos";
+import { StepEstiloVida } from "./steps/step-estilo-vida";
+import { StepFinanceiro } from "./steps/step-financeiro";
+import { StepPatrimonio } from "./steps/step-patrimonio";
+import { StepObjetivos } from "./steps/step-objetivos";
+import { StepSocietario } from "./steps/step-societario";
+import { StepAposentadoria } from "./steps/step-aposentadoria";
+import { StepPlanosFuturos } from "./steps/step-planos-futuros";
+
+export function ClientWizard() {
+  const router = useRouter();
+  const [formData, setFormData] = useState<WizardDraft>(criarWizardDraftInicial);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [errors, setErrors] = useState<StepErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const visibleSteps = WIZARD_STEPS.filter(
+    (step) =>
+      step.id !== "conjuge" ||
+      (formData.estadoCivil !== "" &&
+        ESTADOS_CIVIS_COM_CONJUGE.includes(formData.estadoCivil)),
+  );
+  const currentStep = visibleSteps[stepIndex];
+  const isFirstStep = stepIndex === 0;
+  const isLastStep = stepIndex === visibleSteps.length - 1;
+
+  function updateFormData(patch: Partial<WizardDraft>) {
+    setFormData((prev) => ({ ...prev, ...patch }));
+  }
+
+  function handleEstadoCivilChange(estadoCivil: EstadoCivil | "") {
+    setFormData((prev) => ({
+      ...prev,
+      estadoCivil,
+      conjuge:
+        estadoCivil !== "" && ESTADOS_CIVIS_COM_CONJUGE.includes(estadoCivil)
+          ? prev.conjuge
+          : null,
+    }));
+  }
+
+  function handleNext() {
+    const stepErrors = validateStep(currentStep.id, formData);
+    setErrors(stepErrors);
+    if (Object.keys(stepErrors).length > 0) return;
+    setErrors({});
+    setStepIndex((index) => Math.min(index + 1, visibleSteps.length - 1));
+  }
+
+  function handlePrevious() {
+    setErrors({});
+    setStepIndex((index) => Math.max(index - 1, 0));
+  }
+
+  function handleSubmit() {
+    const stepErrors = validateStep(currentStep.id, formData);
+    setErrors(stepErrors);
+    if (Object.keys(stepErrors).length > 0) return;
+
+    const parsed = wizardFormSchema.safeParse(formData);
+    if (!parsed.success) {
+      setSubmitError(
+        "Revise as etapas anteriores — há campos obrigatórios não preenchidos.",
+      );
+      return;
+    }
+
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await createClienteCompleto(parsed.data);
+      if (result.error) {
+        setSubmitError(result.error);
+        return;
+      }
+      router.push("/carteira");
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-2xl">
+      <ol className="mb-8 flex flex-wrap gap-x-4 gap-y-2">
+        {visibleSteps.map((step, index) => (
+          <li key={step.id} className="flex items-center gap-2">
+            <span
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
+                index === stepIndex
+                  ? "bg-gray-900 text-white"
+                  : index < stepIndex
+                    ? "bg-gray-300 text-gray-700"
+                    : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {index + 1}
+            </span>
+            <span
+              className={`text-xs ${
+                index === stepIndex
+                  ? "font-medium text-gray-900"
+                  : "text-gray-500"
+              }`}
+            >
+              {step.label}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+        <h1 className="mb-6 text-xl font-semibold text-gray-900">
+          {currentStep.label}
+        </h1>
+
+        {currentStep.id === "pessoal" && (
+          <StepPessoal
+            nome={formData.nome}
+            idade={formData.idade}
+            estadoCivil={formData.estadoCivil}
+            errors={errors}
+            onNomeChange={(nome) => updateFormData({ nome })}
+            onIdadeChange={(idade) => updateFormData({ idade })}
+            onEstadoCivilChange={handleEstadoCivilChange}
+          />
+        )}
+
+        {currentStep.id === "conjuge" && (
+          <StepConjuge
+            conjuge={formData.conjuge ?? criarPessoaVazia()}
+            errors={errors}
+            onChange={(conjuge) => updateFormData({ conjuge })}
+          />
+        )}
+
+        {currentStep.id === "filhos" && (
+          <StepFilhos
+            filhos={formData.filhos}
+            errors={errors}
+            onAdd={() =>
+              updateFormData({ filhos: [...formData.filhos, criarPessoaVazia()] })
+            }
+            onRemove={(index) =>
+              updateFormData({
+                filhos: formData.filhos.filter((_, i) => i !== index),
+              })
+            }
+            onChange={(index, filho) =>
+              updateFormData({
+                filhos: formData.filhos.map((f, i) => (i === index ? filho : f)),
+              })
+            }
+          />
+        )}
+
+        {currentStep.id === "estilo-vida" && (
+          <StepEstiloVida
+            esporteFavorito={formData.esporteFavorito}
+            hobbies={formData.hobbies}
+            onEsporteFavoritoChange={(esporteFavorito) =>
+              updateFormData({ esporteFavorito })
+            }
+            onHobbiesChange={(hobbies) => updateFormData({ hobbies })}
+          />
+        )}
+
+        {currentStep.id === "financeiro" && (
+          <StepFinanceiro
+            rendaMensal={formData.rendaMensal}
+            despesaMensal={formData.despesaMensal}
+            patrimonioInvestido={formData.patrimonioInvestido}
+            errors={errors}
+            onRendaMensalChange={(rendaMensal) =>
+              updateFormData({ rendaMensal })
+            }
+            onDespesaMensalChange={(despesaMensal) =>
+              updateFormData({ despesaMensal })
+            }
+            onPatrimonioInvestidoChange={(patrimonioInvestido) =>
+              updateFormData({ patrimonioInvestido })
+            }
+          />
+        )}
+
+        {currentStep.id === "patrimonio" && (
+          <StepPatrimonio
+            imoveis={formData.imoveis}
+            automoveis={formData.automoveis}
+            errors={errors}
+            onAddImovel={() =>
+              updateFormData({
+                imoveis: [...formData.imoveis, criarPropriedadeVazia()],
+              })
+            }
+            onRemoveImovel={(index) =>
+              updateFormData({
+                imoveis: formData.imoveis.filter((_, i) => i !== index),
+              })
+            }
+            onChangeImovel={(index, item) =>
+              updateFormData({
+                imoveis: formData.imoveis.map((it, i) =>
+                  i === index ? item : it,
+                ),
+              })
+            }
+            onAddAutomovel={() =>
+              updateFormData({
+                automoveis: [...formData.automoveis, criarPropriedadeVazia()],
+              })
+            }
+            onRemoveAutomovel={(index) =>
+              updateFormData({
+                automoveis: formData.automoveis.filter((_, i) => i !== index),
+              })
+            }
+            onChangeAutomovel={(index, item) =>
+              updateFormData({
+                automoveis: formData.automoveis.map((it, i) =>
+                  i === index ? item : it,
+                ),
+              })
+            }
+          />
+        )}
+
+        {currentStep.id === "objetivos" && (
+          <StepObjetivos
+            objetivos={formData.objetivos}
+            errors={errors}
+            onAdd={() =>
+              updateFormData({
+                objetivos: [...formData.objetivos, criarObjetivoVazio()],
+              })
+            }
+            onRemove={(index) =>
+              updateFormData({
+                objetivos: formData.objetivos.filter((_, i) => i !== index),
+              })
+            }
+            onChange={(index, objetivo) =>
+              updateFormData({
+                objetivos: formData.objetivos.map((o, i) =>
+                  i === index ? objetivo : o,
+                ),
+              })
+            }
+          />
+        )}
+
+        {currentStep.id === "societario" && (
+          <StepSocietario
+            temParticipacaoSocietaria={formData.temParticipacaoSocietaria}
+            valorParticipacao={formData.valorParticipacao}
+            errors={errors}
+            onTemParticipacaoSocietariaChange={(temParticipacaoSocietaria) =>
+              updateFormData({ temParticipacaoSocietaria })
+            }
+            onValorParticipacaoChange={(valorParticipacao) =>
+              updateFormData({ valorParticipacao })
+            }
+          />
+        )}
+
+        {currentStep.id === "aposentadoria" && (
+          <StepAposentadoria
+            idadeAposentadoria={formData.idadeAposentadoria}
+            expectativaVida={formData.expectativaVida}
+            pretensaoSalarialAposentadoria={
+              formData.pretensaoSalarialAposentadoria
+            }
+            errors={errors}
+            onIdadeAposentadoriaChange={(idadeAposentadoria) =>
+              updateFormData({ idadeAposentadoria })
+            }
+            onExpectativaVidaChange={(expectativaVida) =>
+              updateFormData({ expectativaVida })
+            }
+            onPretensaoSalarialAposentadoriaChange={(
+              pretensaoSalarialAposentadoria,
+            ) => updateFormData({ pretensaoSalarialAposentadoria })}
+          />
+        )}
+
+        {currentStep.id === "planos-futuros" && (
+          <StepPlanosFuturos
+            pretendeAdquirirBens={formData.pretendeAdquirirBens}
+            eClt={formData.eClt}
+            temSeguroVida={formData.temSeguroVida}
+            onPretendeAdquirirBensChange={(pretendeAdquirirBens) =>
+              updateFormData({ pretendeAdquirirBens })
+            }
+            onECltChange={(eClt) => updateFormData({ eClt })}
+            onTemSeguroVidaChange={(temSeguroVida) =>
+              updateFormData({ temSeguroVida })
+            }
+          />
+        )}
+
+        {submitError && (
+          <p className="mt-6 text-sm text-red-600">{submitError}</p>
+        )}
+
+        <div className="mt-8 flex justify-between">
+          <button
+            type="button"
+            onClick={handlePrevious}
+            disabled={isFirstStep || isPending}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Anterior
+          </button>
+
+          {isLastStep ? (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            >
+              {isPending ? "Salvando..." : "Salvar cliente"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isPending}
+              className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            >
+              Próxima
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

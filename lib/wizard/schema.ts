@@ -1,0 +1,218 @@
+import { z } from "zod";
+
+export const ESTADO_CIVIL_OPTIONS = [
+  "solteiro",
+  "casado",
+  "uniao_estavel",
+  "divorciado",
+  "viuvo",
+] as const;
+
+export const PRAZO_OPTIONS = ["curto", "medio", "longo"] as const;
+
+export type EstadoCivil = (typeof ESTADO_CIVIL_OPTIONS)[number];
+export type Prazo = (typeof PRAZO_OPTIONS)[number];
+
+// Estados civis que fazem a etapa "Cônjuge" aparecer no wizard.
+export const ESTADOS_CIVIS_COM_CONJUGE: EstadoCivil[] = [
+  "casado",
+  "uniao_estavel",
+];
+
+// Rótulos legíveis, reaproveitados pelo wizard e pelo dashboard do cliente.
+export const ESTADO_CIVIL_LABELS: Record<EstadoCivil, string> = {
+  solteiro: "Solteiro(a)",
+  casado: "Casado(a)",
+  uniao_estavel: "União estável",
+  divorciado: "Divorciado(a)",
+  viuvo: "Viúvo(a)",
+};
+
+export const PRAZO_LABELS: Record<Prazo, string> = {
+  curto: "Curto prazo",
+  medio: "Médio prazo",
+  longo: "Longo prazo",
+};
+
+const nomeSchema = z.string().trim().min(1, "Informe o nome.");
+const dataNascimentoSchema = z.string().nullable();
+
+function valorMonetarioSchema(mensagem: string) {
+  return z.number({ error: mensagem }).min(0, mensagem);
+}
+
+// ----------------------------------------------------------------------------
+// Schemas por etapa — usados pra validar cada etapa do wizard isoladamente
+// antes de liberar o avanço ("Próxima").
+// ----------------------------------------------------------------------------
+
+export const pessoaSchema = z.object({
+  nome: nomeSchema,
+  idade: z
+    .number({ error: "Informe a idade." })
+    .int()
+    .min(0)
+    .max(130),
+  estadoCivil: z.enum(ESTADO_CIVIL_OPTIONS, {
+    error: "Selecione o estado civil.",
+  }),
+});
+
+export const conjugeSchema = z.object({
+  nome: nomeSchema,
+  dataNascimento: dataNascimentoSchema,
+  dependente: z.boolean(),
+});
+
+export const filhoSchema = z.object({
+  nome: nomeSchema,
+  dataNascimento: dataNascimentoSchema,
+  dependente: z.boolean(),
+});
+
+export const filhosSchema = z.array(filhoSchema);
+
+export const estiloVidaSchema = z.object({
+  esporteFavorito: z.string().trim(),
+  hobbies: z.string().trim(),
+});
+
+export const financeiroSchema = z.object({
+  rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
+  despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
+  patrimonioInvestido: valorMonetarioSchema("Informe o patrimônio investido."),
+});
+
+export const imovelSchema = z.object({
+  valor: valorMonetarioSchema("Informe o valor do imóvel."),
+  financiado: z.boolean(),
+  adquiridoAposCasamento: z.boolean(),
+});
+
+export const automovelSchema = z.object({
+  valor: valorMonetarioSchema("Informe o valor do automóvel."),
+  financiado: z.boolean(),
+  adquiridoAposCasamento: z.boolean(),
+});
+
+export const patrimonioSchema = z.object({
+  imoveis: z.array(imovelSchema),
+  automoveis: z.array(automovelSchema),
+});
+
+export const objetivoSchema = z.object({
+  prazo: z.enum(PRAZO_OPTIONS, {
+    error: "Selecione o prazo.",
+  }),
+  descricao: z.string().trim().min(1, "Descreva o objetivo."),
+  valorEstimado: z.number().min(0).nullable(),
+  horizonteAnos: z.number().int().min(0).nullable(),
+});
+
+export const objetivosSchema = z.array(objetivoSchema);
+
+export const societarioSchema = z
+  .object({
+    temParticipacaoSocietaria: z.boolean(),
+    valorParticipacao: z.number().min(0).nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.temParticipacaoSocietaria && data.valorParticipacao == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o valor aproximado da participação.",
+        path: ["valorParticipacao"],
+      });
+    }
+  });
+
+export const aposentadoriaSchema = z.object({
+  idadeAposentadoria: z
+    .number({ error: "Informe a idade de aposentadoria." })
+    .int()
+    .min(0)
+    .max(130),
+  expectativaVida: z
+    .number({ error: "Informe a expectativa de vida." })
+    .int()
+    .min(0)
+    .max(130),
+  pretensaoSalarialAposentadoria: valorMonetarioSchema(
+    "Informe a pretensão salarial pós-aposentadoria.",
+  ),
+});
+
+export const planosFuturosSchema = z.object({
+  pretendeAdquirirBens: z.boolean(),
+  eClt: z.boolean(),
+  temSeguroVida: z.boolean(),
+});
+
+// ----------------------------------------------------------------------------
+// Schema completo — validado de novo antes do submit final (client) e
+// revalidado na Server Action (defesa em profundidade).
+// ----------------------------------------------------------------------------
+
+export const wizardFormSchema = z
+  .object({
+    nome: nomeSchema,
+    idade: z
+      .number({ error: "Informe a idade." })
+      .int()
+      .min(0)
+      .max(130),
+    estadoCivil: z.enum(ESTADO_CIVIL_OPTIONS, {
+      error: "Selecione o estado civil.",
+    }),
+    conjuge: conjugeSchema.nullable(),
+    filhos: filhosSchema,
+    esporteFavorito: z.string().trim(),
+    hobbies: z.string().trim(),
+    rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
+    despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
+    patrimonioInvestido: valorMonetarioSchema(
+      "Informe o patrimônio investido.",
+    ),
+    imoveis: z.array(imovelSchema),
+    automoveis: z.array(automovelSchema),
+    objetivos: objetivosSchema,
+    temParticipacaoSocietaria: z.boolean(),
+    valorParticipacao: z.number().min(0).nullable(),
+    idadeAposentadoria: z
+      .number({ error: "Informe a idade de aposentadoria." })
+      .int()
+      .min(0)
+      .max(130),
+    expectativaVida: z
+      .number({ error: "Informe a expectativa de vida." })
+      .int()
+      .min(0)
+      .max(130),
+    pretensaoSalarialAposentadoria: valorMonetarioSchema(
+      "Informe a pretensão salarial pós-aposentadoria.",
+    ),
+    pretendeAdquirirBens: z.boolean(),
+    eClt: z.boolean(),
+    temSeguroVida: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      ESTADOS_CIVIS_COM_CONJUGE.includes(data.estadoCivil) &&
+      !data.conjuge
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe os dados do cônjuge.",
+        path: ["conjuge"],
+      });
+    }
+    if (data.temParticipacaoSocietaria && data.valorParticipacao == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o valor aproximado da participação.",
+        path: ["valorParticipacao"],
+      });
+    }
+  });
+
+export type WizardFormData = z.infer<typeof wizardFormSchema>;

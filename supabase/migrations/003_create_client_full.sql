@@ -1,0 +1,123 @@
+-- ============================================================================
+-- RPC create_client_full: cria um cliente completo (cliente + cônjuge +
+-- filhos + imóveis/automóveis + objetivos + premissas padrão) numa única
+-- transação — evita deixar dado parcial se algo falhar no meio do caminho.
+--
+-- Uma function plpgsql já roda dentro de uma transação implícita: se
+-- qualquer insert abaixo levantar exceção, tudo que já foi inserido nessa
+-- chamada é revertido automaticamente, sem precisar de BEGIN/COMMIT.
+--
+-- SECURITY DEFINER + auth.uid(): a function ignora qualquer advisor_id que
+-- venha no payload e usa sempre o auth.uid() da sessão autenticada como
+-- dono do cliente — evita que um client-side malicioso tente criar um
+-- cliente em nome de outro advisor.
+--
+-- Rodar manualmente no SQL Editor do Supabase, após 001 (schema.sql) e 002.
+-- ============================================================================
+
+create or replace function public.create_client_full(payload jsonb)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_advisor_id  uuid := auth.uid();
+  v_conjuge     jsonb := payload -> 'conjuge';
+  v_client_id   uuid;
+begin
+  if v_advisor_id is null then
+    raise exception 'Usuário não autenticado.';
+  end if;
+
+  insert into clients (
+    advisor_id, nome, idade, estado_civil,
+    esporte_favorito, hobbies,
+    renda_mensal, despesa_mensal, patrimonio_investido,
+    tem_participacao_societaria, valor_participacao,
+    idade_aposentadoria, expectativa_vida, pretensao_salarial_aposentadoria,
+    pretende_adquirir_bens, e_clt, tem_seguro_vida
+  )
+  values (
+    v_advisor_id,
+    payload ->> 'nome',
+    (payload ->> 'idade')::integer,
+    payload ->> 'estado_civil',
+    payload ->> 'esporte_favorito',
+    payload ->> 'hobbies',
+    (payload ->> 'renda_mensal')::numeric,
+    (payload ->> 'despesa_mensal')::numeric,
+    (payload ->> 'patrimonio_investido')::numeric,
+    coalesce((payload ->> 'tem_participacao_societaria')::boolean, false),
+    (payload ->> 'valor_participacao')::numeric,
+    (payload ->> 'idade_aposentadoria')::integer,
+    (payload ->> 'expectativa_vida')::integer,
+    (payload ->> 'pretensao_salarial_aposentadoria')::numeric,
+    coalesce((payload ->> 'pretende_adquirir_bens')::boolean, false),
+    coalesce((payload ->> 'e_clt')::boolean, false),
+    coalesce((payload ->> 'tem_seguro_vida')::boolean, false)
+  )
+  returning id into v_client_id;
+
+  if v_conjuge is not null and v_conjuge <> 'null'::jsonb then
+    insert into spouses (client_id, nome, data_nascimento, dependente)
+    values (
+      v_client_id,
+      v_conjuge ->> 'nome',
+      (v_conjuge ->> 'data_nascimento')::date,
+      coalesce((v_conjuge ->> 'dependente')::boolean, false)
+    );
+  end if;
+
+  insert into children (client_id, nome, data_nascimento, dependente)
+  select
+    v_client_id,
+    f.nome,
+    f.data_nascimento,
+    coalesce(f.dependente, false)
+  from jsonb_to_recordset(coalesce(payload -> 'filhos', '[]'::jsonb)) as f (
+    nome text, data_nascimento date, dependente boolean
+  );
+
+  insert into properties (client_id, tipo, valor, financiado, adquirido_apos_casamento)
+  select
+    v_client_id,
+    'imovel'::property_tipo,
+    p.valor,
+    coalesce(p.financiado, false),
+    coalesce(p.adquirido_apos_casamento, false)
+  from jsonb_to_recordset(coalesce(payload -> 'imoveis', '[]'::jsonb)) as p (
+    valor numeric, financiado boolean, adquirido_apos_casamento boolean
+  );
+
+  insert into properties (client_id, tipo, valor, financiado, adquirido_apos_casamento)
+  select
+    v_client_id,
+    'automovel'::property_tipo,
+    a.valor,
+    coalesce(a.financiado, false),
+    coalesce(a.adquirido_apos_casamento, false)
+  from jsonb_to_recordset(coalesce(payload -> 'automoveis', '[]'::jsonb)) as a (
+    valor numeric, financiado boolean, adquirido_apos_casamento boolean
+  );
+
+  insert into goals (client_id, prazo, descricao, valor_estimado, horizonte_anos)
+  select
+    v_client_id,
+    g.prazo::goal_prazo,
+    g.descricao,
+    g.valor_estimado,
+    g.horizonte_anos
+  from jsonb_to_recordset(coalesce(payload -> 'objetivos', '[]'::jsonb)) as g (
+    prazo text, descricao text, valor_estimado numeric, horizonte_anos integer
+  );
+
+  -- Premissas padrão do motor de cálculo, editáveis depois no dashboard.
+  insert into assumptions (client_id, inflacao_projetada, cdi_atual, rentabilidade_real_padrao)
+  values (v_client_id, 0.04, 0.1415, 0.0475);
+
+  return v_client_id;
+end;
+$$;
+
+grant execute on function public.create_client_full(jsonb) to authenticated;
