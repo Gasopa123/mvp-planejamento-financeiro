@@ -39,7 +39,9 @@ create table clients (
 
   -- Dados pessoais
   nome                              text not null,
+  data_nascimento                   date,
   idade                             integer,
+  profissao                         text,
   estado_civil                      text,
 
   -- Estilo de vida

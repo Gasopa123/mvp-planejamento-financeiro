@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClienteCompleto } from "@/app/carteira/novo/actions";
+import { calcularIdade } from "@/lib/idade";
 import { ESTADOS_CIVIS_COM_CONJUGE, wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
 import {
   WIZARD_STEPS,
@@ -55,6 +56,13 @@ export function ClientWizard() {
           ? prev.conjuge
           : null,
     }));
+  }
+
+  function handleDataNascimentoChange(dataNascimento: string) {
+    updateFormData({
+      dataNascimento,
+      idade: dataNascimento ? calcularIdade(dataNascimento) : null,
+    });
   }
 
   function handleNext() {
@@ -132,11 +140,15 @@ export function ClientWizard() {
         {currentStep.id === "pessoal" && (
           <StepPessoal
             nome={formData.nome}
-            idade={formData.idade}
+            dataNascimento={formData.dataNascimento}
+            profissao={formData.profissao}
+            eClt={formData.eClt}
             estadoCivil={formData.estadoCivil}
             errors={errors}
             onNomeChange={(nome) => updateFormData({ nome })}
-            onIdadeChange={(idade) => updateFormData({ idade })}
+            onDataNascimentoChange={handleDataNascimentoChange}
+            onProfissaoChange={(profissao) => updateFormData({ profissao })}
+            onECltChange={(eClt) => updateFormData({ eClt })}
             onEstadoCivilChange={handleEstadoCivilChange}
           />
         )}
@@ -301,12 +313,10 @@ export function ClientWizard() {
         {currentStep.id === "planos-futuros" && (
           <StepPlanosFuturos
             pretendeAdquirirBens={formData.pretendeAdquirirBens}
-            eClt={formData.eClt}
             temSeguroVida={formData.temSeguroVida}
             onPretendeAdquirirBensChange={(pretendeAdquirirBens) =>
               updateFormData({ pretendeAdquirirBens })
             }
-            onECltChange={(eClt) => updateFormData({ eClt })}
             onTemSeguroVidaChange={(temSeguroVida) =>
               updateFormData({ temSeguroVida })
             }

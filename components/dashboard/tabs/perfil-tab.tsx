@@ -33,6 +33,10 @@ function PessoaRow({ pessoa }: { pessoa: PessoaVinculada }) {
 }
 
 export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
+  const idadeCliente = cliente.data_nascimento
+    ? calcularIdade(cliente.data_nascimento)
+    : cliente.idade;
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <Card>
@@ -45,7 +49,19 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
           <div className="flex justify-between">
             <dt className="text-ink-60">Idade</dt>
             <dd className="font-display font-semibold text-navy">
-              {cliente.idade != null ? `${cliente.idade} anos` : "não informado"}
+              {idadeCliente != null ? `${idadeCliente} anos` : "não informado"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-ink-60">Profissão</dt>
+            <dd className="text-right font-display font-semibold text-navy">
+              {cliente.profissao || "não informado"}
+            </dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-ink-60">Regime</dt>
+            <dd className="font-display font-semibold text-navy">
+              {cliente.e_clt ? "CLT" : "Não CLT"}
             </dd>
           </div>
           <div className="flex justify-between">

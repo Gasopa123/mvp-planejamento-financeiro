@@ -44,7 +44,10 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
     case "pessoal": {
       const result = pessoaSchema.safeParse({
         nome: data.nome,
+        dataNascimento: data.dataNascimento,
         idade: data.idade,
+        profissao: data.profissao,
+        eClt: data.eClt,
         estadoCivil: data.estadoCivil,
       });
       return result.success ? {} : flatten(result.error);

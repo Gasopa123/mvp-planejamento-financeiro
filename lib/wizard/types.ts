@@ -25,7 +25,9 @@ export type ObjetivoDraft = {
 
 export type WizardDraft = {
   nome: string;
+  dataNascimento: string;
   idade: number | null;
+  profissao: string;
   estadoCivil: EstadoCivil | "";
   conjuge: PessoaDraft | null;
   filhos: PessoaDraft[];
@@ -62,7 +64,9 @@ export function criarObjetivoVazio(): ObjetivoDraft {
 export function criarWizardDraftInicial(): WizardDraft {
   return {
     nome: "",
+    dataNascimento: "",
     idade: null,
+    profissao: "",
     estadoCivil: "",
     conjuge: null,
     filhos: [],
