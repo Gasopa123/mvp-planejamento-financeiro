@@ -51,6 +51,15 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
         esporteFavorito: data.esporteFavorito,
         hobbies: data.hobbies,
         temSeguroVida: data.temSeguroVida,
+        pesoKg: data.pesoKg,
+        alturaCm: data.alturaCm,
+        possuiPatologia: data.possuiPatologia,
+        patologias: data.patologias,
+        usaMedicamentos: data.usaMedicamentos,
+        medicamentos: data.medicamentos,
+        fuma: data.fuma,
+        andaMoto: data.andaMoto,
+        frequenciaMoto: data.frequenciaMoto,
       });
       return result.success ? {} : flatten(result.error);
     }

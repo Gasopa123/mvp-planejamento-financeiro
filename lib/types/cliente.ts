@@ -23,6 +23,15 @@ export type Cliente = {
   pretende_adquirir_bens: boolean;
   e_clt: boolean;
   tem_seguro_vida: boolean;
+  peso_kg: number | null;
+  altura_cm: number | null;
+  possui_patologia: boolean;
+  patologias: string | null;
+  usa_medicamentos: boolean;
+  medicamentos: string | null;
+  fuma: boolean;
+  anda_moto: boolean;
+  frequencia_moto: string | null;
   criado_em: string;
   atualizado_em: string;
 };

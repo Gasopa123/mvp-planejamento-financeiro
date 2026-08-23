@@ -4,6 +4,7 @@ import {
   pessoaSchema,
   pessoalStepSchema,
   planosFuturosSchema,
+  saudeRiscoSchema,
   wizardFormSchema,
 } from "./schema";
 
@@ -33,6 +34,15 @@ const dadosBase = {
   pretensaoSalarialAposentadoria: 15000,
   pretendeAdquirirBens: false,
   temSeguroVida: false,
+  pesoKg: null,
+  alturaCm: null,
+  possuiPatologia: false,
+  patologias: "",
+  usaMedicamentos: false,
+  medicamentos: "",
+  fuma: false,
+  andaMoto: false,
+  frequenciaMoto: "",
 };
 
 describe("dados pessoais do wizard", () => {
@@ -85,6 +95,15 @@ describe("estilo de vida como subtópico de dados pessoais", () => {
       esporteFavorito: "Corrida",
       hobbies: "Leitura",
       temSeguroVida: true,
+      pesoKg: dadosBase.pesoKg,
+      alturaCm: dadosBase.alturaCm,
+      possuiPatologia: dadosBase.possuiPatologia,
+      patologias: dadosBase.patologias,
+      usaMedicamentos: dadosBase.usaMedicamentos,
+      medicamentos: dadosBase.medicamentos,
+      fuma: dadosBase.fuma,
+      andaMoto: dadosBase.andaMoto,
+      frequenciaMoto: dadosBase.frequenciaMoto,
     });
 
     expect(result.success).toBe(true);
@@ -99,5 +118,158 @@ describe("estilo de vida como subtópico de dados pessoais", () => {
     expect(Object.keys(planosFuturosSchema.shape)).toEqual([
       "pretendeAdquirirBens",
     ]);
+  });
+});
+
+describe("saúde e risco como subtópico de dados pessoais", () => {
+  it("valida peso, altura e os booleanos de risco sem exigir os campos condicionais quando falsos", () => {
+    const result = saudeRiscoSchema.safeParse({
+      pesoKg: 78.5,
+      alturaCm: 178,
+      possuiPatologia: false,
+      patologias: "",
+      usaMedicamentos: false,
+      medicamentos: "",
+      fuma: false,
+      andaMoto: false,
+      frequenciaMoto: "",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("aceita peso e altura nulos (campos opcionais)", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      pesoKg: null,
+      alturaCm: null,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejeita peso negativo", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      pesoKg: -1,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejeita altura negativa", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      alturaCm: -1,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("exige patologias quando possuiPatologia é verdadeiro", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      possuiPatologia: true,
+      patologias: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find(
+        (i) => i.path.join(".") === "patologias",
+      );
+      expect(issue).toBeDefined();
+    }
+  });
+
+  it("passa quando possuiPatologia é verdadeiro e patologias está preenchido", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      possuiPatologia: true,
+      patologias: "Hipertensão",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("exige medicamentos quando usaMedicamentos é verdadeiro", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      usaMedicamentos: true,
+      medicamentos: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find(
+        (i) => i.path.join(".") === "medicamentos",
+      );
+      expect(issue).toBeDefined();
+    }
+  });
+
+  it("exige frequenciaMoto quando andaMoto é verdadeiro", () => {
+    const result = saudeRiscoSchema.safeParse({
+      ...dadosBase,
+      andaMoto: true,
+      frequenciaMoto: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find(
+        (i) => i.path.join(".") === "frequenciaMoto",
+      );
+      expect(issue).toBeDefined();
+    }
+  });
+
+  it("valida os campos de saúde e risco junto da etapa 'pessoal'", () => {
+    const result = pessoalStepSchema.safeParse({
+      nome: dadosBase.nome,
+      dataNascimento: dadosBase.dataNascimento,
+      idade: dadosBase.idade,
+      profissao: dadosBase.profissao,
+      eClt: dadosBase.eClt,
+      estadoCivil: dadosBase.estadoCivil,
+      conjuge: dadosBase.conjuge,
+      filhos: dadosBase.filhos,
+      esporteFavorito: dadosBase.esporteFavorito,
+      hobbies: dadosBase.hobbies,
+      temSeguroVida: dadosBase.temSeguroVida,
+      pesoKg: 78.5,
+      alturaCm: 178,
+      possuiPatologia: true,
+      patologias: "",
+      usaMedicamentos: false,
+      medicamentos: "",
+      fuma: false,
+      andaMoto: false,
+      frequenciaMoto: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find(
+        (i) => i.path.join(".") === "patologias",
+      );
+      expect(issue).toBeDefined();
+    }
+  });
+
+  it("valida o schema completo do wizard com os campos de saúde e risco", () => {
+    const result = wizardFormSchema.safeParse({
+      ...dadosBase,
+      andaMoto: true,
+      frequenciaMoto: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find(
+        (i) => i.path.join(".") === "frequenciaMoto",
+      );
+      expect(issue).toBeDefined();
+    }
   });
 });

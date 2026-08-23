@@ -111,6 +111,58 @@ describe("validateStep('pessoal') — estilo de vida (subtópico)", () => {
   });
 });
 
+describe("validateStep('pessoal') — saúde e risco (subtópico)", () => {
+  it("passa quando peso e altura estão preenchidos e nenhum condicional está ativo", () => {
+    const draft: WizardDraft = { ...draftBase(), pesoKg: 78.5, alturaCm: 178 };
+    const errors = validateStep("pessoal", draft);
+    expect(errors).toEqual({});
+  });
+
+  it("acusa erro quando possuiPatologia é verdadeiro sem patologias preenchido", () => {
+    const draft: WizardDraft = {
+      ...draftBase(),
+      possuiPatologia: true,
+      patologias: "",
+    };
+    const errors = validateStep("pessoal", draft);
+    expect(errors.patologias).toBeDefined();
+  });
+
+  it("acusa erro quando usaMedicamentos é verdadeiro sem medicamentos preenchido", () => {
+    const draft: WizardDraft = {
+      ...draftBase(),
+      usaMedicamentos: true,
+      medicamentos: "",
+    };
+    const errors = validateStep("pessoal", draft);
+    expect(errors.medicamentos).toBeDefined();
+  });
+
+  it("acusa erro quando andaMoto é verdadeiro sem frequenciaMoto preenchido", () => {
+    const draft: WizardDraft = {
+      ...draftBase(),
+      andaMoto: true,
+      frequenciaMoto: "",
+    };
+    const errors = validateStep("pessoal", draft);
+    expect(errors.frequenciaMoto).toBeDefined();
+  });
+
+  it("passa quando os campos condicionais estão preenchidos", () => {
+    const draft: WizardDraft = {
+      ...draftBase(),
+      possuiPatologia: true,
+      patologias: "Hipertensão",
+      usaMedicamentos: true,
+      medicamentos: "Losartana",
+      andaMoto: true,
+      frequenciaMoto: "Diariamente",
+    };
+    const errors = validateStep("pessoal", draft);
+    expect(errors).toEqual({});
+  });
+});
+
 describe("validateStep('planos-futuros')", () => {
   it("não exige mais 'Tem seguro de vida?' — só pretende adquirir bens", () => {
     const draft: WizardDraft = { ...draftBase(), pretendeAdquirirBens: true };

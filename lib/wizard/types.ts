@@ -47,6 +47,15 @@ export type WizardDraft = {
   pretendeAdquirirBens: boolean;
   eClt: boolean;
   temSeguroVida: boolean;
+  pesoKg: number | null;
+  alturaCm: number | null;
+  possuiPatologia: boolean;
+  patologias: string;
+  usaMedicamentos: boolean;
+  medicamentos: string;
+  fuma: boolean;
+  andaMoto: boolean;
+  frequenciaMoto: string;
 };
 
 export function criarPessoaVazia(): PessoaDraft {
@@ -86,6 +95,15 @@ export function criarWizardDraftInicial(): WizardDraft {
     pretendeAdquirirBens: false,
     eClt: false,
     temSeguroVida: false,
+    pesoKg: null,
+    alturaCm: null,
+    possuiPatologia: false,
+    patologias: "",
+    usaMedicamentos: false,
+    medicamentos: "",
+    fuma: false,
+    andaMoto: false,
+    frequenciaMoto: "",
   };
 }
 

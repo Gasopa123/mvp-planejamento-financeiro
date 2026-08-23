@@ -141,6 +141,15 @@ export function ClientWizard() {
             esporteFavorito={formData.esporteFavorito}
             hobbies={formData.hobbies}
             temSeguroVida={formData.temSeguroVida}
+            pesoKg={formData.pesoKg}
+            alturaCm={formData.alturaCm}
+            possuiPatologia={formData.possuiPatologia}
+            patologias={formData.patologias}
+            usaMedicamentos={formData.usaMedicamentos}
+            medicamentos={formData.medicamentos}
+            fuma={formData.fuma}
+            andaMoto={formData.andaMoto}
+            frequenciaMoto={formData.frequenciaMoto}
             errors={errors}
             onNomeChange={(nome) => updateFormData({ nome })}
             onDataNascimentoChange={handleDataNascimentoChange}
@@ -167,6 +176,25 @@ export function ClientWizard() {
             onHobbiesChange={(hobbies) => updateFormData({ hobbies })}
             onTemSeguroVidaChange={(temSeguroVida) =>
               updateFormData({ temSeguroVida })
+            }
+            onPesoKgChange={(pesoKg) => updateFormData({ pesoKg })}
+            onAlturaCmChange={(alturaCm) => updateFormData({ alturaCm })}
+            onPossuiPatologiaChange={(possuiPatologia) =>
+              updateFormData({ possuiPatologia })
+            }
+            onPatologiasChange={(patologias) =>
+              updateFormData({ patologias })
+            }
+            onUsaMedicamentosChange={(usaMedicamentos) =>
+              updateFormData({ usaMedicamentos })
+            }
+            onMedicamentosChange={(medicamentos) =>
+              updateFormData({ medicamentos })
+            }
+            onFumaChange={(fuma) => updateFormData({ fuma })}
+            onAndaMotoChange={(andaMoto) => updateFormData({ andaMoto })}
+            onFrequenciaMotoChange={(frequenciaMoto) =>
+              updateFormData({ frequenciaMoto })
             }
           />
         )}
