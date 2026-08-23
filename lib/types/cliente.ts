@@ -6,7 +6,9 @@ export type Cliente = {
   id: string;
   advisor_id: string;
   nome: string;
+  data_nascimento: string | null;
   idade: number | null;
+  profissao: string | null;
   estado_civil: string | null;
   esporte_favorito: string | null;
   hobbies: string | null;

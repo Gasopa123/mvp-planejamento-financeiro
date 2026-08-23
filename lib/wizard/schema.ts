@@ -35,6 +35,11 @@ export const PRAZO_LABELS: Record<Prazo, string> = {
 };
 
 const nomeSchema = z.string().trim().min(1, "Informe o nome.");
+const profissaoSchema = z.string().trim().min(1, "Informe a profissão.");
+const dataNascimentoObrigatoriaSchema = z
+  .string()
+  .trim()
+  .min(1, "Informe a data de nascimento.");
 const dataNascimentoSchema = z.string().nullable();
 
 function valorMonetarioSchema(mensagem: string) {
@@ -48,11 +53,14 @@ function valorMonetarioSchema(mensagem: string) {
 
 export const pessoaSchema = z.object({
   nome: nomeSchema,
+  dataNascimento: dataNascimentoObrigatoriaSchema,
   idade: z
     .number({ error: "Informe a idade." })
     .int()
     .min(0)
     .max(130),
+  profissao: profissaoSchema,
+  eClt: z.boolean(),
   estadoCivil: z.enum(ESTADO_CIVIL_OPTIONS, {
     error: "Selecione o estado civil.",
   }),
@@ -156,11 +164,14 @@ export const planosFuturosSchema = z.object({
 export const wizardFormSchema = z
   .object({
     nome: nomeSchema,
+    dataNascimento: dataNascimentoObrigatoriaSchema,
     idade: z
       .number({ error: "Informe a idade." })
       .int()
       .min(0)
       .max(130),
+    profissao: profissaoSchema,
+    eClt: z.boolean(),
     estadoCivil: z.enum(ESTADO_CIVIL_OPTIONS, {
       error: "Selecione o estado civil.",
     }),
@@ -192,7 +203,6 @@ export const wizardFormSchema = z
       "Informe a pretensão salarial pós-aposentadoria.",
     ),
     pretendeAdquirirBens: z.boolean(),
-    eClt: z.boolean(),
     temSeguroVida: z.boolean(),
   })
   .superRefine((data, ctx) => {

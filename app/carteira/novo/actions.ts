@@ -8,7 +8,9 @@ import { wizardFormSchema, type WizardFormData } from "@/lib/wizard/schema";
 function toDbPayload(data: WizardFormData) {
   return {
     nome: data.nome,
+    data_nascimento: data.dataNascimento,
     idade: data.idade,
+    profissao: data.profissao,
     estado_civil: data.estadoCivil,
     esporte_favorito: data.esporteFavorito,
     hobbies: data.hobbies,
