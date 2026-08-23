@@ -8,6 +8,11 @@ describe("WIZARD_STEPS", () => {
     expect(ids).not.toContain("filhos");
   });
 
+  it("não exibe mais uma etapa separada para Estilo de vida", () => {
+    const ids = WIZARD_STEPS.map((step) => step.id);
+    expect(ids).not.toContain("estilo-vida");
+  });
+
   it("mantém Dados pessoais como a primeira etapa", () => {
     expect(WIZARD_STEPS[0]).toMatchObject({
       id: "pessoal",

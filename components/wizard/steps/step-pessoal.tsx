@@ -18,6 +18,9 @@ type StepPessoalProps = {
   estadoCivil: EstadoCivil | "";
   conjuge: PessoaDraft;
   filhos: PessoaDraft[];
+  esporteFavorito: string;
+  hobbies: string;
+  temSeguroVida: boolean;
   errors: StepErrors;
   onNomeChange: (value: string) => void;
   onDataNascimentoChange: (value: string) => void;
@@ -28,6 +31,9 @@ type StepPessoalProps = {
   onAddFilho: () => void;
   onRemoveFilho: (index: number) => void;
   onChangeFilho: (index: number, filho: PessoaDraft) => void;
+  onEsporteFavoritoChange: (value: string) => void;
+  onHobbiesChange: (value: string) => void;
+  onTemSeguroVidaChange: (value: boolean) => void;
 };
 
 export function StepPessoal({
@@ -38,6 +44,9 @@ export function StepPessoal({
   estadoCivil,
   conjuge,
   filhos,
+  esporteFavorito,
+  hobbies,
+  temSeguroVida,
   errors,
   onNomeChange,
   onDataNascimentoChange,
@@ -48,6 +57,9 @@ export function StepPessoal({
   onAddFilho,
   onRemoveFilho,
   onChangeFilho,
+  onEsporteFavoritoChange,
+  onHobbiesChange,
+  onTemSeguroVidaChange,
 }: StepPessoalProps) {
   const exigeConjuge =
     estadoCivil !== "" && ESTADOS_CIVIS_COM_CONJUGE.includes(estadoCivil);
@@ -225,6 +237,47 @@ export function StepPessoal({
           >
             + Adicionar filho
           </button>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h2 className="mb-4 text-sm font-semibold text-gray-900">
+          Estilo de vida
+        </h2>
+
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="esporteFavorito" className={labelClass}>
+              Esporte favorito
+            </label>
+            <input
+              id="esporteFavorito"
+              type="text"
+              value={esporteFavorito}
+              onChange={(event) => onEsporteFavoritoChange(event.target.value)}
+              className={inputClass()}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="hobbies" className={labelClass}>
+              Hobbies
+            </label>
+            <textarea
+              id="hobbies"
+              rows={3}
+              value={hobbies}
+              onChange={(event) => onHobbiesChange(event.target.value)}
+              className={inputClass()}
+            />
+          </div>
+
+          <SimNaoField
+            label="Tem seguro de vida?"
+            name="temSeguroVida"
+            value={temSeguroVida}
+            onChange={onTemSeguroVidaChange}
+          />
         </div>
       </div>
     </div>

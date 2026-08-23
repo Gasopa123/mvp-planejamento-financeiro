@@ -15,7 +15,6 @@ import {
 import type { WizardDraft } from "@/lib/wizard/types";
 import { validateStep, type StepErrors } from "@/lib/wizard/validate-step";
 import { StepPessoal } from "./steps/step-pessoal";
-import { StepEstiloVida } from "./steps/step-estilo-vida";
 import { StepFinanceiro } from "./steps/step-financeiro";
 import { StepPatrimonio } from "./steps/step-patrimonio";
 import { StepObjetivos } from "./steps/step-objetivos";
@@ -139,6 +138,9 @@ export function ClientWizard() {
             estadoCivil={formData.estadoCivil}
             conjuge={formData.conjuge ?? criarPessoaVazia()}
             filhos={formData.filhos}
+            esporteFavorito={formData.esporteFavorito}
+            hobbies={formData.hobbies}
+            temSeguroVida={formData.temSeguroVida}
             errors={errors}
             onNomeChange={(nome) => updateFormData({ nome })}
             onDataNascimentoChange={handleDataNascimentoChange}
@@ -159,17 +161,13 @@ export function ClientWizard() {
                 filhos: formData.filhos.map((f, i) => (i === index ? filho : f)),
               })
             }
-          />
-        )}
-
-        {currentStep.id === "estilo-vida" && (
-          <StepEstiloVida
-            esporteFavorito={formData.esporteFavorito}
-            hobbies={formData.hobbies}
             onEsporteFavoritoChange={(esporteFavorito) =>
               updateFormData({ esporteFavorito })
             }
             onHobbiesChange={(hobbies) => updateFormData({ hobbies })}
+            onTemSeguroVidaChange={(temSeguroVida) =>
+              updateFormData({ temSeguroVida })
+            }
           />
         )}
 
@@ -294,12 +292,8 @@ export function ClientWizard() {
         {currentStep.id === "planos-futuros" && (
           <StepPlanosFuturos
             pretendeAdquirirBens={formData.pretendeAdquirirBens}
-            temSeguroVida={formData.temSeguroVida}
             onPretendeAdquirirBensChange={(pretendeAdquirirBens) =>
               updateFormData({ pretendeAdquirirBens })
-            }
-            onTemSeguroVidaChange={(temSeguroVida) =>
-              updateFormData({ temSeguroVida })
             }
           />
         )}

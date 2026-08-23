@@ -1,7 +1,6 @@
 import type { ZodError } from "zod";
 import {
   pessoalStepSchema,
-  estiloVidaSchema,
   financeiroSchema,
   patrimonioSchema,
   objetivosSchema,
@@ -49,14 +48,9 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
         estadoCivil: data.estadoCivil,
         conjuge: data.conjuge,
         filhos: data.filhos,
-      });
-      return result.success ? {} : flatten(result.error);
-    }
-
-    case "estilo-vida": {
-      const result = estiloVidaSchema.safeParse({
         esporteFavorito: data.esporteFavorito,
         hobbies: data.hobbies,
+        temSeguroVida: data.temSeguroVida,
       });
       return result.success ? {} : flatten(result.error);
     }
@@ -103,7 +97,6 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
     case "planos-futuros": {
       const result = planosFuturosSchema.safeParse({
         pretendeAdquirirBens: data.pretendeAdquirirBens,
-        temSeguroVida: data.temSeguroVida,
       });
       return result.success ? {} : flatten(result.error);
     }

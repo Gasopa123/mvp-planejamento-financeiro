@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { calcularIdade } from "@/lib/idade";
-import { pessoaSchema, wizardFormSchema } from "./schema";
+import {
+  pessoaSchema,
+  pessoalStepSchema,
+  planosFuturosSchema,
+  wizardFormSchema,
+} from "./schema";
 
 const hoje = new Date("2026-08-22T12:00:00Z");
 
@@ -63,5 +68,36 @@ describe("dados pessoais do wizard", () => {
       profissao: "Engenheiro de Software",
       eClt: true,
     });
+  });
+});
+
+describe("estilo de vida como subtópico de dados pessoais", () => {
+  it("valida esporte favorito, hobbies e seguro de vida junto da etapa 'pessoal'", () => {
+    const result = pessoalStepSchema.safeParse({
+      nome: dadosBase.nome,
+      dataNascimento: dadosBase.dataNascimento,
+      idade: dadosBase.idade,
+      profissao: dadosBase.profissao,
+      eClt: dadosBase.eClt,
+      estadoCivil: dadosBase.estadoCivil,
+      conjuge: dadosBase.conjuge,
+      filhos: dadosBase.filhos,
+      esporteFavorito: "Corrida",
+      hobbies: "Leitura",
+      temSeguroVida: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data).toMatchObject({
+      esporteFavorito: "Corrida",
+      hobbies: "Leitura",
+      temSeguroVida: true,
+    });
+  });
+
+  it("não inclui mais 'Tem seguro de vida?' na etapa 'planos futuros'", () => {
+    expect(Object.keys(planosFuturosSchema.shape)).toEqual([
+      "pretendeAdquirirBens",
+    ]);
   });
 });
