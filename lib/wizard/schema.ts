@@ -10,6 +10,16 @@ export const ESTADO_CIVIL_OPTIONS = [
 
 export const PRAZO_OPTIONS = ["curto", "medio", "longo"] as const;
 
+// Opções fechadas de frequência de uso de moto — campo simples (select) em
+// vez de texto livre, pra reduzir erro de preenchimento e manter os dados
+// consistentes no dashboard (ver StepPessoal, subtópico "Saúde e risco").
+export const FREQUENCIA_MOTO_OPTIONS = [
+  "Diariamente",
+  "Algumas vezes por semana",
+  "Raramente",
+  "Apenas em lazer/finais de semana",
+] as const;
+
 export type EstadoCivil = (typeof ESTADO_CIVIL_OPTIONS)[number];
 export type Prazo = (typeof PRAZO_OPTIONS)[number];
 

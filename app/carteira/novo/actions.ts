@@ -2,68 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { wizardFormSchema, type WizardFormData } from "@/lib/wizard/schema";
-
-// Payload em snake_case, espelhando as colunas que a function SQL
-// create_client_full espera (ver supabase/migrations/003_create_client_full.sql).
-function toDbPayload(data: WizardFormData) {
-  return {
-    nome: data.nome,
-    data_nascimento: data.dataNascimento,
-    idade: data.idade,
-    profissao: data.profissao,
-    estado_civil: data.estadoCivil,
-    esporte_favorito: data.esporteFavorito,
-    hobbies: data.hobbies,
-    renda_mensal: data.rendaMensal,
-    despesa_mensal: data.despesaMensal,
-    patrimonio_investido: data.patrimonioInvestido,
-    tem_participacao_societaria: data.temParticipacaoSocietaria,
-    valor_participacao: data.valorParticipacao,
-    idade_aposentadoria: data.idadeAposentadoria,
-    expectativa_vida: data.expectativaVida,
-    pretensao_salarial_aposentadoria: data.pretensaoSalarialAposentadoria,
-    pretende_adquirir_bens: data.pretendeAdquirirBens,
-    e_clt: data.eClt,
-    tem_seguro_vida: data.temSeguroVida,
-    peso_kg: data.pesoKg,
-    altura_cm: data.alturaCm,
-    possui_patologia: data.possuiPatologia,
-    patologias: data.patologias,
-    usa_medicamentos: data.usaMedicamentos,
-    medicamentos: data.medicamentos,
-    fuma: data.fuma,
-    anda_moto: data.andaMoto,
-    frequencia_moto: data.frequenciaMoto,
-    conjuge: data.conjuge
-      ? {
-          nome: data.conjuge.nome,
-          data_nascimento: data.conjuge.dataNascimento,
-          dependente: data.conjuge.dependente,
-        }
-      : null,
-    filhos: data.filhos.map((filho) => ({
-      nome: filho.nome,
-      data_nascimento: filho.dataNascimento,
-      dependente: filho.dependente,
-    })),
-    imoveis: data.imoveis.map((imovel) => ({
-      valor: imovel.valor,
-      financiado: imovel.financiado,
-      adquirido_apos_casamento: imovel.adquiridoAposCasamento,
-    })),
-    automoveis: data.automoveis.map((automovel) => ({
-      valor: automovel.valor,
-      financiado: automovel.financiado,
-      adquirido_apos_casamento: automovel.adquiridoAposCasamento,
-    })),
-    objetivos: data.objetivos.map((objetivo) => ({
-      prazo: objetivo.prazo,
-      descricao: objetivo.descricao,
-      valor_estimado: objetivo.valorEstimado,
-      horizonte_anos: objetivo.horizonteAnos,
-    })),
-  };
-}
+import { toDbPayload } from "@/lib/wizard/to-db-payload";
 
 export async function createClienteCompleto(data: WizardFormData) {
   // Revalidação server-side — defesa em profundidade além da validação
