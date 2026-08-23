@@ -46,6 +46,44 @@ function valorMonetarioSchema(mensagem: string) {
   return z.number({ error: mensagem }).min(0, mensagem);
 }
 
+// Checa os três campos condicionais de saúde e risco (patologias,
+// medicamentos, frequência de moto), cada um exigido só quando o booleano
+// correspondente é verdadeiro. Compartilhado entre pessoalStepSchema e
+// wizardFormSchema pra não duplicar a regra em dois superRefine.
+function refineSaudeRisco(
+  data: {
+    possuiPatologia: boolean;
+    patologias: string;
+    usaMedicamentos: boolean;
+    medicamentos: string;
+    andaMoto: boolean;
+    frequenciaMoto: string;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (data.possuiPatologia && !data.patologias.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Informe as patologias.",
+      path: ["patologias"],
+    });
+  }
+  if (data.usaMedicamentos && !data.medicamentos.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Informe os medicamentos.",
+      path: ["medicamentos"],
+    });
+  }
+  if (data.andaMoto && !data.frequenciaMoto.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Informe a frequência que anda de moto.",
+      path: ["frequenciaMoto"],
+    });
+  }
+}
+
 // ----------------------------------------------------------------------------
 // Schemas por etapa — usados pra validar cada etapa do wizard isoladamente
 // antes de liberar o avanço ("Próxima").
@@ -80,9 +118,26 @@ export const filhoSchema = z.object({
 
 export const filhosSchema = z.array(filhoSchema);
 
+// Subtópico "Saúde e risco" — peso/altura são numéricos opcionais (>= 0);
+// patologias, medicamentos e frequência de moto só são exigidos quando o
+// booleano correspondente é verdadeiro (ver refineSaudeRisco).
+export const saudeRiscoSchema = z
+  .object({
+    pesoKg: z.number().min(0, "Peso inválido.").nullable(),
+    alturaCm: z.number().int().min(0, "Altura inválida.").nullable(),
+    possuiPatologia: z.boolean(),
+    patologias: z.string().trim(),
+    usaMedicamentos: z.boolean(),
+    medicamentos: z.string().trim(),
+    fuma: z.boolean(),
+    andaMoto: z.boolean(),
+    frequenciaMoto: z.string().trim(),
+  })
+  .superRefine(refineSaudeRisco);
+
 // Etapa "Dados pessoais" — titular + subtópicos cônjuge (condicional ao
-// estado civil), filhos (lista opcional) e estilo de vida, todos validados
-// juntos porque hoje vivem na mesma etapa do wizard.
+// estado civil), filhos (lista opcional), estilo de vida e saúde e risco,
+// todos validados juntos porque hoje vivem na mesma etapa do wizard.
 export const pessoalStepSchema = z
   .object({
     nome: nomeSchema,
@@ -102,6 +157,15 @@ export const pessoalStepSchema = z
     esporteFavorito: z.string().trim(),
     hobbies: z.string().trim(),
     temSeguroVida: z.boolean(),
+    pesoKg: z.number().min(0, "Peso inválido.").nullable(),
+    alturaCm: z.number().int().min(0, "Altura inválida.").nullable(),
+    possuiPatologia: z.boolean(),
+    patologias: z.string().trim(),
+    usaMedicamentos: z.boolean(),
+    medicamentos: z.string().trim(),
+    fuma: z.boolean(),
+    andaMoto: z.boolean(),
+    frequenciaMoto: z.string().trim(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -114,6 +178,7 @@ export const pessoalStepSchema = z
         path: ["conjuge"],
       });
     }
+    refineSaudeRisco(data, ctx);
   });
 
 export const financeiroSchema = z.object({
@@ -233,6 +298,15 @@ export const wizardFormSchema = z
     ),
     pretendeAdquirirBens: z.boolean(),
     temSeguroVida: z.boolean(),
+    pesoKg: z.number().min(0, "Peso inválido.").nullable(),
+    alturaCm: z.number().int().min(0, "Altura inválida.").nullable(),
+    possuiPatologia: z.boolean(),
+    patologias: z.string().trim(),
+    usaMedicamentos: z.boolean(),
+    medicamentos: z.string().trim(),
+    fuma: z.boolean(),
+    andaMoto: z.boolean(),
+    frequenciaMoto: z.string().trim(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -252,6 +326,7 @@ export const wizardFormSchema = z
         path: ["valorParticipacao"],
       });
     }
+    refineSaudeRisco(data, ctx);
   });
 
 export type WizardFormData = z.infer<typeof wizardFormSchema>;

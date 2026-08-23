@@ -67,6 +67,17 @@ create table clients (
   e_clt                             boolean not null default false,
   tem_seguro_vida                   boolean not null default false,
 
+  -- Saúde e risco
+  peso_kg                           numeric(5, 2),
+  altura_cm                         integer,
+  possui_patologia                  boolean not null default false,
+  patologias                        text,
+  usa_medicamentos                  boolean not null default false,
+  medicamentos                      text,
+  fuma                              boolean not null default false,
+  anda_moto                         boolean not null default false,
+  frequencia_moto                   text,
+
   criado_em                         timestamptz not null default now(),
   atualizado_em                     timestamptz not null default now()
 );

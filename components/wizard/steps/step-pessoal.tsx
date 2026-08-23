@@ -21,6 +21,15 @@ type StepPessoalProps = {
   esporteFavorito: string;
   hobbies: string;
   temSeguroVida: boolean;
+  pesoKg: number | null;
+  alturaCm: number | null;
+  possuiPatologia: boolean;
+  patologias: string;
+  usaMedicamentos: boolean;
+  medicamentos: string;
+  fuma: boolean;
+  andaMoto: boolean;
+  frequenciaMoto: string;
   errors: StepErrors;
   onNomeChange: (value: string) => void;
   onDataNascimentoChange: (value: string) => void;
@@ -34,6 +43,15 @@ type StepPessoalProps = {
   onEsporteFavoritoChange: (value: string) => void;
   onHobbiesChange: (value: string) => void;
   onTemSeguroVidaChange: (value: boolean) => void;
+  onPesoKgChange: (value: number | null) => void;
+  onAlturaCmChange: (value: number | null) => void;
+  onPossuiPatologiaChange: (value: boolean) => void;
+  onPatologiasChange: (value: string) => void;
+  onUsaMedicamentosChange: (value: boolean) => void;
+  onMedicamentosChange: (value: string) => void;
+  onFumaChange: (value: boolean) => void;
+  onAndaMotoChange: (value: boolean) => void;
+  onFrequenciaMotoChange: (value: string) => void;
 };
 
 export function StepPessoal({
@@ -47,6 +65,15 @@ export function StepPessoal({
   esporteFavorito,
   hobbies,
   temSeguroVida,
+  pesoKg,
+  alturaCm,
+  possuiPatologia,
+  patologias,
+  usaMedicamentos,
+  medicamentos,
+  fuma,
+  andaMoto,
+  frequenciaMoto,
   errors,
   onNomeChange,
   onDataNascimentoChange,
@@ -60,6 +87,15 @@ export function StepPessoal({
   onEsporteFavoritoChange,
   onHobbiesChange,
   onTemSeguroVidaChange,
+  onPesoKgChange,
+  onAlturaCmChange,
+  onPossuiPatologiaChange,
+  onPatologiasChange,
+  onUsaMedicamentosChange,
+  onMedicamentosChange,
+  onFumaChange,
+  onAndaMotoChange,
+  onFrequenciaMotoChange,
 }: StepPessoalProps) {
   const exigeConjuge =
     estadoCivil !== "" && ESTADOS_CIVIS_COM_CONJUGE.includes(estadoCivil);
@@ -278,6 +314,149 @@ export function StepPessoal({
             value={temSeguroVida}
             onChange={onTemSeguroVidaChange}
           />
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h2 className="mb-4 text-sm font-semibold text-gray-900">
+          Saúde e risco
+        </h2>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="pesoKg" className={labelClass}>
+                Peso (kg)
+              </label>
+              <input
+                id="pesoKg"
+                type="number"
+                min={0}
+                step="0.1"
+                value={pesoKg ?? ""}
+                onChange={(event) =>
+                  onPesoKgChange(
+                    event.target.value === "" ? null : Number(event.target.value),
+                  )
+                }
+                className={inputClass(Boolean(errors.pesoKg))}
+              />
+              {errors.pesoKg && (
+                <p className={errorTextClass}>{errors.pesoKg}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="alturaCm" className={labelClass}>
+                Altura (cm)
+              </label>
+              <input
+                id="alturaCm"
+                type="number"
+                min={0}
+                value={alturaCm ?? ""}
+                onChange={(event) =>
+                  onAlturaCmChange(
+                    event.target.value === "" ? null : Number(event.target.value),
+                  )
+                }
+                className={inputClass(Boolean(errors.alturaCm))}
+              />
+              {errors.alturaCm && (
+                <p className={errorTextClass}>{errors.alturaCm}</p>
+              )}
+            </div>
+          </div>
+
+          <SimNaoField
+            label="Possui patologia?"
+            name="possuiPatologia"
+            value={possuiPatologia}
+            onChange={(value) => {
+              onPossuiPatologiaChange(value);
+              if (!value) onPatologiasChange("");
+            }}
+          />
+          {possuiPatologia && (
+            <div>
+              <label htmlFor="patologias" className={labelClass}>
+                Quais patologias?
+              </label>
+              <textarea
+                id="patologias"
+                rows={2}
+                value={patologias}
+                onChange={(event) => onPatologiasChange(event.target.value)}
+                className={inputClass(Boolean(errors.patologias))}
+              />
+              {errors.patologias && (
+                <p className={errorTextClass}>{errors.patologias}</p>
+              )}
+            </div>
+          )}
+
+          <SimNaoField
+            label="Usa medicamentos?"
+            name="usaMedicamentos"
+            value={usaMedicamentos}
+            onChange={(value) => {
+              onUsaMedicamentosChange(value);
+              if (!value) onMedicamentosChange("");
+            }}
+          />
+          {usaMedicamentos && (
+            <div>
+              <label htmlFor="medicamentos" className={labelClass}>
+                Quais medicamentos?
+              </label>
+              <textarea
+                id="medicamentos"
+                rows={2}
+                value={medicamentos}
+                onChange={(event) => onMedicamentosChange(event.target.value)}
+                className={inputClass(Boolean(errors.medicamentos))}
+              />
+              {errors.medicamentos && (
+                <p className={errorTextClass}>{errors.medicamentos}</p>
+              )}
+            </div>
+          )}
+
+          <SimNaoField
+            label="Fuma?"
+            name="fuma"
+            value={fuma}
+            onChange={onFumaChange}
+          />
+
+          <SimNaoField
+            label="Anda de moto?"
+            name="andaMoto"
+            value={andaMoto}
+            onChange={(value) => {
+              onAndaMotoChange(value);
+              if (!value) onFrequenciaMotoChange("");
+            }}
+          />
+          {andaMoto && (
+            <div>
+              <label htmlFor="frequenciaMoto" className={labelClass}>
+                Com que frequência?
+              </label>
+              <input
+                id="frequenciaMoto"
+                type="text"
+                value={frequenciaMoto}
+                onChange={(event) =>
+                  onFrequenciaMotoChange(event.target.value)
+                }
+                className={inputClass(Boolean(errors.frequenciaMoto))}
+              />
+              {errors.frequenciaMoto && (
+                <p className={errorTextClass}>{errors.frequenciaMoto}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

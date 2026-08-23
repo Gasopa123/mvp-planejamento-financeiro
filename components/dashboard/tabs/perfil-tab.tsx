@@ -91,6 +91,54 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
         </dl>
       </Card>
 
+      <Card>
+        <CardLabel>Saúde e risco</CardLabel>
+        <dl className="space-y-3 text-sm">
+          <div className="flex justify-between">
+            <dt className="text-ink-60">Peso</dt>
+            <dd className="font-display font-semibold text-navy">
+              {cliente.peso_kg != null ? `${cliente.peso_kg} kg` : "não informado"}
+            </dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-ink-60">Altura</dt>
+            <dd className="font-display font-semibold text-navy">
+              {cliente.altura_cm != null ? `${cliente.altura_cm} cm` : "não informado"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-ink-60">Patologias</dt>
+            <dd className="text-right font-medium text-navy">
+              {cliente.possui_patologia
+                ? cliente.patologias || "não informado"
+                : "Não possui"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-ink-60">Medicamentos</dt>
+            <dd className="text-right font-medium text-navy">
+              {cliente.usa_medicamentos
+                ? cliente.medicamentos || "não informado"
+                : "Não usa"}
+            </dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-ink-60">Fuma</dt>
+            <dd className="font-display font-semibold text-navy">
+              {cliente.fuma ? "Sim" : "Não"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-ink-60">Anda de moto</dt>
+            <dd className="text-right font-medium text-navy">
+              {cliente.anda_moto
+                ? cliente.frequencia_moto || "Sim"
+                : "Não"}
+            </dd>
+          </div>
+        </dl>
+      </Card>
+
       {conjuge && (
         <Card>
           <CardLabel>Cônjuge</CardLabel>

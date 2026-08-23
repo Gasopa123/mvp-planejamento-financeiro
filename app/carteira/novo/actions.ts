@@ -25,6 +25,15 @@ function toDbPayload(data: WizardFormData) {
     pretende_adquirir_bens: data.pretendeAdquirirBens,
     e_clt: data.eClt,
     tem_seguro_vida: data.temSeguroVida,
+    peso_kg: data.pesoKg,
+    altura_cm: data.alturaCm,
+    possui_patologia: data.possuiPatologia,
+    patologias: data.patologias,
+    usa_medicamentos: data.usaMedicamentos,
+    medicamentos: data.medicamentos,
+    fuma: data.fuma,
+    anda_moto: data.andaMoto,
+    frequencia_moto: data.frequenciaMoto,
     conjuge: data.conjuge
       ? {
           nome: data.conjuge.nome,
