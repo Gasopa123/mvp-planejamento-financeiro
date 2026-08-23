@@ -15,8 +15,6 @@ import {
 import type { WizardDraft } from "@/lib/wizard/types";
 import { validateStep, type StepErrors } from "@/lib/wizard/validate-step";
 import { StepPessoal } from "./steps/step-pessoal";
-import { StepConjuge } from "./steps/step-conjuge";
-import { StepFilhos } from "./steps/step-filhos";
 import { StepEstiloVida } from "./steps/step-estilo-vida";
 import { StepFinanceiro } from "./steps/step-financeiro";
 import { StepPatrimonio } from "./steps/step-patrimonio";
@@ -33,12 +31,7 @@ export function ClientWizard() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const visibleSteps = WIZARD_STEPS.filter(
-    (step) =>
-      step.id !== "conjuge" ||
-      (formData.estadoCivil !== "" &&
-        ESTADOS_CIVIS_COM_CONJUGE.includes(formData.estadoCivil)),
-  );
+  const visibleSteps = WIZARD_STEPS;
   const currentStep = visibleSteps[stepIndex];
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === visibleSteps.length - 1;
@@ -144,36 +137,24 @@ export function ClientWizard() {
             profissao={formData.profissao}
             eClt={formData.eClt}
             estadoCivil={formData.estadoCivil}
+            conjuge={formData.conjuge ?? criarPessoaVazia()}
+            filhos={formData.filhos}
             errors={errors}
             onNomeChange={(nome) => updateFormData({ nome })}
             onDataNascimentoChange={handleDataNascimentoChange}
             onProfissaoChange={(profissao) => updateFormData({ profissao })}
             onECltChange={(eClt) => updateFormData({ eClt })}
             onEstadoCivilChange={handleEstadoCivilChange}
-          />
-        )}
-
-        {currentStep.id === "conjuge" && (
-          <StepConjuge
-            conjuge={formData.conjuge ?? criarPessoaVazia()}
-            errors={errors}
-            onChange={(conjuge) => updateFormData({ conjuge })}
-          />
-        )}
-
-        {currentStep.id === "filhos" && (
-          <StepFilhos
-            filhos={formData.filhos}
-            errors={errors}
-            onAdd={() =>
+            onConjugeChange={(conjuge) => updateFormData({ conjuge })}
+            onAddFilho={() =>
               updateFormData({ filhos: [...formData.filhos, criarPessoaVazia()] })
             }
-            onRemove={(index) =>
+            onRemoveFilho={(index) =>
               updateFormData({
                 filhos: formData.filhos.filter((_, i) => i !== index),
               })
             }
-            onChange={(index, filho) =>
+            onChangeFilho={(index, filho) =>
               updateFormData({
                 filhos: formData.filhos.map((f, i) => (i === index ? filho : f)),
               })

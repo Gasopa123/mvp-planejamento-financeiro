@@ -1,8 +1,6 @@
 import type { ZodError } from "zod";
 import {
-  pessoaSchema,
-  conjugeSchema,
-  filhosSchema,
+  pessoalStepSchema,
   estiloVidaSchema,
   financeiroSchema,
   patrimonioSchema,
@@ -42,24 +40,16 @@ export function scopeErrors(errors: StepErrors, prefix: string): StepErrors {
 export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
   switch (stepId) {
     case "pessoal": {
-      const result = pessoaSchema.safeParse({
+      const result = pessoalStepSchema.safeParse({
         nome: data.nome,
         dataNascimento: data.dataNascimento,
         idade: data.idade,
         profissao: data.profissao,
         eClt: data.eClt,
         estadoCivil: data.estadoCivil,
+        conjuge: data.conjuge,
+        filhos: data.filhos,
       });
-      return result.success ? {} : flatten(result.error);
-    }
-
-    case "conjuge": {
-      const result = conjugeSchema.safeParse(data.conjuge);
-      return result.success ? {} : flatten(result.error);
-    }
-
-    case "filhos": {
-      const result = filhosSchema.safeParse(data.filhos);
       return result.success ? {} : flatten(result.error);
     }
 
@@ -113,7 +103,6 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
     case "planos-futuros": {
       const result = planosFuturosSchema.safeParse({
         pretendeAdquirirBens: data.pretendeAdquirirBens,
-        eClt: data.eClt,
         temSeguroVida: data.temSeguroVida,
       });
       return result.success ? {} : flatten(result.error);

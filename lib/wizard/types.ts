@@ -91,8 +91,6 @@ export function criarWizardDraftInicial(): WizardDraft {
 
 export type StepId =
   | "pessoal"
-  | "conjuge"
-  | "filhos"
   | "estilo-vida"
   | "financeiro"
   | "patrimonio"
@@ -101,10 +99,10 @@ export type StepId =
   | "aposentadoria"
   | "planos-futuros";
 
+// Cônjuge e filhos não são mais etapas próprias do wizard: viraram
+// subtópicos dentro de "Dados pessoais" (ver StepPessoal).
 export const WIZARD_STEPS: { id: StepId; label: string }[] = [
   { id: "pessoal", label: "Dados pessoais" },
-  { id: "conjuge", label: "Cônjuge" },
-  { id: "filhos", label: "Filhos" },
   { id: "estilo-vida", label: "Estilo de vida" },
   { id: "financeiro", label: "Financeiro" },
   { id: "patrimonio", label: "Patrimônio" },

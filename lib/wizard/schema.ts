@@ -80,6 +80,39 @@ export const filhoSchema = z.object({
 
 export const filhosSchema = z.array(filhoSchema);
 
+// Etapa "Dados pessoais" — titular + subtópicos cônjuge (condicional ao
+// estado civil) e filhos (lista opcional), todos validados juntos porque
+// hoje vivem na mesma etapa do wizard.
+export const pessoalStepSchema = z
+  .object({
+    nome: nomeSchema,
+    dataNascimento: dataNascimentoObrigatoriaSchema,
+    idade: z
+      .number({ error: "Informe a idade." })
+      .int()
+      .min(0)
+      .max(130),
+    profissao: profissaoSchema,
+    eClt: z.boolean(),
+    estadoCivil: z.enum(ESTADO_CIVIL_OPTIONS, {
+      error: "Selecione o estado civil.",
+    }),
+    conjuge: conjugeSchema.nullable(),
+    filhos: filhosSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (
+      ESTADOS_CIVIS_COM_CONJUGE.includes(data.estadoCivil) &&
+      !data.conjuge
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe os dados do cônjuge.",
+        path: ["conjuge"],
+      });
+    }
+  });
+
 export const estiloVidaSchema = z.object({
   esporteFavorito: z.string().trim(),
   hobbies: z.string().trim(),
@@ -152,7 +185,6 @@ export const aposentadoriaSchema = z.object({
 
 export const planosFuturosSchema = z.object({
   pretendeAdquirirBens: z.boolean(),
-  eClt: z.boolean(),
   temSeguroVida: z.boolean(),
 });
 
