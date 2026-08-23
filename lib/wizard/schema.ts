@@ -81,8 +81,8 @@ export const filhoSchema = z.object({
 export const filhosSchema = z.array(filhoSchema);
 
 // Etapa "Dados pessoais" — titular + subtópicos cônjuge (condicional ao
-// estado civil) e filhos (lista opcional), todos validados juntos porque
-// hoje vivem na mesma etapa do wizard.
+// estado civil), filhos (lista opcional) e estilo de vida, todos validados
+// juntos porque hoje vivem na mesma etapa do wizard.
 export const pessoalStepSchema = z
   .object({
     nome: nomeSchema,
@@ -99,6 +99,9 @@ export const pessoalStepSchema = z
     }),
     conjuge: conjugeSchema.nullable(),
     filhos: filhosSchema,
+    esporteFavorito: z.string().trim(),
+    hobbies: z.string().trim(),
+    temSeguroVida: z.boolean(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -112,11 +115,6 @@ export const pessoalStepSchema = z
       });
     }
   });
-
-export const estiloVidaSchema = z.object({
-  esporteFavorito: z.string().trim(),
-  hobbies: z.string().trim(),
-});
 
 export const financeiroSchema = z.object({
   rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
@@ -185,7 +183,6 @@ export const aposentadoriaSchema = z.object({
 
 export const planosFuturosSchema = z.object({
   pretendeAdquirirBens: z.boolean(),
-  temSeguroVida: z.boolean(),
 });
 
 // ----------------------------------------------------------------------------

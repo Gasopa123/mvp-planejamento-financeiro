@@ -97,3 +97,24 @@ describe("validateStep('pessoal') — filhos opcionais", () => {
     expect(errors).toEqual({});
   });
 });
+
+describe("validateStep('pessoal') — estilo de vida (subtópico)", () => {
+  it("passa quando esporte favorito, hobbies e seguro de vida estão preenchidos", () => {
+    const draft: WizardDraft = {
+      ...draftBase(),
+      esporteFavorito: "Corrida",
+      hobbies: "Leitura",
+      temSeguroVida: true,
+    };
+    const errors = validateStep("pessoal", draft);
+    expect(errors).toEqual({});
+  });
+});
+
+describe("validateStep('planos-futuros')", () => {
+  it("não exige mais 'Tem seguro de vida?' — só pretende adquirir bens", () => {
+    const draft: WizardDraft = { ...draftBase(), pretendeAdquirirBens: true };
+    const errors = validateStep("planos-futuros", draft);
+    expect(errors).toEqual({});
+  });
+});
