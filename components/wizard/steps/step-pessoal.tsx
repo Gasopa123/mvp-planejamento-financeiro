@@ -2,6 +2,7 @@ import {
   ESTADO_CIVIL_LABELS,
   ESTADO_CIVIL_OPTIONS,
   ESTADOS_CIVIS_COM_CONJUGE,
+  FREQUENCIA_MOTO_OPTIONS,
   type EstadoCivil,
 } from "@/lib/wizard/schema";
 import { errorTextClass, inputClass, labelClass } from "@/lib/wizard/field-styles";
@@ -348,20 +349,26 @@ export function StepPessoal({
 
             <div>
               <label htmlFor="alturaCm" className={labelClass}>
-                Altura (cm)
+                Altura em centímetros (cm)
               </label>
-              <input
-                id="alturaCm"
-                type="number"
-                min={0}
-                value={alturaCm ?? ""}
-                onChange={(event) =>
-                  onAlturaCmChange(
-                    event.target.value === "" ? null : Number(event.target.value),
-                  )
-                }
-                className={inputClass(Boolean(errors.alturaCm))}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="alturaCm"
+                  type="number"
+                  min={0}
+                  placeholder="Ex: 178"
+                  value={alturaCm ?? ""}
+                  onChange={(event) =>
+                    onAlturaCmChange(
+                      event.target.value === "" ? null : Number(event.target.value),
+                    )
+                  }
+                  className={`${inputClass(Boolean(errors.alturaCm))} mt-0 pr-10`}
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-gray-500">
+                  cm
+                </span>
+              </div>
               {errors.alturaCm && (
                 <p className={errorTextClass}>{errors.alturaCm}</p>
               )}
@@ -443,15 +450,21 @@ export function StepPessoal({
               <label htmlFor="frequenciaMoto" className={labelClass}>
                 Com que frequência?
               </label>
-              <input
+              <select
                 id="frequenciaMoto"
-                type="text"
                 value={frequenciaMoto}
                 onChange={(event) =>
                   onFrequenciaMotoChange(event.target.value)
                 }
                 className={inputClass(Boolean(errors.frequenciaMoto))}
-              />
+              >
+                <option value="">Selecione...</option>
+                {FREQUENCIA_MOTO_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
               {errors.frequenciaMoto && (
                 <p className={errorTextClass}>{errors.frequenciaMoto}</p>
               )}
