@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { booleano } from "@/lib/form-data";
 import { objetivoSchema } from "@/lib/wizard/schema";
 
 function texto(formData: FormData, key: string) {
@@ -52,7 +53,7 @@ export async function atualizarCliente(formData: FormData) {
   const update: Record<string, string | number | boolean | null> = {};
   for (const campo of camposTexto) if (formData.has(campo)) update[campo] = texto(formData, campo);
   for (const campo of camposNumero) if (formData.has(campo)) update[campo] = numero(formData, campo);
-  for (const campo of camposBooleanos) if (formData.has(campo)) update[campo] = formData.get(campo) === "on";
+  for (const campo of camposBooleanos) if (formData.has(campo)) update[campo] = booleano(formData, campo);
   if (Object.keys(update).length === 0 || update.nome === null) return;
 
   const supabase = await createClient();
@@ -99,7 +100,7 @@ export async function atualizarPessoaVinculada(formData: FormData) {
     .update({
       nome,
       data_nascimento: texto(formData, "data_nascimento"),
-      dependente: formData.get("dependente") === "on",
+      dependente: booleano(formData, "dependente"),
     })
     .eq("id", pessoaId)
     .eq("client_id", clientId);
@@ -132,7 +133,7 @@ export async function adicionarFilho(formData: FormData) {
     client_id: clientId,
     nome,
     data_nascimento: texto(formData, "data_nascimento"),
-    dependente: formData.get("dependente") === "on",
+    dependente: booleano(formData, "dependente"),
   });
   revalidatePath(`/carteira/${clientId}`);
 }
