@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calcularIdade } from "@/lib/idade";
 import {
+  financeiroSchema,
   pessoaSchema,
   pessoalStepSchema,
   planosFuturosSchema,
@@ -21,6 +22,15 @@ const dadosBase = {
   filhos: [],
   esporteFavorito: "",
   hobbies: "",
+  salarioLiquido: 8000,
+  outrasRendas: [
+    {
+      descricao: "Aluguel",
+      valor: 1200,
+      frequencia: "mensal" as const,
+      terminoEm: null,
+    },
+  ],
   rendaMensal: 10000,
   despesaMensal: 5000,
   patrimonioInvestido: 100000,
@@ -77,6 +87,32 @@ describe("dados pessoais do wizard", () => {
       dataNascimento: "1990-08-23",
       profissao: "Engenheiro de Software",
       eClt: true,
+    });
+  });
+});
+
+describe("financeiro detalhado", () => {
+  it("valida salário líquido e lista de outras rendas", () => {
+    const result = financeiroSchema.safeParse({
+      salarioLiquido: 8000,
+      outrasRendas: [
+        {
+          descricao: "Aluguel",
+          valor: 1200,
+          frequencia: "mensal",
+          terminoEm: null,
+        },
+      ],
+      rendaMensal: 9200,
+      despesaMensal: 5000,
+      patrimonioInvestido: 100000,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data).toMatchObject({
+      salarioLiquido: 8000,
+      outrasRendas: [{ descricao: "Aluguel", frequencia: "mensal" }],
+      rendaMensal: 9200,
     });
   });
 });

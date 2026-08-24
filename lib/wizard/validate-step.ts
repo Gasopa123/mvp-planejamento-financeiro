@@ -66,6 +66,8 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
 
     case "financeiro": {
       const result = financeiroSchema.safeParse({
+        salarioLiquido: data.salarioLiquido,
+        outrasRendas: data.outrasRendas,
         rendaMensal: data.rendaMensal,
         despesaMensal: data.despesaMensal,
         patrimonioInvestido: data.patrimonioInvestido,

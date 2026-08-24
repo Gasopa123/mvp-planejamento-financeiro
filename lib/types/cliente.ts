@@ -12,6 +12,8 @@ export type Cliente = {
   estado_civil: string | null;
   esporte_favorito: string | null;
   hobbies: string | null;
+  salario_liquido: number | null;
+  outras_rendas: unknown;
   renda_mensal: number | null;
   despesa_mensal: number | null;
   patrimonio_investido: number | null;

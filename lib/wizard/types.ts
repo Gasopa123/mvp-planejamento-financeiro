@@ -1,4 +1,5 @@
 import type { EstadoCivil, Prazo } from "./schema";
+import type { FrequenciaRenda, RendaExtra } from "./rendas";
 
 // Espelha WizardFormData, mas com os campos numéricos/enum ainda "vazios"
 // (null / "") enquanto o advisor preenche o wizard. Só depois de validado
@@ -23,6 +24,8 @@ export type ObjetivoDraft = {
   horizonteAnos: number | null;
 };
 
+export type RendaExtraDraft = RendaExtra;
+
 export type WizardDraft = {
   nome: string;
   dataNascimento: string;
@@ -33,6 +36,8 @@ export type WizardDraft = {
   filhos: PessoaDraft[];
   esporteFavorito: string;
   hobbies: string;
+  salarioLiquido: number | null;
+  outrasRendas: RendaExtraDraft[];
   rendaMensal: number | null;
   despesaMensal: number | null;
   patrimonioInvestido: number | null;
@@ -70,6 +75,15 @@ export function criarObjetivoVazio(): ObjetivoDraft {
   return { prazo: "", descricao: "", valorEstimado: null, horizonteAnos: null };
 }
 
+export function criarRendaExtraVazia(): RendaExtraDraft {
+  return {
+    descricao: "",
+    valor: null,
+    frequencia: "mensal" satisfies FrequenciaRenda,
+    terminoEm: null,
+  };
+}
+
 export function criarWizardDraftInicial(): WizardDraft {
   return {
     nome: "",
@@ -81,6 +95,8 @@ export function criarWizardDraftInicial(): WizardDraft {
     filhos: [],
     esporteFavorito: "",
     hobbies: "",
+    salarioLiquido: null,
+    outrasRendas: [],
     rendaMensal: null,
     despesaMensal: null,
     patrimonioInvestido: null,
