@@ -4,7 +4,7 @@ import { IconChip } from "@/components/design-system/icon-chip";
 import { IconUsers } from "@/components/design-system/icons";
 import { ESTADO_CIVIL_LABELS, type EstadoCivil } from "@/lib/wizard/schema";
 import { calcularIdade } from "@/lib/idade";
-import { atualizarCliente, atualizarPessoaVinculada } from "@/app/carteira/[clientId]/actions";
+import { atualizarCliente, atualizarPessoaVinculada, adicionarFilho, removerPessoaVinculada } from "@/app/carteira/[clientId]/actions";
 import type { Cliente, PessoaVinculada } from "@/lib/types/cliente";
 
 type PerfilTabProps = {
@@ -64,6 +64,37 @@ function PessoaForm({ clienteId, pessoa, tabela }: { clienteId: string; pessoa: 
         Salvar
       </button>
     </form>
+  );
+}
+
+function RemoverPessoaForm({ clienteId, pessoaId, tabela, label }: { clienteId: string; pessoaId: string; tabela: "spouses" | "children"; label: string }) {
+  return (
+    <form action={removerPessoaVinculada} className="mt-3">
+      <input type="hidden" name="clientId" value={clienteId} />
+      <input type="hidden" name="pessoaId" value={pessoaId} />
+      <input type="hidden" name="tabela" value={tabela} />
+      <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">
+        {label}
+      </button>
+    </form>
+  );
+}
+
+function AdicionarFilhoForm({ clienteId }: { clienteId: string }) {
+  return (
+    <details>
+      <summary className="mt-4 cursor-pointer rounded-full border border-line px-3 py-1.5 text-center text-sm font-semibold text-navy hover:bg-blue-soft">
+        Adicionar filho
+      </summary>
+      <form action={adicionarFilho} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+        <input type="hidden" name="clientId" value={clienteId} />
+        <input type="hidden" name="tabela" value="children" />
+        <label className="space-y-1"><span className="font-medium text-ink-60">Nome</span><input name="nome" required className="w-full rounded-xl border border-line px-3 py-2" /></label>
+        <label className="space-y-1"><span className="font-medium text-ink-60">Nascimento</span><input type="date" name="data_nascimento" className="w-full rounded-xl border border-line px-3 py-2" /></label>
+        <label className="flex items-center gap-2 text-ink-60"><input type="hidden" name="dependente" value="off" /><input type="checkbox" name="dependente" defaultChecked />Dependente</label>
+        <button type="submit" className="rounded-full bg-navy px-4 py-2 font-semibold text-white sm:justify-self-end">Salvar filho</button>
+      </form>
+    </details>
   );
 }
 
@@ -147,6 +178,7 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
           <CardLabel>Cônjuge</CardLabel>
           <PessoaRow pessoa={conjuge} />
           <details><Editar /><PessoaForm clienteId={cliente.id} pessoa={conjuge} tabela="spouses" /></details>
+          <RemoverPessoaForm clienteId={cliente.id} pessoaId={conjuge.id} tabela="spouses" label="Remover cônjuge" />
         </Card>
       )}
 
@@ -154,6 +186,7 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
         <IconChip tone="blue"><IconUsers /></IconChip>
         <CardLabel>Filhos</CardLabel>
         {filhos.length === 0 ? <p className="text-sm text-ink-60">Nenhum filho cadastrado.</p> : <div>{filhos.map((filho) => <PessoaRow key={filho.id} pessoa={filho} />)}</div>}
+        <AdicionarFilhoForm clienteId={cliente.id} />
         {filhos.map((filho) => <details key={`editar-${filho.id}`}><Editar /><PessoaForm clienteId={cliente.id} pessoa={filho} tabela="children" /></details>)}
       </Card>
     </div>
