@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Cliente, Objetivo } from "@/lib/types/cliente";
-import { SimulacoesTab } from "./simulacoes-tab";
+import { pontosAteHorizonte, SimulacoesTab } from "./simulacoes-tab";
 
 const cliente = {
   idade: 36,
@@ -51,5 +51,15 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Patrimônio total projetado");
     expect(html).toContain("Aposentadoria ideal");
     expect(html).toContain("Comprar imóvel");
+  });
+
+  it("filtra a curva no horizonte selecionado", () => {
+    const pontos = [
+      { idadeAnos: 36, saldo: 100, fase: "acumulacao" as const },
+      { idadeAnos: 37, saldo: 150, fase: "acumulacao" as const },
+      { idadeAnos: 38.1, saldo: 200, fase: "acumulacao" as const },
+    ];
+
+    expect(pontosAteHorizonte(pontos, 38)).toEqual(pontos.slice(0, 2));
   });
 });

@@ -13,6 +13,7 @@ import {
   taxaRealPercentualCdi,
   taxaRealPrefixada,
   updateIndicators,
+  type PontoEvolucaoPatrimonio,
 } from "@/lib/calculos";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
@@ -40,6 +41,14 @@ const HORIZONTES = [
 ] as const;
 
 type HorizonteId = (typeof HORIZONTES)[number]["id"];
+
+export function pontosAteHorizonte(
+  pontos: PontoEvolucaoPatrimonio[],
+  idadeMaxima: number,
+): PontoEvolucaoPatrimonio[] {
+  const filtrados = pontos.filter((p) => p.idadeAnos <= idadeMaxima);
+  return filtrados.length > 0 ? filtrados : pontos.slice(0, 1);
+}
 
 export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTabProps) {
   const { idade, idade_aposentadoria: idadeAposentadoria, expectativa_vida: expectativaVida } =
@@ -132,8 +141,9 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     aporte,
     rendaDesejada,
     rentabilidadeReal,
-    idadeMaxima,
+    100,
   );
+  const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
 
@@ -294,7 +304,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
 
         <div className="mt-4">
           <PatrimonioEvolucaoChart
-            pontos={resultado.pontos}
+            pontos={pontosDaCurva}
             idadeAposentadoria={resultado.idadeAposentadoria}
             idadeEsgotamento={idadeEsgotamento}
             objetivos={objetivos}
