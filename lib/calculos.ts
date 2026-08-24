@@ -281,6 +281,44 @@ export function compararCenariosAposentadoria({
   };
 }
 
+export type StressTestAposentadoriaInput = {
+  idadeAtual: number;
+  idadeAposentadoria: number;
+  expectativaVida: number;
+  patrimonioInicial: number;
+  aporteMensal: number;
+  saqueMensalAposentadoria: number;
+  taxaAnualPct: number;
+};
+
+export function simularStressTestAposentadoria(input: StressTestAposentadoriaInput) {
+  const cenarios = [
+    { nome: "Base", taxa: input.taxaAnualPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
+    { nome: "Inflação +2%", taxa: input.taxaAnualPct - 2, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
+    { nome: "Rentabilidade -2%", taxa: input.taxaAnualPct - 2, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
+    { nome: "Aporte -30%", taxa: input.taxaAnualPct, aporte: input.aporteMensal * 0.7, idadeReferencia: input.expectativaVida },
+    { nome: "Viver +5 anos", taxa: input.taxaAnualPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida + 5 },
+  ];
+
+  return cenarios.map((cenario) => {
+    const resultado = simularEvolucaoPatrimonio(
+      input.idadeAtual,
+      input.idadeAposentadoria,
+      input.patrimonioInicial,
+      cenario.aporte,
+      input.saqueMensalAposentadoria,
+      cenario.taxa,
+      Math.max(100, cenario.idadeReferencia),
+    );
+    return {
+      nome: cenario.nome,
+      patrimonioNaAposentadoria: resultado.patrimonioNaAposentadoria,
+      idadeEsgotamento: resultado.idadeEsgotamento,
+      idadeReferencia: cenario.idadeReferencia,
+    };
+  });
+}
+
 export type PontoAcumulacaoMensal = {
   /** Idade fracionária (idade atual + mês/12) — permite plotar mês a mês. */
   idadeAnos: number;

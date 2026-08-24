@@ -65,7 +65,8 @@ export function PatrimonioEvolucaoChart({
 
   const idadeInicio = pontos[0].idadeAnos;
   const idadeFim = pontos[pontos.length - 1].idadeAnos;
-  const saldos = [...pontos, ...(pontosComparacao ?? [])].map((p) => (mostrarNegativos ? p.saldo : Math.max(0, p.saldo)));
+  const pontosComparacaoVisiveis = pontosComparacao?.filter((p) => p.idadeAnos <= idadeFim);
+  const saldos = [...pontos, ...(pontosComparacaoVisiveis ?? [])].map((p) => (mostrarNegativos ? p.saldo : Math.max(0, p.saldo)));
   const maxSaldo = Math.max(...saldos, 1) * 1.08;
   const minSaldo = mostrarNegativos ? Math.min(...saldos, 0) : 0;
 
@@ -161,8 +162,8 @@ export function PatrimonioEvolucaoChart({
       <path d={areaPath} fill="var(--color-green)" opacity={mounted ? 0.08 : 0} />
       <path d={areaPath} fill="var(--color-blue)" opacity={mounted ? 0.05 : 0} />
       <path d={idealPath} fill="none" stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" opacity={mounted ? 1 : 0} />
-      {pontosComparacao && (
-        <path d={pathDe(pontosComparacao)} fill="none" stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 0.9 : 0} />
+      {pontosComparacaoVisiveis && (
+        <path d={pathDe(pontosComparacaoVisiveis)} fill="none" stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 0.9 : 0} />
       )}
       <path d={linePathAcumulacao} fill="none" stroke="var(--color-blue)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 1 : 0} />
       <path d={linePathDrawdown} fill="none" stroke={corDrawdown} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 1 : 0} />
