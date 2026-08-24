@@ -224,16 +224,25 @@ export const financeiroSchema = z.object({
   valorInvestimentoExterior: z.number().min(0).nullable(),
 });
 
+const propriedadeDetalhesSchema = {
+  subtipo: z.string().trim(),
+  modelo: z.string().trim(),
+  financiamentoTermino: z.string().nullable(),
+  parcelaFinanciamento: z.number().min(0).nullable(),
+};
+
 export const imovelSchema = z.object({
   valor: valorMonetarioSchema("Informe o valor do imóvel."),
   financiado: z.boolean(),
   adquiridoAposCasamento: z.boolean(),
+  ...propriedadeDetalhesSchema,
 });
 
 export const automovelSchema = z.object({
   valor: valorMonetarioSchema("Informe o valor do automóvel."),
   financiado: z.boolean(),
   adquiridoAposCasamento: z.boolean(),
+  ...propriedadeDetalhesSchema,
 });
 
 export const patrimonioSchema = z.object({

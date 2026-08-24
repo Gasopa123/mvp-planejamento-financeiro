@@ -4,6 +4,7 @@ import type { StepErrors } from "@/lib/wizard/validate-step";
 
 type PropriedadeListProps = {
   idPrefix: string;
+  bemTipo: "imovel" | "automovel";
   titulo: string;
   itemLabel: string;
   addLabel: string;
@@ -19,6 +20,7 @@ type PropriedadeListProps = {
 // pelas duas seções da etapa Patrimônio.
 export function PropriedadeList({
   idPrefix,
+  bemTipo,
   titulo,
   itemLabel,
   addLabel,
@@ -59,16 +61,35 @@ export function PropriedadeList({
             <div className="mt-3">
               <PropriedadeFields
                 idPrefix={`${idPrefix}-${index}`}
+                bemTipo={bemTipo}
                 valor={item.valor}
                 financiado={item.financiado}
                 adquiridoAposCasamento={item.adquiridoAposCasamento}
-                errors={{ valor: errors[`${index}.valor`] }}
+                subtipo={item.subtipo}
+                modelo={item.modelo}
+                financiamentoTermino={item.financiamentoTermino}
+                parcelaFinanciamento={item.parcelaFinanciamento}
+                errors={{
+                  valor: errors[`${index}.valor`],
+                  subtipo: errors[`${index}.subtipo`],
+                  modelo: errors[`${index}.modelo`],
+                  financiamentoTermino: errors[`${index}.financiamentoTermino`],
+                  parcelaFinanciamento: errors[`${index}.parcelaFinanciamento`],
+                }}
                 onValorChange={(valor) => onChange(index, { ...item, valor })}
                 onFinanciadoChange={(financiado) =>
                   onChange(index, { ...item, financiado })
                 }
                 onAdquiridoAposCasamentoChange={(adquiridoAposCasamento) =>
                   onChange(index, { ...item, adquiridoAposCasamento })
+                }
+                onSubtipoChange={(subtipo) => onChange(index, { ...item, subtipo })}
+                onModeloChange={(modelo) => onChange(index, { ...item, modelo })}
+                onFinanciamentoTerminoChange={(financiamentoTermino) =>
+                  onChange(index, { ...item, financiamentoTermino })
+                }
+                onParcelaFinanciamentoChange={(parcelaFinanciamento) =>
+                  onChange(index, { ...item, parcelaFinanciamento })
                 }
               />
             </div>

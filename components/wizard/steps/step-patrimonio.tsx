@@ -30,6 +30,7 @@ export function StepPatrimonio({
     <div className="space-y-8">
       <PropriedadeList
         idPrefix="imovel"
+        bemTipo="imovel"
         titulo="Imóveis"
         itemLabel="Imóvel"
         addLabel="+ Adicionar imóvel"
@@ -43,6 +44,7 @@ export function StepPatrimonio({
 
       <PropriedadeList
         idPrefix="automovel"
+        bemTipo="automovel"
         titulo="Automóveis"
         itemLabel="Automóvel"
         addLabel="+ Adicionar automóvel"

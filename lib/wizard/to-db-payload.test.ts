@@ -44,8 +44,28 @@ const dadosCompletos = {
   localAplicado: "XP",
   temInvestimentoExterior: true,
   valorInvestimentoExterior: 25000,
-  imoveis: [],
-  automoveis: [],
+  imoveis: [
+    {
+      valor: 300000,
+      financiado: true,
+      adquiridoAposCasamento: true,
+      subtipo: "apartamento",
+      modelo: "",
+      financiamentoTermino: "2035-12-31",
+      parcelaFinanciamento: 2500,
+    },
+  ],
+  automoveis: [
+    {
+      valor: 50000,
+      financiado: true,
+      adquiridoAposCasamento: false,
+      subtipo: "carro",
+      modelo: "Corolla",
+      financiamentoTermino: "2028-12-31",
+      parcelaFinanciamento: 1200,
+    },
+  ],
   objetivos: [],
   temParticipacaoSocietaria: false,
   valorParticipacao: null,
@@ -100,6 +120,17 @@ describe("toDbPayload — regressão altura/frequência de moto NULL", () => {
     expect(payload.local_aplicado).toBe("XP");
     expect(payload.tem_investimento_exterior).toBe(true);
     expect(payload.valor_investimento_exterior).toBe(25000);
+    expect(payload.imoveis[0]).toMatchObject({
+      subtipo: "apartamento",
+      financiamento_termino: "2035-12-31",
+      parcela_financiamento: 2500,
+    });
+    expect(payload.automoveis[0]).toMatchObject({
+      subtipo: "carro",
+      modelo: "Corolla",
+      financiamento_termino: "2028-12-31",
+      parcela_financiamento: 1200,
+    });
   });
 
   it("não faz altura_cm ou frequencia_moto virarem undefined quando os valores são válidos", () => {
