@@ -1,3 +1,4 @@
+import { atualizarCliente } from "@/app/carteira/[clientId]/actions";
 import { Card, CardLabel, StatCard } from "@/components/design-system/card";
 import { GaugeChart } from "@/components/design-system/charts/gauge-chart";
 import { DonutChart } from "@/components/design-system/charts/donut-chart";
@@ -41,6 +42,28 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
           accent={capacidade >= 0 ? "green" : "gold"}
         />
       </div>
+
+      <Card>
+        <details>
+          <summary className="cursor-pointer rounded-full border border-line px-3 py-1.5 text-center text-sm font-semibold text-navy hover:bg-blue-soft">
+            Editar renda e despesas
+          </summary>
+          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+            <input type="hidden" name="clientId" value={cliente.id} />
+            <label className="space-y-1">
+              <span className="font-medium text-ink-60">Renda mensal</span>
+              <input name="renda_mensal" defaultValue={renda} className="w-full rounded-xl border border-line px-3 py-2" />
+            </label>
+            <label className="space-y-1">
+              <span className="font-medium text-ink-60">Despesa mensal</span>
+              <input name="despesa_mensal" defaultValue={despesa} className="w-full rounded-xl border border-line px-3 py-2" />
+            </label>
+            <button type="submit" className="self-end rounded-full bg-navy px-4 py-2 font-semibold text-white">
+              Salvar
+            </button>
+          </form>
+        </details>
+      </Card>
 
       <Card className="flex flex-col items-center gap-8 sm:flex-row">
         <GaugeChart percent={percentualPoupanca} />
