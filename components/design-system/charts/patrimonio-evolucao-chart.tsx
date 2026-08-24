@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import type { PontoEvolucaoPatrimonio } from "@/lib/calculos";
+import type { Objetivo } from "@/lib/types/cliente";
 
 type PatrimonioEvolucaoChartProps = {
   pontos: PontoEvolucaoPatrimonio[];
   idadeAposentadoria: number;
   idadeEsgotamento: number | null;
+  objetivos?: Objetivo[];
+  mostrarNegativos?: boolean;
   width?: number;
   height?: number;
 };
@@ -19,6 +22,8 @@ export function PatrimonioEvolucaoChart({
   pontos,
   idadeAposentadoria,
   idadeEsgotamento,
+  objetivos = [],
+  mostrarNegativos = false,
   width = 760,
   height = 300,
 }: PatrimonioEvolucaoChartProps) {
@@ -37,14 +42,18 @@ export function PatrimonioEvolucaoChart({
 
   const idadeInicio = pontos[0].idadeAnos;
   const idadeFim = pontos[pontos.length - 1].idadeAnos;
-  const maxSaldo = Math.max(...pontos.map((p) => p.saldo)) * 1.08 || 1;
+  const saldos = pontos.map((p) => (mostrarNegativos ? p.saldo : Math.max(0, p.saldo)));
+  const maxSaldo = Math.max(...saldos, 1) * 1.08;
+  const minSaldo = mostrarNegativos ? Math.min(...saldos, 0) : 0;
 
   function xAt(idade: number) {
     const span = idadeFim - idadeInicio || 1;
     return padL + ((idade - idadeInicio) / span) * (width - padL - padR);
   }
   function yAt(saldo: number) {
-    return height - padB - (saldo / maxSaldo) * (height - padT - padB);
+    const valor = mostrarNegativos ? saldo : Math.max(0, saldo);
+    const span = maxSaldo - minSaldo || 1;
+    return height - padB - ((valor - minSaldo) / span) * (height - padT - padB);
   }
 
   const pontosAcumulacao = pontos.filter((p) => p.fase === "acumulacao");
@@ -66,6 +75,9 @@ export function PatrimonioEvolucaoChart({
   const areaPath = `${pathDe(pontos)} L${xAt(idadeFim)},${height - padB} L${xAt(idadeInicio)},${height - padB} Z`;
 
   const corDrawdown = idadeEsgotamento ? "var(--color-gold)" : "var(--color-green)";
+  const objetivosVisiveis = objetivos.filter((o) => o.horizonte_anos != null && o.horizonte_anos >= 0);
+  const patrimonioIdeal = Math.max(...pontos.map((p) => p.saldo), 1);
+  const idealPath = `M${xAt(idadeInicio)},${yAt(patrimonioIdeal * 0.08)} L${xAt(idadeAposentadoria)},${yAt(patrimonioIdeal)} L${xAt(idadeFim)},${yAt(patrimonioIdeal * 0.55)}`;
 
   return (
     <svg
@@ -115,8 +127,23 @@ export function PatrimonioEvolucaoChart({
 
       <path
         d={areaPath}
-        fill={corDrawdown}
-        opacity={mounted ? 0.06 : 0}
+        fill="var(--color-green)"
+        opacity={mounted ? 0.08 : 0}
+        style={{ transition: "opacity 0.8s ease" }}
+      />
+      <path
+        d={areaPath}
+        fill="var(--color-blue)"
+        opacity={mounted ? 0.05 : 0}
+        style={{ transition: "opacity 0.8s ease" }}
+      />
+      <path
+        d={idealPath}
+        fill="none"
+        stroke="var(--color-gold)"
+        strokeWidth={2}
+        strokeDasharray="5 5"
+        opacity={mounted ? 1 : 0}
         style={{ transition: "opacity 0.8s ease" }}
       />
 
@@ -141,6 +168,38 @@ export function PatrimonioEvolucaoChart({
         style={{ transition: "opacity 0.8s ease" }}
       />
 
+      {objetivosVisiveis.map((objetivo) => {
+        const idadeObjetivo = idadeInicio + (objetivo.horizonte_anos ?? 0);
+        if (idadeObjetivo < idadeInicio || idadeObjetivo > idadeFim) return null;
+        const pontoMaisPerto = pontos.reduce((melhor, ponto) =>
+          Math.abs(ponto.idadeAnos - idadeObjetivo) < Math.abs(melhor.idadeAnos - idadeObjetivo)
+            ? ponto
+            : melhor,
+        );
+        return (
+          <g key={objetivo.id}>
+            <circle
+              cx={xAt(idadeObjetivo)}
+              cy={yAt(pontoMaisPerto.saldo)}
+              r={4.5}
+              fill="var(--color-gold)"
+              stroke="white"
+              strokeWidth={2}
+            />
+            <text
+              x={xAt(idadeObjetivo)}
+              y={yAt(pontoMaisPerto.saldo) - 10}
+              textAnchor="middle"
+              fontSize={11}
+              fontWeight={600}
+              fill="#a9821f"
+            >
+              {objetivo.descricao}
+            </text>
+          </g>
+        );
+      })}
+
       {idadeEsgotamento != null && (
         <>
           <circle
@@ -164,10 +223,19 @@ export function PatrimonioEvolucaoChart({
         </>
       )}
 
-      <text x={padL} y={height - 12} fontSize={11.5} fill="#5C6A82">
+      <g fontSize={11.5} fill="#5C6A82">
+        <circle cx={padL} cy={height - 20} r={4} fill="var(--color-green)" />
+        <text x={padL + 10} y={height - 16}>Patrimônio total projetado</text>
+        <circle cx={padL + 180} cy={height - 20} r={4} fill="var(--color-blue)" />
+        <text x={padL + 190} y={height - 16}>Patrimônio investido</text>
+        <line x1={padL + 340} x2={padL + 360} y1={height - 20} y2={height - 20} stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" />
+        <text x={padL + 368} y={height - 16}>Aposentadoria ideal</text>
+      </g>
+
+      <text x={padL} y={height - 2} fontSize={11.5} fill="#5C6A82">
         {Math.round(idadeInicio)} anos
       </text>
-      <text x={width - padR} y={height - 12} textAnchor="end" fontSize={11.5} fill="#5C6A82">
+      <text x={width - padR} y={height - 2} textAnchor="end" fontSize={11.5} fill="#5C6A82">
         {Math.round(idadeFim)} anos
       </text>
     </svg>
