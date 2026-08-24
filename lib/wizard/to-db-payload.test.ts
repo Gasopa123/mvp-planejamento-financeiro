@@ -20,6 +20,15 @@ const dadosCompletos = {
   filhos: [],
   esporteFavorito: "",
   hobbies: "",
+  salarioLiquido: 8000,
+  outrasRendas: [
+    {
+      descricao: "Aluguel",
+      valor: 1200,
+      frequencia: "mensal" as const,
+      terminoEm: null,
+    },
+  ],
   rendaMensal: 10000,
   despesaMensal: 5000,
   patrimonioInvestido: 100000,
@@ -52,6 +61,21 @@ describe("toDbPayload — regressão altura/frequência de moto NULL", () => {
     expect(payload.altura_cm).toBe(178);
     expect(payload.frequencia_moto).toBe("Diariamente");
     expect(payload.anda_moto).toBe(true);
+  });
+
+  it("inclui salário líquido e outras rendas em snake_case", () => {
+    const parsed = wizardFormSchema.parse(dadosCompletos);
+    const payload = toDbPayload(parsed);
+
+    expect(payload.salario_liquido).toBe(8000);
+    expect(payload.outras_rendas).toEqual([
+      {
+        descricao: "Aluguel",
+        valor: 1200,
+        frequencia: "mensal",
+        termino_em: null,
+      },
+    ]);
   });
 
   it("não faz altura_cm ou frequencia_moto virarem undefined quando os valores são válidos", () => {

@@ -4,12 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClienteCompleto } from "@/app/carteira/novo/actions";
 import { calcularIdade } from "@/lib/idade";
+import { calcularTotaisRenda } from "@/lib/wizard/rendas";
 import { ESTADOS_CIVIS_COM_CONJUGE, wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
 import {
   WIZARD_STEPS,
   criarObjetivoVazio,
   criarPessoaVazia,
   criarPropriedadeVazia,
+  criarRendaExtraVazia,
   criarWizardDraftInicial,
 } from "@/lib/wizard/types";
 import type { WizardDraft } from "@/lib/wizard/types";
@@ -54,6 +56,17 @@ export function ClientWizard() {
     updateFormData({
       dataNascimento,
       idade: dataNascimento ? calcularIdade(dataNascimento) : null,
+    });
+  }
+
+  function updateRendas(
+    salarioLiquido = formData.salarioLiquido,
+    outrasRendas = formData.outrasRendas,
+  ) {
+    updateFormData({
+      salarioLiquido,
+      outrasRendas,
+      rendaMensal: calcularTotaisRenda(salarioLiquido, outrasRendas).mensalRecorrente,
     });
   }
 
@@ -201,12 +214,30 @@ export function ClientWizard() {
 
         {currentStep.id === "financeiro" && (
           <StepFinanceiro
+            salarioLiquido={formData.salarioLiquido}
+            outrasRendas={formData.outrasRendas}
             rendaMensal={formData.rendaMensal}
             despesaMensal={formData.despesaMensal}
             patrimonioInvestido={formData.patrimonioInvestido}
             errors={errors}
-            onRendaMensalChange={(rendaMensal) =>
-              updateFormData({ rendaMensal })
+            onSalarioLiquidoChange={(salarioLiquido) => updateRendas(salarioLiquido)}
+            onAddOutraRenda={() =>
+              updateRendas(formData.salarioLiquido, [
+                ...formData.outrasRendas,
+                criarRendaExtraVazia(),
+              ])
+            }
+            onRemoveOutraRenda={(index) =>
+              updateRendas(
+                formData.salarioLiquido,
+                formData.outrasRendas.filter((_, i) => i !== index),
+              )
+            }
+            onChangeOutraRenda={(index, renda) =>
+              updateRendas(
+                formData.salarioLiquido,
+                formData.outrasRendas.map((r, i) => (i === index ? renda : r)),
+              )
             }
             onDespesaMensalChange={(despesaMensal) =>
               updateFormData({ despesaMensal })

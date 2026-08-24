@@ -1,43 +1,170 @@
 import { CurrencyInput } from "../currency-input";
 import { capacidadeInvestimento, taxaPoupanca } from "@/lib/calculos";
 import { formatarMoeda, formatarPercentual } from "@/lib/format";
-import { errorTextClass, labelClass } from "@/lib/wizard/field-styles";
+import { errorTextClass, inputClass, labelClass } from "@/lib/wizard/field-styles";
+import { calcularTotaisRenda, FREQUENCIA_RENDA_OPTIONS, type FrequenciaRenda } from "@/lib/wizard/rendas";
+import type { RendaExtraDraft } from "@/lib/wizard/types";
 import type { StepErrors } from "@/lib/wizard/validate-step";
 
+const FREQUENCIA_RENDA_LABELS: Record<FrequenciaRenda, string> = {
+  mensal: "Mensal",
+  quinzenal: "Quinzenal",
+  anual: "Anual",
+  unica: "Única",
+};
+
 type StepFinanceiroProps = {
+  salarioLiquido: number | null;
+  outrasRendas: RendaExtraDraft[];
   rendaMensal: number | null;
   despesaMensal: number | null;
   patrimonioInvestido: number | null;
   errors: StepErrors;
-  onRendaMensalChange: (value: number | null) => void;
+  onSalarioLiquidoChange: (value: number | null) => void;
+  onAddOutraRenda: () => void;
+  onRemoveOutraRenda: (index: number) => void;
+  onChangeOutraRenda: (index: number, renda: RendaExtraDraft) => void;
   onDespesaMensalChange: (value: number | null) => void;
   onPatrimonioInvestidoChange: (value: number | null) => void;
 };
 
 export function StepFinanceiro({
+  salarioLiquido,
+  outrasRendas,
   rendaMensal,
   despesaMensal,
   patrimonioInvestido,
   errors,
-  onRendaMensalChange,
+  onSalarioLiquidoChange,
+  onAddOutraRenda,
+  onRemoveOutraRenda,
+  onChangeOutraRenda,
   onDespesaMensalChange,
   onPatrimonioInvestidoChange,
 }: StepFinanceiroProps) {
+  const totaisRenda = calcularTotaisRenda(salarioLiquido, outrasRendas);
+
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="rendaMensal" className={labelClass}>
-          Renda mensal
+        <label htmlFor="salarioLiquido" className={labelClass}>
+          Salário líquido
         </label>
         <CurrencyInput
-          id="rendaMensal"
-          value={rendaMensal}
-          onChange={onRendaMensalChange}
-          invalid={Boolean(errors.rendaMensal)}
+          id="salarioLiquido"
+          value={salarioLiquido}
+          onChange={onSalarioLiquidoChange}
+          invalid={Boolean(errors.salarioLiquido)}
         />
-        {errors.rendaMensal && (
-          <p className={errorTextClass}>{errors.rendaMensal}</p>
+        {errors.salarioLiquido && (
+          <p className={errorTextClass}>{errors.salarioLiquido}</p>
         )}
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-900">Outras rendas</span>
+          <button
+            type="button"
+            onClick={onAddOutraRenda}
+            className="text-sm font-medium text-gray-700 hover:underline"
+          >
+            + Adicionar
+          </button>
+        </div>
+
+        {outrasRendas.length === 0 && (
+          <p className="mt-3 text-sm text-gray-600">Nenhuma outra renda cadastrada.</p>
+        )}
+
+        <div className="mt-3 space-y-3">
+          {outrasRendas.map((renda, index) => (
+            <div key={index} className="rounded-md border border-gray-200 bg-white p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">
+                  Renda {index + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveOutraRenda(index)}
+                  className="text-sm font-medium text-red-600 hover:underline"
+                >
+                  Remover
+                </button>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label htmlFor={`outra-renda-${index}-descricao`} className={labelClass}>
+                    Descrição
+                  </label>
+                  <input
+                    id={`outra-renda-${index}-descricao`}
+                    type="text"
+                    value={renda.descricao}
+                    onChange={(event) =>
+                      onChangeOutraRenda(index, { ...renda, descricao: event.target.value })
+                    }
+                    className={inputClass(Boolean(errors[`outrasRendas.${index}.descricao`]))}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`outra-renda-${index}-valor`} className={labelClass}>
+                    Valor
+                  </label>
+                  <CurrencyInput
+                    id={`outra-renda-${index}-valor`}
+                    value={renda.valor}
+                    onChange={(valor) => onChangeOutraRenda(index, { ...renda, valor })}
+                    invalid={Boolean(errors[`outrasRendas.${index}.valor`])}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`outra-renda-${index}-frequencia`} className={labelClass}>
+                    Frequência
+                  </label>
+                  <select
+                    id={`outra-renda-${index}-frequencia`}
+                    value={renda.frequencia}
+                    onChange={(event) =>
+                      onChangeOutraRenda(index, {
+                        ...renda,
+                        frequencia: event.target.value as FrequenciaRenda,
+                      })
+                    }
+                    className={inputClass(Boolean(errors[`outrasRendas.${index}.frequencia`]))}
+                  >
+                    {FREQUENCIA_RENDA_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {FREQUENCIA_RENDA_LABELS[option]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor={`outra-renda-${index}-termino`} className={labelClass}>
+                    Previsão de término
+                  </label>
+                  <input
+                    id={`outra-renda-${index}-termino`}
+                    type="date"
+                    value={renda.terminoEm ?? ""}
+                    onChange={(event) =>
+                      onChangeOutraRenda(index, {
+                        ...renda,
+                        terminoEm: event.target.value || null,
+                      })
+                    }
+                    className={inputClass(Boolean(errors[`outrasRendas.${index}.terminoEm`]))}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div>
@@ -68,6 +195,15 @@ export function StepFinanceiro({
         {errors.patrimonioInvestido && (
           <p className={errorTextClass}>{errors.patrimonioInvestido}</p>
         )}
+      </div>
+
+      <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+        <p>
+          Renda mensal total: <span className="font-medium">{formatarMoeda(totaisRenda.mensalRecorrente)}</span>
+        </p>
+        <p>
+          Renda anual estimada: <span className="font-medium">{formatarMoeda(totaisRenda.anualEstimado)}</span>
+        </p>
       </div>
 
       {rendaMensal != null && despesaMensal != null && (

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FREQUENCIA_RENDA_OPTIONS } from "./rendas";
 
 export const ESTADO_CIVIL_OPTIONS = [
   "solteiro",
@@ -55,6 +56,15 @@ const dataNascimentoSchema = z.string().nullable();
 function valorMonetarioSchema(mensagem: string) {
   return z.number({ error: mensagem }).min(0, mensagem);
 }
+
+export const rendaExtraSchema = z.object({
+  descricao: z.string().trim().min(1, "Descreva a renda."),
+  valor: valorMonetarioSchema("Informe o valor da renda."),
+  frequencia: z.enum(FREQUENCIA_RENDA_OPTIONS, {
+    error: "Selecione a frequência.",
+  }),
+  terminoEm: z.string().nullable(),
+});
 
 // Checa os três campos condicionais de saúde e risco (patologias,
 // medicamentos, frequência de moto), cada um exigido só quando o booleano
@@ -192,6 +202,8 @@ export const pessoalStepSchema = z
   });
 
 export const financeiroSchema = z.object({
+  salarioLiquido: valorMonetarioSchema("Informe o salário líquido."),
+  outrasRendas: z.array(rendaExtraSchema),
   rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
   despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
   patrimonioInvestido: valorMonetarioSchema("Informe o patrimônio investido."),
@@ -283,6 +295,8 @@ export const wizardFormSchema = z
     filhos: filhosSchema,
     esporteFavorito: z.string().trim(),
     hobbies: z.string().trim(),
+    salarioLiquido: valorMonetarioSchema("Informe o salário líquido."),
+    outrasRendas: z.array(rendaExtraSchema),
     rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
     despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
     patrimonioInvestido: valorMonetarioSchema(
