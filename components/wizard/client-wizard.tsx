@@ -299,6 +299,7 @@ export function ClientWizard() {
 
         {currentStep.id === "aposentadoria" && (
           <StepAposentadoria
+            idade={formData.idade}
             idadeAposentadoria={formData.idadeAposentadoria}
             expectativaVida={formData.expectativaVida}
             pretensaoSalarialAposentadoria={
