@@ -47,5 +47,8 @@ describe("PerfilTab", () => {
     expect(html.match(/<summary/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
     expect(html).toContain('name="nome"');
     expect(html).toContain('name="peso_kg"');
+    expect(html).toContain("Remover cônjuge");
+    expect(html).toContain("Adicionar filho");
+    expect(html).toContain('name="tabela" value="children"');
   });
 });

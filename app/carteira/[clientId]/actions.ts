@@ -65,18 +65,12 @@ export async function atualizarCliente(formData: FormData) {
 
 export const atualizarDadosPessoais = atualizarCliente;
 
-export async function atualizarPessoaVinculada(formData: FormData) {
-  const clientId = texto(formData, "clientId");
-  const pessoaId = texto(formData, "pessoaId");
-  const tabela = texto(formData, "tabela");
-  const nome = texto(formData, "nome");
-  if (!clientId || !pessoaId || !nome || (tabela !== "spouses" && tabela !== "children")) return;
-
+async function clienteDoAdvisor(clientId: string) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) return null;
 
   const { data: cliente } = await supabase
     .from("clients")
@@ -84,7 +78,18 @@ export async function atualizarPessoaVinculada(formData: FormData) {
     .eq("id", clientId)
     .eq("advisor_id", user.id)
     .maybeSingle<{ id: string }>();
-  if (!cliente) return;
+  return cliente ? supabase : null;
+}
+
+export async function atualizarPessoaVinculada(formData: FormData) {
+  const clientId = texto(formData, "clientId");
+  const pessoaId = texto(formData, "pessoaId");
+  const tabela = texto(formData, "tabela");
+  const nome = texto(formData, "nome");
+  if (!clientId || !pessoaId || !nome || (tabela !== "spouses" && tabela !== "children")) return;
+
+  const supabase = await clienteDoAdvisor(clientId);
+  if (!supabase) return;
 
   await supabase
     .from(tabela)
@@ -96,6 +101,36 @@ export async function atualizarPessoaVinculada(formData: FormData) {
     .eq("id", pessoaId)
     .eq("client_id", clientId);
 
+  revalidatePath(`/carteira/${clientId}`);
+}
+
+export async function removerPessoaVinculada(formData: FormData) {
+  const clientId = texto(formData, "clientId");
+  const pessoaId = texto(formData, "pessoaId");
+  const tabela = texto(formData, "tabela");
+  if (!clientId || !pessoaId || (tabela !== "spouses" && tabela !== "children")) return;
+
+  const supabase = await clienteDoAdvisor(clientId);
+  if (!supabase) return;
+
+  await supabase.from(tabela).delete().eq("id", pessoaId).eq("client_id", clientId);
+  revalidatePath(`/carteira/${clientId}`);
+}
+
+export async function adicionarFilho(formData: FormData) {
+  const clientId = texto(formData, "clientId");
+  const nome = texto(formData, "nome");
+  if (!clientId || !nome) return;
+
+  const supabase = await clienteDoAdvisor(clientId);
+  if (!supabase) return;
+
+  await supabase.from("children").insert({
+    client_id: clientId,
+    nome,
+    data_nascimento: texto(formData, "data_nascimento"),
+    dependente: formData.get("dependente") === "on",
+  });
   revalidatePath(`/carteira/${clientId}`);
 }
 
