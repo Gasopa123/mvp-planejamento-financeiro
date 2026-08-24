@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type {
   Assumptions,
   Cliente,
@@ -31,13 +31,11 @@ const TABS = [
   { id: "perfil", label: "Perfil" },
   { id: "diagnostico", label: "Diagnóstico" },
   { id: "patrimonio", label: "Patrimônio" },
-  { id: "objetivos", label: "Objetivos" },
   { id: "aposentadoria", label: "Aposentadoria" },
+  { id: "objetivos", label: "Objetivos" },
   { id: "simulacoes", label: "Simulações" },
   { id: "plano-acao", label: "Plano de ação" },
 ] as const;
-
-type TabId = (typeof TABS)[number]["id"];
 
 export function ClientDashboard({
   cliente,
@@ -48,8 +46,6 @@ export function ClientDashboard({
   objetivos,
   assumptions,
 }: ClientDashboardProps) {
-  const [tab, setTab] = useState<TabId>("perfil");
-
   return (
     <div className="bg-canvas -m-6 min-h-[calc(100vh-65px)] p-6">
       <div className="mx-auto max-w-5xl">
@@ -67,45 +63,42 @@ export function ClientDashboard({
           {cliente.idade != null ? `${cliente.idade} anos` : "Idade não informada"}
         </p>
 
-        <nav className="mt-6 flex flex-wrap gap-2 border-b border-line pb-4">
+        <nav className="sticky top-0 z-10 mt-6 flex flex-wrap gap-2 border-b border-line bg-canvas/95 pb-4 pt-2 backdrop-blur">
           {TABS.map((t) => (
-            <button
+            <a
               key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                tab === t.id
-                  ? "bg-navy text-white"
-                  : "bg-white text-ink-60 hover:bg-blue-soft hover:text-blue"
-              }`}
+              href={`#${t.id}`}
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-60 transition-colors hover:bg-blue-soft hover:text-blue"
             >
               {t.label}
-            </button>
+            </a>
           ))}
         </nav>
 
-        <div className="mt-8">
-          {tab === "perfil" && (
+        <div className="mt-8 space-y-10">
+          <DashboardSection id="perfil" title="Perfil">
             <PerfilTab cliente={cliente} conjuge={conjuge} filhos={filhos} />
-          )}
-          {tab === "diagnostico" && <DiagnosticoTab cliente={cliente} />}
-          {tab === "patrimonio" && (
+          </DashboardSection>
+          <DashboardSection id="diagnostico" title="Diagnóstico">
+            <DiagnosticoTab cliente={cliente} />
+          </DashboardSection>
+          <DashboardSection id="patrimonio" title="Patrimônio">
             <PatrimonioTab
               cliente={cliente}
               imoveis={imoveis}
               automoveis={automoveis}
             />
-          )}
-          {tab === "objetivos" && (
-            <ObjetivosTab objetivos={objetivos} assumptions={assumptions} />
-          )}
-          {tab === "aposentadoria" && (
+          </DashboardSection>
+          <DashboardSection id="aposentadoria" title="Aposentadoria">
             <AposentadoriaTab cliente={cliente} assumptions={assumptions} />
-          )}
-          {tab === "simulacoes" && (
+          </DashboardSection>
+          <DashboardSection id="objetivos" title="Objetivos">
+            <ObjetivosTab objetivos={objetivos} assumptions={assumptions} />
+          </DashboardSection>
+          <DashboardSection id="simulacoes" title="Simulações">
             <SimulacoesTab cliente={cliente} assumptions={assumptions} />
-          )}
-          {tab === "plano-acao" && (
+          </DashboardSection>
+          <DashboardSection id="plano-acao" title="Plano de ação">
             <PlanoAcaoTab
               cliente={cliente}
               conjuge={conjuge}
@@ -113,9 +106,29 @@ export function ClientDashboard({
               objetivos={objetivos}
               assumptions={assumptions}
             />
-          )}
+          </DashboardSection>
         </div>
       </div>
     </div>
+  );
+}
+
+
+function DashboardSection({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section id={id} className="scroll-mt-24">
+      <h2 className="mb-4 font-display text-2xl font-semibold text-navy">
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }

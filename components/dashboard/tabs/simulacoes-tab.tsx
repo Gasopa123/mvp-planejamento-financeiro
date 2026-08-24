@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardLabel } from "@/components/design-system/card";
 import { RangeSlider } from "@/components/design-system/range-slider";
 import { PercentField } from "@/components/design-system/percent-field";
@@ -72,6 +72,23 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
 
   const [cdiAtualEditavel, setCdiAtualEditavel] = useState(cdiAtualPct);
   const [inflacaoEditavel, setInflacaoEditavel] = useState(inflacaoProjetadaPct);
+  const [indicadoresAtualizadosEm, setIndicadoresAtualizadosEm] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    fetch("/api/indicadores")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { cdiAtualPct?: number; inflacaoProjetadaPct?: number; atualizadoEm?: string } | null) => {
+        if (cancelado || !data) return;
+        if (typeof data.cdiAtualPct === "number") setCdiAtualEditavel(data.cdiAtualPct);
+        if (typeof data.inflacaoProjetadaPct === "number") setInflacaoEditavel(data.inflacaoProjetadaPct);
+        setIndicadoresAtualizadosEm(data.atualizadoEm ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   if (idade == null || idadeAposentadoria == null || expectativaVida == null) {
     return (
@@ -107,7 +124,7 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
 
   const limiteAporte = Math.max(2500, Math.round(capacidadeAtual * 2));
-  const limiteRenda = Math.max(10000, Math.round(rendaDesejada * 1.5));
+  const limiteRenda = 1_000_000;
 
   return (
     <div className="space-y-6">
@@ -180,6 +197,13 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
         </div>
 
         <div className="grid grid-cols-1 gap-4 border-t border-line pt-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <CardLabel>IPCA/CDI automáticos</CardLabel>
+            <p className="text-xs text-ink-40">
+              Fonte: Banco Central SGS. Campos continuam editáveis manualmente, com 2 casas decimais.
+              {indicadoresAtualizadosEm ? ` Atualizado em ${indicadoresAtualizadosEm}.` : ""}
+            </p>
+          </div>
           <PercentField
             label="CDI atual"
             value={cdiAtualEditavel}
