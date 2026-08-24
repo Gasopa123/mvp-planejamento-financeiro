@@ -7,6 +7,7 @@ import {
   compararCenariosAposentadoria,
   impactoObjetivos,
   simularEvolucaoPatrimonio,
+  simularStressTestAposentadoria,
 } from "@/lib/calculos";
 import { formatarMoeda } from "@/lib/format";
 import type { Assumptions, Cliente, Objetivo } from "@/lib/types/cliente";
@@ -44,6 +45,27 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         taxaAnualPct: rentabilidadeRealPadraoPct,
       })
     : null;
+  const simulacaoSemObjetivos = podeSimular
+    ? simularEvolucaoPatrimonio(
+        cliente.idade!,
+        cliente.idade_aposentadoria!,
+        cliente.patrimonio_investido ?? 0,
+        capacidade,
+        cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 0,
+        rentabilidadeRealPadraoPct,
+      )
+    : null;
+  const stressTests = podeSimular
+    ? simularStressTestAposentadoria({
+        idadeAtual: cliente.idade!,
+        idadeAposentadoria: cliente.idade_aposentadoria!,
+        expectativaVida: cliente.expectativa_vida!,
+        patrimonioInicial: cliente.patrimonio_investido ?? 0,
+        aporteMensal: aporte,
+        saqueMensalAposentadoria: cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 0,
+        taxaAnualPct: rentabilidadeRealPadraoPct,
+      })
+    : [];
 
   return (
     <main className="bg-canvas -m-6 min-h-[calc(100vh-65px)] p-6 print:m-0 print:bg-white">
@@ -80,6 +102,15 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         </div>
 
         <Card>
+          <CardLabel>Objetivos consomem capacidade</CardLabel>
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+            <Resumo label="Aporte reservado" valor={formatarMoeda(impacto.aporteMensalObjetivos)} />
+            <Resumo label="Livre para aposentadoria" valor={formatarMoeda(impacto.capacidadeRestante)} />
+            <Resumo label="Patrimônio após objetivos" valor={formatarMoeda(impacto.patrimonioDepoisObjetivos)} />
+          </div>
+        </Card>
+
+        <Card>
           <CardLabel>Diagnóstico executivo</CardLabel>
           <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
             <Resumo label="Renda mensal" valor={formatarMoeda(cliente.renda_mensal ?? 0)} />
@@ -93,10 +124,28 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
             <CardLabel>Curva do futuro financeiro</CardLabel>
             <PatrimonioEvolucaoChart
               pontos={simulacao.pontos}
+              pontosComparacao={simulacaoSemObjetivos?.pontos}
               idadeAposentadoria={simulacao.idadeAposentadoria}
               idadeEsgotamento={simulacao.idadeEsgotamento}
               objetivos={objetivos}
             />
+          </Card>
+        )}
+
+        {stressTests.length > 0 && (
+          <Card>
+            <CardLabel>Stress test</CardLabel>
+            <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-5">
+              {stressTests.map((cenario) => (
+                <div key={cenario.nome} className="rounded-xl border border-line p-3">
+                  <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
+                  <b className="mt-1 block text-navy">{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
+                  <span className="mt-1 block text-xs text-ink-40">
+                    {cenario.idadeEsgotamento == null ? `sustenta até ${cenario.idadeReferencia}` : `esgota aos ${cenario.idadeEsgotamento}`}
+                  </span>
+                </div>
+              ))}
+            </div>
           </Card>
         )}
 
