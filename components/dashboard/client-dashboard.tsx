@@ -93,7 +93,7 @@ export function ClientDashboard({
             <AposentadoriaTab cliente={cliente} assumptions={assumptions} />
           </DashboardSection>
           <DashboardSection id="objetivos" title="Objetivos">
-            <ObjetivosTab objetivos={objetivos} assumptions={assumptions} />
+            <ObjetivosTab objetivos={objetivos} assumptions={assumptions} cliente={cliente} />
           </DashboardSection>
           <DashboardSection id="simulacoes" title="Simulações">
             <SimulacoesTab cliente={cliente} objetivos={objetivos} assumptions={assumptions} />

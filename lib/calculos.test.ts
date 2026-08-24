@@ -4,6 +4,7 @@ import {
   capacidadeInvestimento,
   computeAccumulation,
   computeDrawdown,
+  impactoObjetivos,
   projecaoMetaComInflacao,
   reservaEmergenciaIdeal,
   simularAcumulacaoMensal,
@@ -85,6 +86,27 @@ describe("computeDrawdown", () => {
 
     expect(pontos[0].idade).toBe(60);
     expect(pontos[pontos.length - 1].idade).toBeLessThanOrEqual(70);
+  });
+});
+
+describe("impactoObjetivos", () => {
+  it("calcula aporte mensal, capacidade restante e patrimônio após objetivos", () => {
+    expect(
+      impactoObjetivos(
+        [
+          { valor_estimado: 12000, horizonte_anos: 1 },
+          { valor_estimado: 6000, horizonte_anos: 0 },
+        ],
+        5000,
+        40000,
+        0,
+      ),
+    ).toEqual({
+      totalObjetivos: 18000,
+      aporteMensalObjetivos: 7000,
+      capacidadeRestante: -2000,
+      patrimonioDepoisObjetivos: 22000,
+    });
   });
 });
 

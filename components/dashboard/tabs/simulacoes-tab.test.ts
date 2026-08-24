@@ -51,6 +51,7 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Patrimônio total projetado");
     expect(html).toContain("Aposentadoria ideal");
     expect(html).toContain("Comprar imóvel");
+    expect(html).toContain("Objetivos consomem capacidade");
   });
 
   it("filtra a curva no horizonte selecionado", () => {
