@@ -56,6 +56,9 @@ create table clients (
   despesas_temporarias              jsonb not null default '[]'::jsonb,
   despesa_mensal                    numeric(14, 2),
   patrimonio_investido              numeric(14, 2),
+  local_aplicado                    text,
+  tem_investimento_exterior         boolean not null default false,
+  valor_investimento_exterior       numeric(14, 2),
 
   -- Participação societária
   tem_participacao_societaria       boolean not null default false,

@@ -41,6 +41,9 @@ const dadosCompletos = {
   ],
   despesaMensal: 5000,
   patrimonioInvestido: 100000,
+  localAplicado: "XP",
+  temInvestimentoExterior: true,
+  valorInvestimentoExterior: 25000,
   imoveis: [],
   automoveis: [],
   objetivos: [],
@@ -94,6 +97,9 @@ describe("toDbPayload — regressão altura/frequência de moto NULL", () => {
         termino_em: "2027-12-31",
       },
     ]);
+    expect(payload.local_aplicado).toBe("XP");
+    expect(payload.tem_investimento_exterior).toBe(true);
+    expect(payload.valor_investimento_exterior).toBe(25000);
   });
 
   it("não faz altura_cm ou frequencia_moto virarem undefined quando os valores são válidos", () => {

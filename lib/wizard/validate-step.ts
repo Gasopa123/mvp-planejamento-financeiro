@@ -73,6 +73,9 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
         despesasTemporarias: data.despesasTemporarias,
         despesaMensal: data.despesaMensal,
         patrimonioInvestido: data.patrimonioInvestido,
+        localAplicado: data.localAplicado,
+        temInvestimentoExterior: data.temInvestimentoExterior,
+        valorInvestimentoExterior: data.valorInvestimentoExterior,
       });
       return result.success ? {} : flatten(result.error);
     }

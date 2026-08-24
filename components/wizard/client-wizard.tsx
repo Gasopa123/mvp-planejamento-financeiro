@@ -237,6 +237,9 @@ export function ClientWizard() {
             despesasTemporarias={formData.despesasTemporarias}
             despesaMensal={formData.despesaMensal}
             patrimonioInvestido={formData.patrimonioInvestido}
+            localAplicado={formData.localAplicado}
+            temInvestimentoExterior={formData.temInvestimentoExterior}
+            valorInvestimentoExterior={formData.valorInvestimentoExterior}
             errors={errors}
             onSalarioLiquidoChange={(salarioLiquido) => updateRendas(salarioLiquido)}
             onAddOutraRenda={() =>
@@ -282,6 +285,20 @@ export function ClientWizard() {
             }
             onPatrimonioInvestidoChange={(patrimonioInvestido) =>
               updateFormData({ patrimonioInvestido })
+            }
+            onLocalAplicadoChange={(localAplicado) =>
+              updateFormData({ localAplicado })
+            }
+            onTemInvestimentoExteriorChange={(temInvestimentoExterior) =>
+              updateFormData({
+                temInvestimentoExterior,
+                valorInvestimentoExterior: temInvestimentoExterior
+                  ? formData.valorInvestimentoExterior
+                  : null,
+              })
+            }
+            onValorInvestimentoExteriorChange={(valorInvestimentoExterior) =>
+              updateFormData({ valorInvestimentoExterior })
             }
           />
         )}

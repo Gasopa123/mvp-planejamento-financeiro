@@ -219,6 +219,9 @@ export const financeiroSchema = z.object({
   despesasTemporarias: z.array(despesaTemporariaSchema),
   despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
   patrimonioInvestido: valorMonetarioSchema("Informe o patrimônio investido."),
+  localAplicado: z.string().trim(),
+  temInvestimentoExterior: z.boolean(),
+  valorInvestimentoExterior: z.number().min(0).nullable(),
 });
 
 export const imovelSchema = z.object({
@@ -316,6 +319,9 @@ export const wizardFormSchema = z
     patrimonioInvestido: valorMonetarioSchema(
       "Informe o patrimônio investido.",
     ),
+    localAplicado: z.string().trim(),
+    temInvestimentoExterior: z.boolean(),
+    valorInvestimentoExterior: z.number().min(0).nullable(),
     imoveis: z.array(imovelSchema),
     automoveis: z.array(automovelSchema),
     objetivos: objetivosSchema,

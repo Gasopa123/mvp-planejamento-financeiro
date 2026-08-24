@@ -45,6 +45,9 @@ export type WizardDraft = {
   despesasTemporarias: DespesaTemporariaDraft[];
   despesaMensal: number | null;
   patrimonioInvestido: number | null;
+  localAplicado: string;
+  temInvestimentoExterior: boolean;
+  valorInvestimentoExterior: number | null;
   imoveis: PropriedadeDraft[];
   automoveis: PropriedadeDraft[];
   objetivos: ObjetivoDraft[];
@@ -115,6 +118,9 @@ export function criarWizardDraftInicial(): WizardDraft {
     despesasTemporarias: [],
     despesaMensal: null,
     patrimonioInvestido: null,
+    localAplicado: "",
+    temInvestimentoExterior: false,
+    valorInvestimentoExterior: null,
     imoveis: [],
     automoveis: [],
     objetivos: [],

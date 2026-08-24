@@ -19,6 +19,9 @@ export type Cliente = {
   despesas_temporarias: unknown;
   despesa_mensal: number | null;
   patrimonio_investido: number | null;
+  local_aplicado: string | null;
+  tem_investimento_exterior: boolean;
+  valor_investimento_exterior: number | null;
   tem_participacao_societaria: boolean;
   valor_participacao: number | null;
   idade_aposentadoria: number | null;
