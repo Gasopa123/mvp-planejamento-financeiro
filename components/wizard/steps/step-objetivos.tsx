@@ -1,4 +1,5 @@
 import { CurrencyInput } from "../currency-input";
+import { formatarMoeda } from "@/lib/format";
 import { errorTextClass, inputClass, labelClass } from "@/lib/wizard/field-styles";
 import { PRAZO_LABELS, PRAZO_OPTIONS, type Prazo } from "@/lib/wizard/schema";
 import type { ObjetivoDraft } from "@/lib/wizard/types";
@@ -163,6 +164,77 @@ export function StepObjetivos({
       >
         + Adicionar objetivo
       </button>
+
+      {objetivos.length > 0 && <ResumoObjetivos objetivos={objetivos} />}
+    </div>
+  );
+}
+
+export type ResumoObjetivosValores = {
+  total: number;
+  porPrazo: Record<Prazo, number>;
+  somaValorEstimado: number;
+  maiorHorizonteAnos: number | null;
+};
+
+/** Resumo dos objetivos: total, quantidade por prazo, soma dos valores e maior horizonte. */
+export function resumirObjetivos(
+  objetivos: ObjetivoDraft[],
+): ResumoObjetivosValores {
+  const porPrazo: Record<Prazo, number> = { curto: 0, medio: 0, longo: 0 };
+  let somaValorEstimado = 0;
+  let maiorHorizonteAnos: number | null = null;
+
+  for (const objetivo of objetivos) {
+    if (objetivo.prazo) {
+      porPrazo[objetivo.prazo] += 1;
+    }
+    if (objetivo.valorEstimado != null) {
+      somaValorEstimado += objetivo.valorEstimado;
+    }
+    if (
+      objetivo.horizonteAnos != null &&
+      (maiorHorizonteAnos == null || objetivo.horizonteAnos > maiorHorizonteAnos)
+    ) {
+      maiorHorizonteAnos = objetivo.horizonteAnos;
+    }
+  }
+
+  return {
+    total: objetivos.length,
+    porPrazo,
+    somaValorEstimado,
+    maiorHorizonteAnos,
+  };
+}
+
+function ResumoObjetivos({ objetivos }: { objetivos: ObjetivoDraft[] }) {
+  const resumo = resumirObjetivos(objetivos);
+
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+      <p>
+        Total de objetivos:{" "}
+        <span className="font-medium">{resumo.total}</span>
+      </p>
+      <p>
+        {PRAZO_LABELS.curto}: {resumo.porPrazo.curto} · {PRAZO_LABELS.medio}:{" "}
+        {resumo.porPrazo.medio} · {PRAZO_LABELS.longo}: {resumo.porPrazo.longo}
+      </p>
+      <p>
+        Soma dos valores estimados:{" "}
+        <span className="font-medium">
+          {formatarMoeda(resumo.somaValorEstimado)}
+        </span>
+      </p>
+      <p>
+        Maior horizonte informado:{" "}
+        <span className="font-medium">
+          {resumo.maiorHorizonteAnos == null
+            ? "não informado"
+            : `${resumo.maiorHorizonteAnos} anos`}
+        </span>
+      </p>
     </div>
   );
 }
