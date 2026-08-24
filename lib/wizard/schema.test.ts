@@ -69,8 +69,9 @@ const dadosBase = {
     },
   ],
   objetivos: [],
-  temParticipacaoSocietaria: false,
-  valorParticipacao: null,
+  temParticipacaoSocietaria: true,
+  valorParticipacao: 250000,
+  percentualParticipacao: 35,
   idadeAposentadoria: 65,
   expectativaVida: 90,
   pretensaoSalarialAposentadoria: 15000,
@@ -355,5 +356,27 @@ describe("saúde e risco como subtópico de dados pessoais", () => {
       );
       expect(issue).toBeDefined();
     }
+  });
+});
+
+
+describe("societarioSchema", () => {
+  it("exige percentual entre 0 e 100 quando há participação", async () => {
+    const { societarioSchema } = await import("./schema");
+    expect(societarioSchema.safeParse({
+      temParticipacaoSocietaria: true,
+      valorParticipacao: 250000,
+      percentualParticipacao: 35,
+    }).success).toBe(true);
+    expect(societarioSchema.safeParse({
+      temParticipacaoSocietaria: true,
+      valorParticipacao: 250000,
+      percentualParticipacao: null,
+    }).success).toBe(false);
+    expect(societarioSchema.safeParse({
+      temParticipacaoSocietaria: true,
+      valorParticipacao: 250000,
+      percentualParticipacao: 101,
+    }).success).toBe(false);
   });
 });

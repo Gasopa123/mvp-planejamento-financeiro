@@ -57,6 +57,7 @@ export type WizardDraft = {
   objetivos: ObjetivoDraft[];
   temParticipacaoSocietaria: boolean;
   valorParticipacao: number | null;
+  percentualParticipacao: number | null;
   idadeAposentadoria: number | null;
   expectativaVida: number | null;
   pretensaoSalarialAposentadoria: number | null;
@@ -138,6 +139,7 @@ export function criarWizardDraftInicial(): WizardDraft {
     objetivos: [],
     temParticipacaoSocietaria: false,
     valorParticipacao: null,
+    percentualParticipacao: null,
     idadeAposentadoria: null,
     expectativaVida: null,
     pretensaoSalarialAposentadoria: null,

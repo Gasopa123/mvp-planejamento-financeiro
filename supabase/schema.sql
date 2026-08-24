@@ -63,6 +63,7 @@ create table clients (
   -- Participação societária
   tem_participacao_societaria       boolean not null default false,
   valor_participacao                numeric(14, 2),
+  percentual_participacao           numeric(5, 2),
 
   -- Aposentadoria
   idade_aposentadoria               integer,

@@ -265,6 +265,7 @@ export const societarioSchema = z
   .object({
     temParticipacaoSocietaria: z.boolean(),
     valorParticipacao: z.number().min(0).nullable(),
+    percentualParticipacao: z.number().min(0).max(100).nullable(),
   })
   .superRefine((data, ctx) => {
     if (data.temParticipacaoSocietaria && data.valorParticipacao == null) {
@@ -272,6 +273,13 @@ export const societarioSchema = z
         code: z.ZodIssueCode.custom,
         message: "Informe o valor aproximado da participação.",
         path: ["valorParticipacao"],
+      });
+    }
+    if (data.temParticipacaoSocietaria && data.percentualParticipacao == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o percentual da participação.",
+        path: ["percentualParticipacao"],
       });
     }
   });
@@ -336,6 +344,7 @@ export const wizardFormSchema = z
     objetivos: objetivosSchema,
     temParticipacaoSocietaria: z.boolean(),
     valorParticipacao: z.number().min(0).nullable(),
+    percentualParticipacao: z.number().min(0).max(100).nullable(),
     idadeAposentadoria: z
       .number({ error: "Informe a idade de aposentadoria." })
       .int()
@@ -377,6 +386,13 @@ export const wizardFormSchema = z
         code: z.ZodIssueCode.custom,
         message: "Informe o valor aproximado da participação.",
         path: ["valorParticipacao"],
+      });
+    }
+    if (data.temParticipacaoSocietaria && data.percentualParticipacao == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Informe o percentual da participação.",
+        path: ["percentualParticipacao"],
       });
     }
     refineSaudeRisco(data, ctx);

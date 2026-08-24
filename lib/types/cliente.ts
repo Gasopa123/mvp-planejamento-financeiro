@@ -24,6 +24,7 @@ export type Cliente = {
   valor_investimento_exterior: number | null;
   tem_participacao_societaria: boolean;
   valor_participacao: number | null;
+  percentual_participacao: number | null;
   idade_aposentadoria: number | null;
   expectativa_vida: number | null;
   pretensao_salarial_aposentadoria: number | null;
