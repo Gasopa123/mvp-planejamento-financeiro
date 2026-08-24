@@ -49,12 +49,20 @@ export function ClientDashboard({
   return (
     <div className="bg-canvas -m-6 min-h-[calc(100vh-65px)] p-6">
       <div className="mx-auto max-w-5xl">
-        <Link
-          href="/carteira"
-          className="text-sm font-medium text-ink-60 hover:text-navy"
-        >
-          ← Voltar pra carteira
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/carteira"
+            className="text-sm font-medium text-ink-60 hover:text-navy"
+          >
+            ← Voltar pra carteira
+          </Link>
+          <Link
+            href={`/carteira/${cliente.id}/apresentacao`}
+            className="rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold text-navy hover:bg-blue-soft"
+          >
+            Modo apresentação
+          </Link>
+        </div>
 
         <h1 className="mt-3 font-display text-3xl font-semibold text-navy">
           {cliente.nome}

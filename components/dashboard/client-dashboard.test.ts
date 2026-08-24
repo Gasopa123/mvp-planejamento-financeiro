@@ -65,6 +65,6 @@ describe("ClientDashboard", () => {
     expect(html).toContain('id="patrimonio"');
     expect(html.indexOf('id="aposentadoria"')).toBeLessThan(html.indexOf('id="objetivos"'));
     expect(html).toContain('id="simulacoes"');
-    expect(html).toContain('id="plano-acao"');
+    expect(html).toContain('href="/carteira/client-1/apresentacao"');
   });
 });
