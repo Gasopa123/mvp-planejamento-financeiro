@@ -59,6 +59,10 @@ export type Propriedade = {
   valor: number | null;
   financiado: boolean;
   adquirido_apos_casamento: boolean;
+  subtipo: string | null;
+  modelo: string | null;
+  financiamento_termino: string | null;
+  parcela_financiamento: number | null;
 };
 
 export type Objetivo = {

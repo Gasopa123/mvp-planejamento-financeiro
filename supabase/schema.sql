@@ -127,7 +127,11 @@ create table properties (
   tipo                       property_tipo not null,
   valor                      numeric(14, 2),
   financiado                 boolean not null default false,
-  adquirido_apos_casamento   boolean not null default false
+  adquirido_apos_casamento   boolean not null default false,
+  subtipo                    text,
+  modelo                     text,
+  financiamento_termino      date,
+  parcela_financiamento      numeric(14, 2)
 );
 
 create index properties_client_id_idx on properties (client_id);

@@ -16,6 +16,10 @@ export type PropriedadeDraft = {
   valor: number | null;
   financiado: boolean;
   adquiridoAposCasamento: boolean;
+  subtipo: string;
+  modelo: string;
+  financiamentoTermino: string | null;
+  parcelaFinanciamento: number | null;
 };
 
 export type ObjetivoDraft = {
@@ -75,7 +79,15 @@ export function criarPessoaVazia(): PessoaDraft {
 }
 
 export function criarPropriedadeVazia(): PropriedadeDraft {
-  return { valor: null, financiado: false, adquiridoAposCasamento: false };
+  return {
+    valor: null,
+    financiado: false,
+    adquiridoAposCasamento: false,
+    subtipo: "",
+    modelo: "",
+    financiamentoTermino: null,
+    parcelaFinanciamento: null,
+  };
 }
 
 export function criarObjetivoVazio(): ObjetivoDraft {

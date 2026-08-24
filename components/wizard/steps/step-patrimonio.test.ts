@@ -7,7 +7,15 @@ function propriedade(
   financiado = false,
   adquiridoAposCasamento = false,
 ): PropriedadeDraft {
-  return { valor, financiado, adquiridoAposCasamento };
+  return {
+    valor,
+    financiado,
+    adquiridoAposCasamento,
+    subtipo: "casa",
+    modelo: "",
+    financiamentoTermino: financiado ? "2030-12-31" : null,
+    parcelaFinanciamento: financiado ? 2500 : null,
+  };
 }
 
 describe("resumirPatrimonio", () => {
@@ -51,5 +59,33 @@ describe("resumirPatrimonio", () => {
       totalBens: 0,
       quantidadeFinanciados: 0,
     });
+  });
+});
+
+
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { StepPatrimonio } from "./step-patrimonio";
+
+describe("StepPatrimonio campos detalhados", () => {
+  it("renderiza tipo do bem, modelo e campos de financiamento", () => {
+    const html = renderToStaticMarkup(
+      createElement(StepPatrimonio, {
+        imoveis: [propriedade(300000, true)],
+        automoveis: [{ ...propriedade(50000, true), subtipo: "carro", modelo: "Corolla" }],
+        errors: {},
+        onAddImovel: () => {},
+        onRemoveImovel: () => {},
+        onChangeImovel: () => {},
+        onAddAutomovel: () => {},
+        onRemoveAutomovel: () => {},
+        onChangeAutomovel: () => {},
+      }),
+    );
+
+    expect(html).toContain("Tipo");
+    expect(html).toContain("Modelo");
+    expect(html).toContain("Previsão de término");
+    expect(html).toContain("Parcela do financiamento");
   });
 });
