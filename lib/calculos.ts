@@ -195,6 +195,48 @@ export function taxaRealPrefixada(
   return taxaReal * 100;
 }
 
+export type ImpactoObjetivoInput = {
+  valor_estimado: number | null;
+  horizonte_anos: number | null;
+};
+
+export function impactoObjetivos(
+  objetivos: ImpactoObjetivoInput[],
+  capacidadeMensal: number,
+  patrimonioInvestido: number,
+  inflacaoProjetadaPct: number,
+) {
+  const totalObjetivos = objetivos.reduce(
+    (total, objetivo) =>
+      total +
+      projecaoMetaComInflacao(
+        objetivo.valor_estimado ?? 0,
+        inflacaoProjetadaPct,
+        objetivo.horizonte_anos ?? 0,
+      ),
+    0,
+  );
+  const aporteMensalObjetivos = objetivos.reduce((total, objetivo) => {
+    const meses = Math.max(1, (objetivo.horizonte_anos ?? 0) * 12);
+    return (
+      total +
+      projecaoMetaComInflacao(
+        objetivo.valor_estimado ?? 0,
+        inflacaoProjetadaPct,
+        objetivo.horizonte_anos ?? 0,
+      ) /
+        meses
+    );
+  }, 0);
+
+  return {
+    totalObjetivos,
+    aporteMensalObjetivos,
+    capacidadeRestante: capacidadeMensal - aporteMensalObjetivos,
+    patrimonioDepoisObjetivos: patrimonioInvestido - totalObjetivos,
+  };
+}
+
 export type PontoAcumulacaoMensal = {
   /** Idade fracionária (idade atual + mês/12) — permite plotar mês a mês. */
   idadeAnos: number;

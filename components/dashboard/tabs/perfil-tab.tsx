@@ -4,6 +4,7 @@ import { IconChip } from "@/components/design-system/icon-chip";
 import { IconUsers } from "@/components/design-system/icons";
 import { ESTADO_CIVIL_LABELS, type EstadoCivil } from "@/lib/wizard/schema";
 import { calcularIdade } from "@/lib/idade";
+import { atualizarDadosPessoais } from "@/app/carteira/[clientId]/actions";
 import type { Cliente, PessoaVinculada } from "@/lib/types/cliente";
 
 type PerfilTabProps = {
@@ -39,6 +40,49 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+      <Card className="md:col-span-2">
+        <CardLabel>Alterar dados pessoais</CardLabel>
+        <form action={atualizarDadosPessoais} className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          <input type="hidden" name="clientId" value={cliente.id} />
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Nome</span>
+            <input name="nome" required defaultValue={cliente.nome} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Nascimento</span>
+            <input type="date" name="data_nascimento" defaultValue={cliente.data_nascimento ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Profissão</span>
+            <input name="profissao" defaultValue={cliente.profissao ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Estado civil</span>
+            <select name="estado_civil" defaultValue={cliente.estado_civil ?? ""} className="w-full rounded-xl border border-line px-3 py-2">
+              <option value="">Não informado</option>
+              {Object.entries(ESTADO_CIVIL_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Esporte favorito</span>
+            <input name="esporte_favorito" defaultValue={cliente.esporte_favorito ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Hobbies</span>
+            <input name="hobbies" defaultValue={cliente.hobbies ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="flex items-center gap-2 text-ink-60">
+            <input type="checkbox" name="e_clt" defaultChecked={cliente.e_clt} />
+            CLT
+          </label>
+          <button type="submit" className="rounded-full bg-navy px-4 py-2 font-semibold text-white sm:justify-self-end">
+            Salvar dados pessoais
+          </button>
+        </form>
+      </Card>
       <Card>
         <CardLabel>Dados pessoais</CardLabel>
         <dl className="space-y-3 text-sm">

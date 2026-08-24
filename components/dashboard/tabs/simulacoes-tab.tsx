@@ -8,6 +8,7 @@ import { VerdictCard } from "@/components/design-system/verdict-card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import {
   capacidadeInvestimento,
+  impactoObjetivos,
   simularEvolucaoPatrimonio,
   taxaRealIpcaMais,
   taxaRealPercentualCdi,
@@ -60,8 +61,15 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     cliente.renda_mensal != null && cliente.despesa_mensal != null
       ? Math.max(0, capacidadeInvestimento(cliente.renda_mensal, cliente.despesa_mensal))
       : 500;
+  const impactoDosObjetivos = impactoObjetivos(
+    objetivos,
+    capacidadeAtual,
+    cliente.patrimonio_investido ?? 0,
+    inflacaoProjetadaPct,
+  );
+  const capacidadeLivreParaAposentadoria = Math.max(0, impactoDosObjetivos.capacidadeRestante);
 
-  const [aporte, setAporte] = useState(Math.round(capacidadeAtual / 50) * 50 || 500);
+  const [aporte, setAporte] = useState(Math.round(capacidadeLivreParaAposentadoria / 50) * 50 || 500);
   const [rendaDesejada, setRendaDesejada] = useState(
     cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 5000,
   );
@@ -238,6 +246,28 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             value={inflacaoEditavel}
             onChange={setInflacaoEditavel}
           />
+        </div>
+      </Card>
+
+      <Card>
+        <CardLabel>Objetivos consomem capacidade</CardLabel>
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <span className="text-ink-60">Aporte reservado a objetivos</span>
+            <b className="block text-navy">{formatarMoeda(impactoDosObjetivos.aporteMensalObjetivos)}</b>
+          </div>
+          <div>
+            <span className="text-ink-60">Livre para aposentadoria</span>
+            <b className={impactoDosObjetivos.capacidadeRestante >= 0 ? "block text-green-ink" : "block text-gold-ink"}>
+              {formatarMoeda(impactoDosObjetivos.capacidadeRestante)}
+            </b>
+          </div>
+          <div>
+            <span className="text-ink-60">Patrimônio após objetivos</span>
+            <b className={impactoDosObjetivos.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink"}>
+              {formatarMoeda(impactoDosObjetivos.patrimonioDepoisObjetivos)}
+            </b>
+          </div>
         </div>
       </Card>
 
