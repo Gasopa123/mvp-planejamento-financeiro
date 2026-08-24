@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { PontoEvolucaoPatrimonio } from "@/lib/calculos";
+import { formatarMoeda } from "@/lib/format";
 import type { Objetivo } from "@/lib/types/cliente";
 
 type PatrimonioEvolucaoChartProps = {
@@ -77,7 +78,17 @@ export function PatrimonioEvolucaoChart({
   const corDrawdown = idadeEsgotamento ? "var(--color-gold)" : "var(--color-green)";
   const objetivosVisiveis = objetivos.filter((o) => o.horizonte_anos != null && o.horizonte_anos >= 0);
   const patrimonioIdeal = Math.max(...pontos.map((p) => p.saldo), 1);
-  const idealPath = `M${xAt(idadeInicio)},${yAt(patrimonioIdeal * 0.08)} L${xAt(idadeAposentadoria)},${yAt(patrimonioIdeal)} L${xAt(idadeFim)},${yAt(patrimonioIdeal * 0.55)}`;
+  const idadeAposentadoriaVisivel = Math.min(Math.max(idadeAposentadoria, idadeInicio), idadeFim);
+  const idealPath = `M${xAt(idadeInicio)},${yAt(patrimonioIdeal * 0.08)} L${xAt(idadeAposentadoriaVisivel)},${yAt(patrimonioIdeal)} L${xAt(idadeFim)},${yAt(patrimonioIdeal * 0.55)}`;
+  const anosDoEixo = Array.from(
+    { length: Math.floor(idadeFim) - Math.ceil(idadeInicio) + 1 },
+    (_, i) => Math.ceil(idadeInicio) + i,
+  );
+  const pontosAnuais = anosDoEixo.map((ano) =>
+    pontos.reduce((melhor, ponto) =>
+      Math.abs(ponto.idadeAnos - ano) < Math.abs(melhor.idadeAnos - ano) ? ponto : melhor,
+    ),
+  );
 
   return (
     <svg
@@ -102,28 +113,31 @@ export function PatrimonioEvolucaoChart({
         );
       })}
 
-      {/* linha vertical + rótulo marcando a aposentadoria como ponto de virada */}
-      <line
-        x1={xAt(idadeAposentadoria)}
-        x2={xAt(idadeAposentadoria)}
-        y1={padT}
-        y2={height - padB}
-        stroke="var(--color-navy)"
-        strokeWidth={1.5}
-        strokeDasharray="4 4"
-        opacity={mounted ? 0.5 : 0}
-        style={{ transition: "opacity 0.8s ease" }}
-      />
-      <text
-        x={xAt(idadeAposentadoria)}
-        y={padT - 10}
-        textAnchor="middle"
-        fontSize={11.5}
-        fontWeight={600}
-        fill="var(--color-navy)"
-      >
-        Aposentadoria ({idadeAposentadoria})
-      </text>
+      {idadeAposentadoria >= idadeInicio && idadeAposentadoria <= idadeFim && (
+        <>
+          <line
+            x1={xAt(idadeAposentadoria)}
+            x2={xAt(idadeAposentadoria)}
+            y1={padT}
+            y2={height - padB}
+            stroke="var(--color-navy)"
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
+            opacity={mounted ? 0.5 : 0}
+            style={{ transition: "opacity 0.8s ease" }}
+          />
+          <text
+            x={xAt(idadeAposentadoria)}
+            y={padT - 10}
+            textAnchor="middle"
+            fontSize={11.5}
+            fontWeight={600}
+            fill="var(--color-navy)"
+          >
+            Aposentadoria ({idadeAposentadoria})
+          </text>
+        </>
+      )}
 
       <path
         d={areaPath}
@@ -167,6 +181,21 @@ export function PatrimonioEvolucaoChart({
         opacity={mounted ? 1 : 0}
         style={{ transition: "opacity 0.8s ease" }}
       />
+
+      {pontosAnuais.map((ponto) => {
+        const ano = Math.round(ponto.idadeAnos);
+        return (
+          <g key={`ano-${ano}`}>
+            <line x1={xAt(ano)} x2={xAt(ano)} y1={height - padB} y2={height - padB + 5} stroke="#AAB4C3" />
+            <text x={xAt(ano)} y={height - 18} textAnchor="middle" fontSize={10.5} fill="#5C6A82">
+              {ano}
+            </text>
+            <circle cx={xAt(ponto.idadeAnos)} cy={yAt(ponto.saldo)} r={8} fill="transparent">
+              <title>{`${ano} anos — ${formatarMoeda(ponto.saldo)}`}</title>
+            </circle>
+          </g>
+        );
+      })}
 
       {objetivosVisiveis.map((objetivo) => {
         const idadeObjetivo = idadeInicio + (objetivo.horizonte_anos ?? 0);
@@ -232,12 +261,7 @@ export function PatrimonioEvolucaoChart({
         <text x={padL + 368} y={height - 16}>Aposentadoria ideal</text>
       </g>
 
-      <text x={padL} y={height - 2} fontSize={11.5} fill="#5C6A82">
-        {Math.round(idadeInicio)} anos
-      </text>
-      <text x={width - padR} y={height - 2} textAnchor="end" fontSize={11.5} fill="#5C6A82">
-        {Math.round(idadeFim)} anos
-      </text>
+
     </svg>
   );
 }
