@@ -23,7 +23,10 @@ const propsBase = {
     { descricao: "Escola", valor: 1000, frequencia: "mensal" as const, terminoEm: "2027-12-31" },
   ],
   despesaMensal: 5000,
-  patrimonioInvestido: 0,
+  patrimonioInvestido: 100000,
+  localAplicado: "XP",
+  temInvestimentoExterior: true,
+  valorInvestimentoExterior: 25000,
   errors: {},
   onSalarioLiquidoChange: () => {},
   onAddOutraRenda: () => {},
@@ -34,6 +37,9 @@ const propsBase = {
   onRemoveDespesaTemporaria: () => {},
   onChangeDespesaTemporaria: () => {},
   onPatrimonioInvestidoChange: () => {},
+  onLocalAplicadoChange: () => {},
+  onTemInvestimentoExteriorChange: () => {},
+  onValorInvestimentoExteriorChange: () => {},
 };
 
 describe("taxaPoupancaLabel", () => {
@@ -82,5 +88,7 @@ describe("StepFinanceiro", () => {
     expect(html).toContain("Renda anual estimada");
     expect(html).toContain("Despesas temporárias");
     expect(html).toContain("Despesa anual estimada");
+    expect(html).toContain("Local aplicado");
+    expect(html).toContain("Investimento no exterior");
   });
 });

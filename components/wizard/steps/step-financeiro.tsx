@@ -22,6 +22,9 @@ type StepFinanceiroProps = {
   despesasTemporarias: DespesaTemporariaDraft[];
   despesaMensal: number | null;
   patrimonioInvestido: number | null;
+  localAplicado: string;
+  temInvestimentoExterior: boolean;
+  valorInvestimentoExterior: number | null;
   errors: StepErrors;
   onSalarioLiquidoChange: (value: number | null) => void;
   onAddOutraRenda: () => void;
@@ -32,6 +35,9 @@ type StepFinanceiroProps = {
   onRemoveDespesaTemporaria: (index: number) => void;
   onChangeDespesaTemporaria: (index: number, despesa: DespesaTemporariaDraft) => void;
   onPatrimonioInvestidoChange: (value: number | null) => void;
+  onLocalAplicadoChange: (value: string) => void;
+  onTemInvestimentoExteriorChange: (value: boolean) => void;
+  onValorInvestimentoExteriorChange: (value: number | null) => void;
 };
 
 export function StepFinanceiro({
@@ -42,6 +48,9 @@ export function StepFinanceiro({
   despesasTemporarias,
   despesaMensal,
   patrimonioInvestido,
+  localAplicado,
+  temInvestimentoExterior,
+  valorInvestimentoExterior,
   errors,
   onSalarioLiquidoChange,
   onAddOutraRenda,
@@ -52,6 +61,9 @@ export function StepFinanceiro({
   onRemoveDespesaTemporaria,
   onChangeDespesaTemporaria,
   onPatrimonioInvestidoChange,
+  onLocalAplicadoChange,
+  onTemInvestimentoExteriorChange,
+  onValorInvestimentoExteriorChange,
 }: StepFinanceiroProps) {
   const totaisRenda = calcularTotaisRenda(salarioLiquido, outrasRendas);
   const totaisDespesa = calcularTotaisDespesa(despesaMensalBase, despesasTemporarias);
@@ -323,6 +335,46 @@ export function StepFinanceiro({
         />
         {errors.patrimonioInvestido && (
           <p className={errorTextClass}>{errors.patrimonioInvestido}</p>
+        )}
+      </div>
+
+
+
+      <div>
+        <label htmlFor="localAplicado" className={labelClass}>
+          Local aplicado
+        </label>
+        <input
+          id="localAplicado"
+          type="text"
+          value={localAplicado}
+          onChange={(event) => onLocalAplicadoChange(event.target.value)}
+          className={inputClass(Boolean(errors.localAplicado))}
+        />
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <input
+            type="checkbox"
+            checked={temInvestimentoExterior}
+            onChange={(event) => onTemInvestimentoExteriorChange(event.target.checked)}
+          />
+          Investimento no exterior
+        </label>
+
+        {temInvestimentoExterior && (
+          <div className="mt-3">
+            <label htmlFor="valorInvestimentoExterior" className={labelClass}>
+              Valor no exterior
+            </label>
+            <CurrencyInput
+              id="valorInvestimentoExterior"
+              value={valorInvestimentoExterior}
+              onChange={onValorInvestimentoExteriorChange}
+              invalid={Boolean(errors.valorInvestimentoExterior)}
+            />
+          </div>
         )}
       </div>
 

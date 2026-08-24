@@ -43,6 +43,9 @@ const dadosBase = {
   ],
   despesaMensal: 5000,
   patrimonioInvestido: 100000,
+  localAplicado: "XP",
+  temInvestimentoExterior: true,
+  valorInvestimentoExterior: 25000,
   imoveis: [],
   automoveis: [],
   objetivos: [],
@@ -124,6 +127,9 @@ describe("financeiro detalhado", () => {
       ],
       despesaMensal: 5000,
       patrimonioInvestido: 100000,
+  localAplicado: "XP",
+  temInvestimentoExterior: true,
+  valorInvestimentoExterior: 25000,
     });
 
     expect(result.success).toBe(true);
@@ -132,6 +138,9 @@ describe("financeiro detalhado", () => {
       outrasRendas: [{ descricao: "Aluguel", frequencia: "mensal" }],
       rendaMensal: 9200,
       despesasTemporarias: [{ descricao: "Escola", frequencia: "mensal" }],
+      localAplicado: "XP",
+      temInvestimentoExterior: true,
+      valorInvestimentoExterior: 25000,
     });
   });
 });
