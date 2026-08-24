@@ -23,6 +23,7 @@ export function PercentField({
     const parsed = Number(event.target.value);
     onChange(Number.isNaN(parsed) ? 0 : parsed);
   }
+  const displayValue = Number.isFinite(value) ? value.toFixed(2) : "0.00";
 
   return (
     <div>
@@ -37,7 +38,7 @@ export function PercentField({
         <input
           type="number"
           step={step}
-          value={value}
+          value={displayValue}
           onChange={handleChange}
           className="w-full bg-transparent font-display text-base font-semibold text-navy outline-none"
         />
