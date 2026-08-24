@@ -69,6 +69,8 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
         salarioLiquido: data.salarioLiquido,
         outrasRendas: data.outrasRendas,
         rendaMensal: data.rendaMensal,
+        despesaMensalBase: data.despesaMensalBase,
+        despesasTemporarias: data.despesasTemporarias,
         despesaMensal: data.despesaMensal,
         patrimonioInvestido: data.patrimonioInvestido,
       });

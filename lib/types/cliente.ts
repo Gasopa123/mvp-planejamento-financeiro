@@ -15,6 +15,8 @@ export type Cliente = {
   salario_liquido: number | null;
   outras_rendas: unknown;
   renda_mensal: number | null;
+  despesa_mensal_base: number | null;
+  despesas_temporarias: unknown;
   despesa_mensal: number | null;
   patrimonio_investido: number | null;
   tem_participacao_societaria: boolean;

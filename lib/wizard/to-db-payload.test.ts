@@ -30,6 +30,15 @@ const dadosCompletos = {
     },
   ],
   rendaMensal: 10000,
+  despesaMensalBase: 4000,
+  despesasTemporarias: [
+    {
+      descricao: "Escola",
+      valor: 1000,
+      frequencia: "mensal" as const,
+      terminoEm: "2027-12-31",
+    },
+  ],
   despesaMensal: 5000,
   patrimonioInvestido: 100000,
   imoveis: [],
@@ -74,6 +83,15 @@ describe("toDbPayload — regressão altura/frequência de moto NULL", () => {
         valor: 1200,
         frequencia: "mensal",
         termino_em: null,
+      },
+    ]);
+    expect(payload.despesa_mensal_base).toBe(4000);
+    expect(payload.despesas_temporarias).toEqual([
+      {
+        descricao: "Escola",
+        valor: 1000,
+        frequencia: "mensal",
+        termino_em: "2027-12-31",
       },
     ]);
   });

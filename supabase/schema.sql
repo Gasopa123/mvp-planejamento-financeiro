@@ -52,6 +52,8 @@ create table clients (
   salario_liquido                   numeric(14, 2),
   outras_rendas                     jsonb not null default '[]'::jsonb,
   renda_mensal                      numeric(14, 2),
+  despesa_mensal_base               numeric(14, 2),
+  despesas_temporarias              jsonb not null default '[]'::jsonb,
   despesa_mensal                    numeric(14, 2),
   patrimonio_investido              numeric(14, 2),
 

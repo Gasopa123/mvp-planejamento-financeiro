@@ -2,8 +2,9 @@ import { CurrencyInput } from "../currency-input";
 import { capacidadeInvestimento, taxaPoupanca } from "@/lib/calculos";
 import { formatarMoeda, formatarPercentual } from "@/lib/format";
 import { errorTextClass, inputClass, labelClass } from "@/lib/wizard/field-styles";
+import { calcularTotaisDespesa, FREQUENCIA_DESPESA_OPTIONS, type FrequenciaDespesa } from "@/lib/wizard/despesas";
 import { calcularTotaisRenda, FREQUENCIA_RENDA_OPTIONS, type FrequenciaRenda } from "@/lib/wizard/rendas";
-import type { RendaExtraDraft } from "@/lib/wizard/types";
+import type { DespesaTemporariaDraft, RendaExtraDraft } from "@/lib/wizard/types";
 import type { StepErrors } from "@/lib/wizard/validate-step";
 
 const FREQUENCIA_RENDA_LABELS: Record<FrequenciaRenda, string> = {
@@ -17,6 +18,8 @@ type StepFinanceiroProps = {
   salarioLiquido: number | null;
   outrasRendas: RendaExtraDraft[];
   rendaMensal: number | null;
+  despesaMensalBase: number | null;
+  despesasTemporarias: DespesaTemporariaDraft[];
   despesaMensal: number | null;
   patrimonioInvestido: number | null;
   errors: StepErrors;
@@ -24,7 +27,10 @@ type StepFinanceiroProps = {
   onAddOutraRenda: () => void;
   onRemoveOutraRenda: (index: number) => void;
   onChangeOutraRenda: (index: number, renda: RendaExtraDraft) => void;
-  onDespesaMensalChange: (value: number | null) => void;
+  onDespesaMensalBaseChange: (value: number | null) => void;
+  onAddDespesaTemporaria: () => void;
+  onRemoveDespesaTemporaria: (index: number) => void;
+  onChangeDespesaTemporaria: (index: number, despesa: DespesaTemporariaDraft) => void;
   onPatrimonioInvestidoChange: (value: number | null) => void;
 };
 
@@ -32,6 +38,8 @@ export function StepFinanceiro({
   salarioLiquido,
   outrasRendas,
   rendaMensal,
+  despesaMensalBase,
+  despesasTemporarias,
   despesaMensal,
   patrimonioInvestido,
   errors,
@@ -39,10 +47,14 @@ export function StepFinanceiro({
   onAddOutraRenda,
   onRemoveOutraRenda,
   onChangeOutraRenda,
-  onDespesaMensalChange,
+  onDespesaMensalBaseChange,
+  onAddDespesaTemporaria,
+  onRemoveDespesaTemporaria,
+  onChangeDespesaTemporaria,
   onPatrimonioInvestidoChange,
 }: StepFinanceiroProps) {
   const totaisRenda = calcularTotaisRenda(salarioLiquido, outrasRendas);
+  const totaisDespesa = calcularTotaisDespesa(despesaMensalBase, despesasTemporarias);
 
   return (
     <div className="space-y-4">
@@ -169,17 +181,134 @@ export function StepFinanceiro({
 
       <div>
         <label htmlFor="despesaMensal" className={labelClass}>
-          Despesa mensal
+          Despesa mensal fixa
         </label>
         <CurrencyInput
           id="despesaMensal"
-          value={despesaMensal}
-          onChange={onDespesaMensalChange}
+          value={despesaMensalBase}
+          onChange={onDespesaMensalBaseChange}
           invalid={Boolean(errors.despesaMensal)}
         />
         {errors.despesaMensal && (
           <p className={errorTextClass}>{errors.despesaMensal}</p>
         )}
+      </div>
+
+
+
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-900">Despesas temporárias</span>
+          <button
+            type="button"
+            onClick={onAddDespesaTemporaria}
+            className="text-sm font-medium text-gray-700 hover:underline"
+          >
+            + Adicionar
+          </button>
+        </div>
+
+        {despesasTemporarias.length === 0 && (
+          <p className="mt-3 text-sm text-gray-600">Nenhuma despesa temporária cadastrada.</p>
+        )}
+
+        <div className="mt-3 space-y-3">
+          {despesasTemporarias.map((despesa, index) => (
+            <div key={index} className="rounded-md border border-gray-200 bg-white p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">
+                  Despesa {index + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveDespesaTemporaria(index)}
+                  className="text-sm font-medium text-red-600 hover:underline"
+                >
+                  Remover
+                </button>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label htmlFor={`despesa-temporaria-${index}-descricao`} className={labelClass}>
+                    Descrição
+                  </label>
+                  <input
+                    id={`despesa-temporaria-${index}-descricao`}
+                    type="text"
+                    value={despesa.descricao}
+                    onChange={(event) =>
+                      onChangeDespesaTemporaria(index, { ...despesa, descricao: event.target.value })
+                    }
+                    className={inputClass(Boolean(errors[`despesasTemporarias.${index}.descricao`]))}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`despesa-temporaria-${index}-valor`} className={labelClass}>
+                    Valor
+                  </label>
+                  <CurrencyInput
+                    id={`despesa-temporaria-${index}-valor`}
+                    value={despesa.valor}
+                    onChange={(valor) => onChangeDespesaTemporaria(index, { ...despesa, valor })}
+                    invalid={Boolean(errors[`despesasTemporarias.${index}.valor`])}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`despesa-temporaria-${index}-frequencia`} className={labelClass}>
+                    Frequência
+                  </label>
+                  <select
+                    id={`despesa-temporaria-${index}-frequencia`}
+                    value={despesa.frequencia}
+                    onChange={(event) =>
+                      onChangeDespesaTemporaria(index, {
+                        ...despesa,
+                        frequencia: event.target.value as FrequenciaDespesa,
+                      })
+                    }
+                    className={inputClass(Boolean(errors[`despesasTemporarias.${index}.frequencia`]))}
+                  >
+                    {FREQUENCIA_DESPESA_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {FREQUENCIA_RENDA_LABELS[option]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor={`despesa-temporaria-${index}-termino`} className={labelClass}>
+                    Previsão de término
+                  </label>
+                  <input
+                    id={`despesa-temporaria-${index}-termino`}
+                    type="date"
+                    value={despesa.terminoEm ?? ""}
+                    onChange={(event) =>
+                      onChangeDespesaTemporaria(index, {
+                        ...despesa,
+                        terminoEm: event.target.value || null,
+                      })
+                    }
+                    className={inputClass(Boolean(errors[`despesasTemporarias.${index}.terminoEm`]))}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+        <p>
+          Despesa mensal total: <span className="font-medium">{formatarMoeda(totaisDespesa.mensalRecorrente)}</span>
+        </p>
+        <p>
+          Despesa anual estimada: <span className="font-medium">{formatarMoeda(totaisDespesa.anualEstimado)}</span>
+        </p>
       </div>
 
       <div>

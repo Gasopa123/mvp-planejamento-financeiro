@@ -4,10 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClienteCompleto } from "@/app/carteira/novo/actions";
 import { calcularIdade } from "@/lib/idade";
+import { calcularTotaisDespesa } from "@/lib/wizard/despesas";
 import { calcularTotaisRenda } from "@/lib/wizard/rendas";
 import { ESTADOS_CIVIS_COM_CONJUGE, wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
 import {
   WIZARD_STEPS,
+  criarDespesaTemporariaVazia,
   criarObjetivoVazio,
   criarPessoaVazia,
   criarPropriedadeVazia,
@@ -67,6 +69,20 @@ export function ClientWizard() {
       salarioLiquido,
       outrasRendas,
       rendaMensal: calcularTotaisRenda(salarioLiquido, outrasRendas).mensalRecorrente,
+    });
+  }
+
+  function updateDespesas(
+    despesaMensalBase = formData.despesaMensalBase,
+    despesasTemporarias = formData.despesasTemporarias,
+  ) {
+    updateFormData({
+      despesaMensalBase,
+      despesasTemporarias,
+      despesaMensal: calcularTotaisDespesa(
+        despesaMensalBase,
+        despesasTemporarias,
+      ).mensalRecorrente,
     });
   }
 
@@ -217,6 +233,8 @@ export function ClientWizard() {
             salarioLiquido={formData.salarioLiquido}
             outrasRendas={formData.outrasRendas}
             rendaMensal={formData.rendaMensal}
+            despesaMensalBase={formData.despesaMensalBase}
+            despesasTemporarias={formData.despesasTemporarias}
             despesaMensal={formData.despesaMensal}
             patrimonioInvestido={formData.patrimonioInvestido}
             errors={errors}
@@ -239,8 +257,28 @@ export function ClientWizard() {
                 formData.outrasRendas.map((r, i) => (i === index ? renda : r)),
               )
             }
-            onDespesaMensalChange={(despesaMensal) =>
-              updateFormData({ despesaMensal })
+            onDespesaMensalBaseChange={(despesaMensalBase) =>
+              updateDespesas(despesaMensalBase)
+            }
+            onAddDespesaTemporaria={() =>
+              updateDespesas(formData.despesaMensalBase, [
+                ...formData.despesasTemporarias,
+                criarDespesaTemporariaVazia(),
+              ])
+            }
+            onRemoveDespesaTemporaria={(index) =>
+              updateDespesas(
+                formData.despesaMensalBase,
+                formData.despesasTemporarias.filter((_, i) => i !== index),
+              )
+            }
+            onChangeDespesaTemporaria={(index, despesa) =>
+              updateDespesas(
+                formData.despesaMensalBase,
+                formData.despesasTemporarias.map((d, i) =>
+                  i === index ? despesa : d,
+                ),
+              )
             }
             onPatrimonioInvestidoChange={(patrimonioInvestido) =>
               updateFormData({ patrimonioInvestido })

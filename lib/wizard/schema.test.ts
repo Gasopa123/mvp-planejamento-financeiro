@@ -32,6 +32,15 @@ const dadosBase = {
     },
   ],
   rendaMensal: 10000,
+  despesaMensalBase: 4000,
+  despesasTemporarias: [
+    {
+      descricao: "Escola",
+      valor: 1000,
+      frequencia: "mensal" as const,
+      terminoEm: "2027-12-31",
+    },
+  ],
   despesaMensal: 5000,
   patrimonioInvestido: 100000,
   imoveis: [],
@@ -104,6 +113,15 @@ describe("financeiro detalhado", () => {
         },
       ],
       rendaMensal: 9200,
+      despesaMensalBase: 4000,
+      despesasTemporarias: [
+        {
+          descricao: "Escola",
+          valor: 1000,
+          frequencia: "mensal",
+          terminoEm: "2027-12-31",
+        },
+      ],
       despesaMensal: 5000,
       patrimonioInvestido: 100000,
     });
@@ -113,6 +131,7 @@ describe("financeiro detalhado", () => {
       salarioLiquido: 8000,
       outrasRendas: [{ descricao: "Aluguel", frequencia: "mensal" }],
       rendaMensal: 9200,
+      despesasTemporarias: [{ descricao: "Escola", frequencia: "mensal" }],
     });
   });
 });
