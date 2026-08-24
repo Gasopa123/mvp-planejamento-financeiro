@@ -1,8 +1,10 @@
 import { CurrencyInput } from "../currency-input";
+import { formatarMoeda } from "@/lib/format";
 import { errorTextClass, inputClass, labelClass } from "@/lib/wizard/field-styles";
 import type { StepErrors } from "@/lib/wizard/validate-step";
 
 type StepAposentadoriaProps = {
+  idade: number | null;
   idadeAposentadoria: number | null;
   expectativaVida: number | null;
   pretensaoSalarialAposentadoria: number | null;
@@ -12,7 +14,43 @@ type StepAposentadoriaProps = {
   onPretensaoSalarialAposentadoriaChange: (value: number | null) => void;
 };
 
+export type ResumoAposentadoria = {
+  idadeAtual: number;
+  idadeAlvo: number;
+  tempoRestante: number;
+  expectativaVida: number;
+  anosPosAposentadoria: number;
+  pretensaoMensalFormatada: string;
+};
+
+/** Resumo simples da aposentadoria; null se faltar algum dado necessário. */
+export function resumirAposentadoria(
+  idade: number | null,
+  idadeAposentadoria: number | null,
+  expectativaVida: number | null,
+  pretensaoSalarialAposentadoria: number | null,
+): ResumoAposentadoria | null {
+  if (
+    idade == null ||
+    idadeAposentadoria == null ||
+    expectativaVida == null ||
+    pretensaoSalarialAposentadoria == null
+  ) {
+    return null;
+  }
+
+  return {
+    idadeAtual: idade,
+    idadeAlvo: idadeAposentadoria,
+    tempoRestante: Math.max(0, idadeAposentadoria - idade),
+    expectativaVida,
+    anosPosAposentadoria: Math.max(0, expectativaVida - idadeAposentadoria),
+    pretensaoMensalFormatada: formatarMoeda(pretensaoSalarialAposentadoria),
+  };
+}
+
 export function StepAposentadoria({
+  idade,
   idadeAposentadoria,
   expectativaVida,
   pretensaoSalarialAposentadoria,
@@ -21,6 +59,13 @@ export function StepAposentadoria({
   onExpectativaVidaChange,
   onPretensaoSalarialAposentadoriaChange,
 }: StepAposentadoriaProps) {
+  const resumo = resumirAposentadoria(
+    idade,
+    idadeAposentadoria,
+    expectativaVida,
+    pretensaoSalarialAposentadoria,
+  );
+
   return (
     <div className="space-y-4">
       <div>
@@ -86,6 +131,38 @@ export function StepAposentadoria({
           </p>
         )}
       </div>
+
+      {resumo && <ResumoAposentadoriaCard resumo={resumo} />}
+    </div>
+  );
+}
+
+function ResumoAposentadoriaCard({ resumo }: { resumo: ResumoAposentadoria }) {
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+      <p>
+        Idade atual: <span className="font-medium">{resumo.idadeAtual}</span>
+      </p>
+      <p>
+        Idade alvo de aposentadoria:{" "}
+        <span className="font-medium">{resumo.idadeAlvo}</span>
+      </p>
+      <p>
+        Tempo restante até a aposentadoria:{" "}
+        <span className="font-medium">{resumo.tempoRestante} anos</span>
+      </p>
+      <p>
+        Expectativa de vida:{" "}
+        <span className="font-medium">{resumo.expectativaVida}</span>
+      </p>
+      <p>
+        Anos estimados vivendo de renda pós-aposentadoria:{" "}
+        <span className="font-medium">{resumo.anosPosAposentadoria} anos</span>
+      </p>
+      <p>
+        Pretensão mensal:{" "}
+        <span className="font-medium">{resumo.pretensaoMensalFormatada}</span>
+      </p>
     </div>
   );
 }
