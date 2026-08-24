@@ -39,6 +39,7 @@ export function toDbPayload(data: WizardFormData) {
     valor_investimento_exterior: data.valorInvestimentoExterior,
     tem_participacao_societaria: data.temParticipacaoSocietaria,
     valor_participacao: data.valorParticipacao,
+    percentual_participacao: data.percentualParticipacao,
     idade_aposentadoria: data.idadeAposentadoria,
     expectativa_vida: data.expectativaVida,
     pretensao_salarial_aposentadoria: data.pretensaoSalarialAposentadoria,

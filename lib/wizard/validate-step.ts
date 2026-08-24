@@ -97,6 +97,7 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
       const result = societarioSchema.safeParse({
         temParticipacaoSocietaria: data.temParticipacaoSocietaria,
         valorParticipacao: data.valorParticipacao,
+        percentualParticipacao: data.percentualParticipacao,
       });
       return result.success ? {} : flatten(result.error);
     }

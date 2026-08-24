@@ -67,8 +67,9 @@ const dadosCompletos = {
     },
   ],
   objetivos: [],
-  temParticipacaoSocietaria: false,
-  valorParticipacao: null,
+  temParticipacaoSocietaria: true,
+  valorParticipacao: 250000,
+  percentualParticipacao: 35,
   idadeAposentadoria: 65,
   expectativaVida: 90,
   pretensaoSalarialAposentadoria: 15000,
@@ -120,6 +121,7 @@ describe("toDbPayload — regressão altura/frequência de moto NULL", () => {
     expect(payload.local_aplicado).toBe("XP");
     expect(payload.tem_investimento_exterior).toBe(true);
     expect(payload.valor_investimento_exterior).toBe(25000);
+    expect(payload.percentual_participacao).toBe(35);
     expect(payload.imoveis[0]).toMatchObject({
       subtipo: "apartamento",
       financiamento_termino: "2035-12-31",

@@ -373,12 +373,16 @@ export function ClientWizard() {
           <StepSocietario
             temParticipacaoSocietaria={formData.temParticipacaoSocietaria}
             valorParticipacao={formData.valorParticipacao}
+            percentualParticipacao={formData.percentualParticipacao}
             errors={errors}
             onTemParticipacaoSocietariaChange={(temParticipacaoSocietaria) =>
               updateFormData({ temParticipacaoSocietaria })
             }
             onValorParticipacaoChange={(valorParticipacao) =>
               updateFormData({ valorParticipacao })
+            }
+            onPercentualParticipacaoChange={(percentualParticipacao) =>
+              updateFormData({ percentualParticipacao })
             }
           />
         )}
