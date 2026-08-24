@@ -16,10 +16,11 @@ import {
 } from "@/lib/calculos";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
-import type { Assumptions, Cliente } from "@/lib/types/cliente";
+import type { Assumptions, Cliente, Objetivo } from "@/lib/types/cliente";
 
 type SimulacoesTabProps = {
   cliente: Cliente;
+  objetivos: Objetivo[];
   assumptions: Assumptions | null;
 };
 
@@ -31,7 +32,16 @@ const TIPOS_RENTABILIDADE: { id: TipoRentabilidade; label: string }[] = [
   { id: "prefixado", label: "Prefixado" },
 ];
 
-export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
+const HORIZONTES = [
+  { id: "2", label: "2 anos", anos: 2 },
+  { id: "5", label: "5 anos", anos: 5 },
+  { id: "10", label: "10 anos", anos: 10 },
+  { id: "max", label: "Máximo", anos: null },
+] as const;
+
+type HorizonteId = (typeof HORIZONTES)[number]["id"];
+
+export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTabProps) {
   const { idade, idade_aposentadoria: idadeAposentadoria, expectativa_vida: expectativaVida } =
     cliente;
   const { inflacaoProjetadaPct, cdiAtualPct, rentabilidadeRealPadraoPct } =
@@ -73,6 +83,8 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
   const [cdiAtualEditavel, setCdiAtualEditavel] = useState(cdiAtualPct);
   const [inflacaoEditavel, setInflacaoEditavel] = useState(inflacaoProjetadaPct);
   const [indicadoresAtualizadosEm, setIndicadoresAtualizadosEm] = useState<string | null>(null);
+  const [horizonte, setHorizonte] = useState<HorizonteId>("max");
+  const [mostrarNegativos, setMostrarNegativos] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
@@ -111,6 +123,8 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
         ? taxaRealPercentualCdi(percentualCdiPct, cdiAtualEditavel, inflacaoEditavel)
         : taxaRealPrefixada(prefixadaPct, inflacaoEditavel);
 
+  const horizonteSelecionado = HORIZONTES.find((h) => h.id === horizonte) ?? HORIZONTES[3];
+  const idadeMaxima = horizonteSelecionado.anos == null ? 100 : idade + horizonteSelecionado.anos;
   const resultado = simularEvolucaoPatrimonio(
     idade,
     idadeAposentadoria,
@@ -118,7 +132,7 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
     aporte,
     rendaDesejada,
     rentabilidadeReal,
-    100,
+    idadeMaxima,
   );
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
@@ -244,12 +258,49 @@ export function SimulacoesTab({ cliente, assumptions }: SimulacoesTabProps) {
       />
 
       <Card>
-        <CardLabel>Evolução do patrimônio: acumulação e aposentadoria</CardLabel>
-        <PatrimonioEvolucaoChart
-          pontos={resultado.pontos}
-          idadeAposentadoria={resultado.idadeAposentadoria}
-          idadeEsgotamento={idadeEsgotamento}
-        />
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <CardLabel>Curva única do futuro financeiro</CardLabel>
+            <p className="text-sm text-ink-60">
+              Patrimônio, aposentadoria e objetivos na mesma linha do tempo.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm font-semibold text-ink-60">
+            <input
+              type="checkbox"
+              checked={mostrarNegativos}
+              onChange={(event) => setMostrarNegativos(event.target.checked)}
+            />
+            Mostrar negativos
+          </label>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {HORIZONTES.map((h) => (
+            <button
+              key={h.id}
+              type="button"
+              onClick={() => setHorizonte(h.id)}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                horizonte === h.id
+                  ? "bg-navy text-white"
+                  : "border border-line bg-white text-ink-60 hover:bg-blue-soft hover:text-blue"
+              }`}
+            >
+              {h.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <PatrimonioEvolucaoChart
+            pontos={resultado.pontos}
+            idadeAposentadoria={resultado.idadeAposentadoria}
+            idadeEsgotamento={idadeEsgotamento}
+            objetivos={objetivos}
+            mostrarNegativos={mostrarNegativos}
+          />
+        </div>
       </Card>
     </div>
   );
