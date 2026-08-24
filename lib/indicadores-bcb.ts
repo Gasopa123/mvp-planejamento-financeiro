@@ -9,6 +9,14 @@ export function bcbSerieUrl(serie: number): string {
 
 type BcbRow = { data: string; valor: string };
 
+export function anualizarCdiDiario(valorDiarioPct: number): number {
+  return (Math.pow(1 + valorDiarioPct / 100, 252) - 1) * 100;
+}
+
+export function anualizarIpcaMensal(valorMensalPct: number): number {
+  return (Math.pow(1 + valorMensalPct / 100, 12) - 1) * 100;
+}
+
 async function fetchUltimoSgs(serie: number): Promise<{ valor: number; data: string }> {
   const response = await fetch(bcbSerieUrl(serie), { next: { revalidate: 60 * 60 * 12 } });
   if (!response.ok) throw new Error(`BCB ${serie}: HTTP ${response.status}`);
@@ -22,5 +30,9 @@ export async function buscarIndicadoresBcb() {
     fetchUltimoSgs(BCB_SERIES.cdi),
     fetchUltimoSgs(BCB_SERIES.ipca),
   ]);
-  return { cdiAtualPct: cdi.valor, inflacaoProjetadaPct: ipca.valor, atualizadoEm: cdi.data };
+  return {
+    cdiAtualPct: anualizarCdiDiario(cdi.valor),
+    inflacaoProjetadaPct: anualizarIpcaMensal(ipca.valor),
+    atualizadoEm: cdi.data,
+  };
 }
