@@ -32,5 +32,7 @@ describe("ObjetivosTab", () => {
     expect(html).toContain("Impacto dos objetivos");
     expect(html).toContain("Capacidade após objetivos");
     expect(html).toContain("Patrimônio após objetivos");
+    expect(html).toContain("Remover objetivo");
+    expect(html).toContain('name="objetivoId" value="obj-1"');
   });
 });

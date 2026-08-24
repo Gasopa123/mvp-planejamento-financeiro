@@ -2,7 +2,7 @@ import { Card } from "@/components/design-system/card";
 import { Badge } from "@/components/design-system/badge";
 import { PRAZO_LABELS, type Prazo } from "@/lib/wizard/schema";
 import { capacidadeInvestimento, impactoObjetivos, projecaoMetaComInflacao } from "@/lib/calculos";
-import { adicionarObjetivo } from "@/app/carteira/[clientId]/actions";
+import { adicionarObjetivo, removerObjetivo } from "@/app/carteira/[clientId]/actions";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
 import type { Assumptions, Cliente, Objetivo } from "@/lib/types/cliente";
@@ -95,6 +95,13 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                       <b className="text-gold-ink">{formatarMoeda(valorFuturo)}</b>
                     </div>
                   )}
+                  <form action={removerObjetivo} className="mt-4">
+                    <input type="hidden" name="clientId" value={cliente.id} />
+                    <input type="hidden" name="objetivoId" value={objetivo.id} />
+                    <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">
+                      Remover objetivo
+                    </button>
+                  </form>
                 </Card>
               );
             })}
