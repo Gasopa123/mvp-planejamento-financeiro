@@ -1,7 +1,11 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { PatrimonioEvolucaoChart } from "./patrimonio-evolucao-chart";
+import {
+  PatrimonioEvolucaoChart,
+  anoLabelStep,
+  pontoMaisProximo,
+} from "./patrimonio-evolucao-chart";
 
 const pontos = [
   { idadeAnos: 36, saldo: 100000, fase: "acumulacao" as const },
@@ -10,7 +14,7 @@ const pontos = [
 ];
 
 describe("PatrimonioEvolucaoChart", () => {
-  it("mostra anos no eixo e tooltip de valor ao passar o mouse", () => {
+  it("mostra anos sem lotar o eixo e prepara tooltip customizado", () => {
     const html = renderToStaticMarkup(
       createElement(PatrimonioEvolucaoChart, {
         pontos,
@@ -20,7 +24,17 @@ describe("PatrimonioEvolucaoChart", () => {
     );
 
     expect(html).toContain(">37<");
-    expect(html).toContain("37 anos —");
-    expect(html).toContain("R$");
+    expect(html).toContain("Passe o cursor na linha");
+    expect(html).not.toContain("37 anos —");
+  });
+
+  it("encontra o ponto correto mais perto do cursor", () => {
+    expect(pontoMaisProximo(pontos, 37.2)).toEqual(pontos[1]);
+    expect(pontoMaisProximo(pontos, 37.8)).toEqual(pontos[2]);
+  });
+
+  it("reduz labels quando o horizonte é longo", () => {
+    expect(anoLabelStep(36, 46)).toBe(1);
+    expect(anoLabelStep(36, 90)).toBe(5);
   });
 });
