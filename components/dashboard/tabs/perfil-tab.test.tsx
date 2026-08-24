@@ -50,5 +50,6 @@ describe("PerfilTab", () => {
     expect(html).toContain("Remover cônjuge");
     expect(html).toContain("Adicionar filho");
     expect(html).toContain('name="tabela" value="children"');
+    expect(html).not.toContain("sm:grid-cols-2");
   });
 });

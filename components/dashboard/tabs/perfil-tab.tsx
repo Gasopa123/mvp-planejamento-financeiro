@@ -43,7 +43,7 @@ function PessoaRow({ pessoa }: { pessoa: PessoaVinculada }) {
 
 function PessoaForm({ clienteId, pessoa, tabela }: { clienteId: string; pessoa: PessoaVinculada; tabela: "spouses" | "children" }) {
   return (
-    <form action={atualizarPessoaVinculada} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+    <form action={atualizarPessoaVinculada} className="mt-4 grid grid-cols-1 gap-3 text-sm">
       <input type="hidden" name="clientId" value={clienteId} />
       <input type="hidden" name="pessoaId" value={pessoa.id} />
       <input type="hidden" name="tabela" value={tabela} />
@@ -86,7 +86,7 @@ function AdicionarFilhoForm({ clienteId }: { clienteId: string }) {
       <summary className="mt-4 cursor-pointer rounded-full border border-line px-3 py-1.5 text-center text-sm font-semibold text-navy hover:bg-blue-soft">
         Adicionar filho
       </summary>
-      <form action={adicionarFilho} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+      <form action={adicionarFilho} className="mt-4 grid grid-cols-1 gap-3 text-sm">
         <input type="hidden" name="clientId" value={clienteId} />
         <input type="hidden" name="tabela" value="children" />
         <label className="space-y-1"><span className="font-medium text-ink-60">Nome</span><input name="nome" required className="w-full rounded-xl border border-line px-3 py-2" /></label>
@@ -116,7 +116,7 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
         </dl>
         <details>
           <Editar />
-          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm">
             <input type="hidden" name="clientId" value={cliente.id} />
             <label className="space-y-1"><span className="font-medium text-ink-60">Nome</span><input name="nome" required defaultValue={cliente.nome} className="w-full rounded-xl border border-line px-3 py-2" /></label>
             <label className="space-y-1"><span className="font-medium text-ink-60">Nascimento</span><input type="date" name="data_nascimento" defaultValue={cliente.data_nascimento ?? ""} className="w-full rounded-xl border border-line px-3 py-2" /></label>
@@ -136,7 +136,7 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
         </dl>
         <details>
           <Editar />
-          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm">
             <input type="hidden" name="clientId" value={cliente.id} />
             <label className="space-y-1"><span className="font-medium text-ink-60">Esporte favorito</span><input name="esporte_favorito" defaultValue={cliente.esporte_favorito ?? ""} className="w-full rounded-xl border border-line px-3 py-2" /></label>
             <label className="space-y-1"><span className="font-medium text-ink-60">Hobbies</span><input name="hobbies" defaultValue={cliente.hobbies ?? ""} className="w-full rounded-xl border border-line px-3 py-2" /></label>
@@ -157,7 +157,7 @@ export function PerfilTab({ cliente, conjuge, filhos }: PerfilTabProps) {
         </dl>
         <details>
           <Editar />
-          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm">
             <input type="hidden" name="clientId" value={cliente.id} />
             <label className="space-y-1"><span className="font-medium text-ink-60">Peso</span><input name="peso_kg" defaultValue={cliente.peso_kg ?? ""} className="w-full rounded-xl border border-line px-3 py-2" /></label>
             <label className="space-y-1"><span className="font-medium text-ink-60">Altura</span><input name="altura_cm" defaultValue={cliente.altura_cm ?? ""} className="w-full rounded-xl border border-line px-3 py-2" /></label>
