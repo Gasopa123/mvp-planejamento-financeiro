@@ -22,6 +22,35 @@ function somaValor(propriedades: Propriedade[]): number {
   return propriedades.reduce((total, p) => total + (p.valor ?? 0), 0);
 }
 
+function labelPropriedade(p: Propriedade): string {
+  const subtipo = p.subtipo ? p.subtipo[0].toUpperCase() + p.subtipo.slice(1) : p.tipo;
+  return p.modelo ? `${subtipo} — ${p.modelo}` : subtipo;
+}
+
+function PropriedadeDetalhe({ propriedade }: { propriedade: Propriedade }) {
+  return (
+    <li className="rounded-lg border border-line p-3 text-sm">
+      <div className="flex justify-between gap-3">
+        <span className="font-semibold text-navy">{labelPropriedade(propriedade)}</span>
+        <span className="font-display font-semibold text-navy">
+          {formatarMoeda(propriedade.valor ?? 0)}
+        </span>
+      </div>
+      {propriedade.financiado && (
+        <p className="mt-1 text-xs text-ink-60">
+          Financiado
+          {propriedade.financiamento_termino
+            ? ` até ${propriedade.financiamento_termino}`
+            : ""}
+          {propriedade.parcela_financiamento != null
+            ? ` · Parcela ${formatarMoeda(propriedade.parcela_financiamento)}`
+            : ""}
+        </p>
+      )}
+    </li>
+  );
+}
+
 export function PatrimonioTab({ cliente, imoveis, automoveis }: PatrimonioTabProps) {
   const patrimonioInvestido = cliente.patrimonio_investido ?? 0;
   const somaImoveis = somaValor(imoveis);
@@ -47,7 +76,15 @@ export function PatrimonioTab({ cliente, imoveis, automoveis }: PatrimonioTabPro
           <div className="font-display text-2xl font-semibold text-navy">
             {formatarMoeda(patrimonioInvestido)}
           </div>
-        </Card>
+          {cliente.local_aplicado && (
+            <p className="mt-2 text-sm text-ink-60">{cliente.local_aplicado}</p>
+          )}
+          {cliente.tem_investimento_exterior && (
+            <p className="mt-1 text-sm text-ink-60">
+              Investimento no exterior: {formatarMoeda(cliente.valor_investimento_exterior ?? 0)}
+            </p>
+          )}
+          </Card>
 
         <Card>
           <IconChip tone="gold">
@@ -78,6 +115,11 @@ export function PatrimonioTab({ cliente, imoveis, automoveis }: PatrimonioTabPro
             <div className="font-display text-2xl font-semibold text-navy">
               {formatarMoeda(participacao)}
             </div>
+            {cliente.percentual_participacao != null && (
+              <p className="mt-2 text-sm text-ink-60">
+                {cliente.percentual_participacao.toLocaleString("pt-BR")}% de participação
+              </p>
+            )}
           </Card>
         )}
 
@@ -91,6 +133,34 @@ export function PatrimonioTab({ cliente, imoveis, automoveis }: PatrimonioTabPro
           <div className="font-display text-[26px] font-semibold text-white">
             {formatarMoeda(patrimonioTotal)}
           </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardLabel>Imóveis detalhados</CardLabel>
+          {imoveis.length === 0 ? (
+            <p className="text-sm text-ink-60">Nenhum imóvel cadastrado.</p>
+          ) : (
+            <ul className="space-y-3">
+              {imoveis.map((imovel) => (
+                <PropriedadeDetalhe key={imovel.id} propriedade={imovel} />
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardLabel>Automóveis detalhados</CardLabel>
+          {automoveis.length === 0 ? (
+            <p className="text-sm text-ink-60">Nenhum automóvel cadastrado.</p>
+          ) : (
+            <ul className="space-y-3">
+              {automoveis.map((automovel) => (
+                <PropriedadeDetalhe key={automovel.id} propriedade={automovel} />
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
 
