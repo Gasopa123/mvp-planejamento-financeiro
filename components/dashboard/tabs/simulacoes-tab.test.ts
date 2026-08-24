@@ -48,13 +48,15 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("10 anos");
     expect(html).toContain("Máximo");
     expect(html).toContain("Mostrar negativos");
-    expect(html).toContain("Patrimônio total projetado");
+    expect(html).toContain("Com objetivos");
     expect(html).toContain("Aposentadoria ideal");
     expect(html).toContain("Comprar imóvel");
     expect(html).toContain("Objetivos consomem capacidade");
     expect(html).toContain("Valor da recomendação");
     expect(html).toContain("Cenário atual");
     expect(html).toContain("Cenário recomendado");
+    expect(html).toContain("Sem objetivos");
+    expect(html).toContain("Com objetivos");
   });
 
   it("filtra a curva no horizonte selecionado", () => {

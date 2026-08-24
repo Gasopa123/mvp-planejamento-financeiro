@@ -152,6 +152,15 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     rentabilidadeReal,
     100,
   );
+  const resultadoSemObjetivos = simularEvolucaoPatrimonio(
+    idade,
+    idadeAposentadoria,
+    cliente.patrimonio_investido ?? 0,
+    capacidadeAtual,
+    rendaDesejada,
+    rentabilidadeReal,
+    100,
+  );
   const valorDaRecomendacao = compararCenariosAposentadoria({
     idadeAtual: idade,
     idadeAposentadoria,
@@ -162,6 +171,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     taxaAnualPct: rentabilidadeReal,
   });
   const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
+  const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
 
@@ -368,6 +378,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
         <div className="mt-4">
           <PatrimonioEvolucaoChart
             pontos={pontosDaCurva}
+            pontosComparacao={pontosSemObjetivos}
             idadeAposentadoria={resultado.idadeAposentadoria}
             idadeEsgotamento={idadeEsgotamento}
             objetivos={objetivos}
