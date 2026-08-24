@@ -319,6 +319,34 @@ export function simularStressTestAposentadoria(input: StressTestAposentadoriaInp
   });
 }
 
+export type ScoreSaudePlanoInput = {
+  reservaAtual: number;
+  reservaIdeal: number;
+  capacidadeMensal: number;
+  rendaMensal: number;
+  idadeEsgotamento: number | null;
+  expectativaVida: number;
+};
+
+export function scoreSaudePlano({
+  reservaAtual,
+  reservaIdeal,
+  capacidadeMensal,
+  rendaMensal,
+  idadeEsgotamento,
+  expectativaVida,
+}: ScoreSaudePlanoInput) {
+  const reserva = reservaIdeal > 0 ? Math.min(1, reservaAtual / reservaIdeal) : 0;
+  const poupanca = rendaMensal > 0 ? Math.min(1, Math.max(0, capacidadeMensal / rendaMensal) / 0.2) : 0;
+  const aposentadoria = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida ? 1 : Math.max(0, 1 - (expectativaVida - idadeEsgotamento) / 20);
+  const score = Math.round(reserva * 35 + poupanca * 25 + aposentadoria * 40);
+
+  return {
+    score,
+    status: score >= 80 ? "Saudável" : score >= 60 ? "Atenção" : "Crítico",
+  };
+}
+
 export type PontoAcumulacaoMensal = {
   /** Idade fracionária (idade atual + mês/12) — permite plotar mês a mês. */
   idadeAnos: number;

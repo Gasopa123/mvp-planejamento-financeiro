@@ -60,6 +60,7 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Stress test");
     expect(html).toContain("Inflação +2%");
     expect(html).toContain("Aporte -30%");
+    expect(html).toContain("Saúde do plano");
   });
 
   it("filtra a curva no horizonte selecionado", () => {

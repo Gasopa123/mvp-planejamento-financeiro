@@ -61,6 +61,7 @@ describe("PresentationDashboard", () => {
     expect(html).toContain("Apresentação do plano");
     expect(html).toContain("Diagnóstico executivo");
     expect(html).toContain("Valor visual para o cliente");
+    expect(html).toContain("Saúde do plano");
     expect(html).toContain("Comprar imóvel");
     expect(html).not.toContain("Alterar dados pessoais");
   });
