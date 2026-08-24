@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import type { PontoEvolucaoPatrimonio } from "@/lib/calculos";
 import { formatarMoeda } from "@/lib/format";
 import type { Objetivo } from "@/lib/types/cliente";
@@ -46,13 +46,7 @@ export function PatrimonioEvolucaoChart({
   width = 760,
   height = 340,
 }: PatrimonioEvolucaoChartProps) {
-  const [mounted, setMounted] = useState(false);
   const [hover, setHover] = useState<PontoEvolucaoPatrimonio | null>(null);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
   if (pontos.length === 0) return null;
 
@@ -151,7 +145,7 @@ export function PatrimonioEvolucaoChart({
             stroke="var(--color-navy)"
             strokeWidth={1.5}
             strokeDasharray="4 4"
-            opacity={mounted ? 0.5 : 0}
+            opacity={0.5}
           />
           <text x={xAt(idadeAposentadoria)} y={padT - 12} textAnchor="middle" fontSize={11.5} fontWeight={600} fill="var(--color-navy)">
             Aposentadoria ({idadeAposentadoria})
@@ -159,14 +153,14 @@ export function PatrimonioEvolucaoChart({
         </>
       )}
 
-      <path d={areaPath} fill="var(--color-green)" opacity={mounted ? 0.08 : 0} />
-      <path d={areaPath} fill="var(--color-blue)" opacity={mounted ? 0.05 : 0} />
-      <path d={idealPath} fill="none" stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" opacity={mounted ? 1 : 0} />
+      <path d={areaPath} fill="var(--color-green)" opacity={0.08} />
+      <path d={areaPath} fill="var(--color-blue)" opacity={0.05} />
+      <path d={idealPath} fill="none" stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" opacity={1} />
       {pontosComparacaoVisiveis && (
-        <path d={pathDe(pontosComparacaoVisiveis)} fill="none" stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 0.9 : 0} />
+        <path d={pathDe(pontosComparacaoVisiveis)} fill="none" stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" opacity={0.9} />
       )}
-      <path d={linePathAcumulacao} fill="none" stroke="var(--color-blue)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 1 : 0} />
-      <path d={linePathDrawdown} fill="none" stroke={corDrawdown} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 1 : 0} />
+      <path d={linePathAcumulacao} fill="none" stroke="var(--color-blue)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={1} />
+      <path d={linePathDrawdown} fill="none" stroke={corDrawdown} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={1} />
 
       {anosDoEixo.map((ano) => {
         const mostrarLabel = ano === Math.round(idadeInicio) || ano === Math.round(idadeFim) || ano % labelStep === 0;
@@ -198,7 +192,7 @@ export function PatrimonioEvolucaoChart({
 
       {idadeEsgotamento != null && idadeEsgotamento >= idadeInicio && idadeEsgotamento <= idadeFim && (
         <>
-          <circle cx={xAt(idadeEsgotamento)} cy={yAt(0)} r={5.5} fill="var(--color-gold)" opacity={mounted ? 1 : 0} />
+          <circle cx={xAt(idadeEsgotamento)} cy={yAt(0)} r={5.5} fill="var(--color-gold)" opacity={1} />
           <text x={xAt(idadeEsgotamento)} y={yAt(0) - 12} textAnchor="middle" fontSize={12} fontWeight={600} fill="#a9821f">
             esgota aos {idadeEsgotamento}
           </text>
