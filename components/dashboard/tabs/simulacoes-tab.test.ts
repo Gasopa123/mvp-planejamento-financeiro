@@ -57,6 +57,9 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Cenário recomendado");
     expect(html).toContain("Sem objetivos");
     expect(html).toContain("Com objetivos");
+    expect(html).toContain("Stress test");
+    expect(html).toContain("Inflação +2%");
+    expect(html).toContain("Aporte -30%");
   });
 
   it("filtra a curva no horizonte selecionado", () => {

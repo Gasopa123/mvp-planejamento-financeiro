@@ -11,6 +11,7 @@ import {
   compararCenariosAposentadoria,
   impactoObjetivos,
   simularEvolucaoPatrimonio,
+  simularStressTestAposentadoria,
   taxaRealIpcaMais,
   taxaRealPercentualCdi,
   taxaRealPrefixada,
@@ -167,6 +168,15 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     patrimonioInicial: cliente.patrimonio_investido ?? 0,
     aporteMensalAtual: 0,
     aporteMensalRecomendado: aporte,
+    saqueMensalAposentadoria: rendaDesejada,
+    taxaAnualPct: rentabilidadeReal,
+  });
+  const stressTests = simularStressTestAposentadoria({
+    idadeAtual: idade,
+    idadeAposentadoria,
+    expectativaVida,
+    patrimonioInicial: cliente.patrimonio_investido ?? 0,
+    aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
   });
@@ -339,6 +349,23 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
         }
         badgeLabel={sustentavel ? "Objetivo atingido" : "Requer ajuste"}
       />
+
+      <Card>
+        <CardLabel>Stress test</CardLabel>
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-5">
+          {stressTests.map((cenario) => (
+            <div key={cenario.nome} className="rounded-xl border border-line p-3">
+              <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
+              <b className="mt-1 block text-navy">{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
+              <span className="mt-1 block text-xs text-ink-40">
+                {cenario.idadeEsgotamento == null
+                  ? `sustenta até ${cenario.idadeReferencia}`
+                  : `esgota aos ${cenario.idadeEsgotamento}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-4">

@@ -6,6 +6,7 @@ import {
   computeDrawdown,
   impactoObjetivos,
   compararCenariosAposentadoria,
+  simularStressTestAposentadoria,
   projecaoMetaComInflacao,
   reservaEmergenciaIdeal,
   simularAcumulacaoMensal,
@@ -126,6 +127,30 @@ describe("compararCenariosAposentadoria", () => {
     expect(resultado.recomendado).toBeGreaterThan(resultado.atual);
     expect(resultado.valorCriado).toBeCloseTo(resultado.recomendado - resultado.atual, 6);
     expect(resultado.aporteMensalAdicional).toBe(2000);
+  });
+});
+
+describe("simularStressTestAposentadoria", () => {
+  it("gera choques fixos de inflação, retorno, aporte e longevidade", () => {
+    const cenarios = simularStressTestAposentadoria({
+      idadeAtual: 40,
+      idadeAposentadoria: 65,
+      expectativaVida: 90,
+      patrimonioInicial: 100000,
+      aporteMensal: 2000,
+      saqueMensalAposentadoria: 8000,
+      taxaAnualPct: 5,
+    });
+
+    expect(cenarios.map((c) => c.nome)).toEqual([
+      "Base",
+      "Inflação +2%",
+      "Rentabilidade -2%",
+      "Aporte -30%",
+      "Viver +5 anos",
+    ]);
+    expect(cenarios[3].patrimonioNaAposentadoria).toBeLessThan(cenarios[0].patrimonioNaAposentadoria);
+    expect(cenarios[4].idadeReferencia).toBe(95);
   });
 });
 
