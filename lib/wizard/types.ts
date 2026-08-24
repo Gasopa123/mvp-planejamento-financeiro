@@ -1,4 +1,5 @@
 import type { EstadoCivil, Prazo } from "./schema";
+import type { DespesaTemporaria, FrequenciaDespesa } from "./despesas";
 import type { FrequenciaRenda, RendaExtra } from "./rendas";
 
 // Espelha WizardFormData, mas com os campos numéricos/enum ainda "vazios"
@@ -25,6 +26,7 @@ export type ObjetivoDraft = {
 };
 
 export type RendaExtraDraft = RendaExtra;
+export type DespesaTemporariaDraft = DespesaTemporaria;
 
 export type WizardDraft = {
   nome: string;
@@ -39,6 +41,8 @@ export type WizardDraft = {
   salarioLiquido: number | null;
   outrasRendas: RendaExtraDraft[];
   rendaMensal: number | null;
+  despesaMensalBase: number | null;
+  despesasTemporarias: DespesaTemporariaDraft[];
   despesaMensal: number | null;
   patrimonioInvestido: number | null;
   imoveis: PropriedadeDraft[];
@@ -84,6 +88,15 @@ export function criarRendaExtraVazia(): RendaExtraDraft {
   };
 }
 
+export function criarDespesaTemporariaVazia(): DespesaTemporariaDraft {
+  return {
+    descricao: "",
+    valor: null,
+    frequencia: "mensal" satisfies FrequenciaDespesa,
+    terminoEm: null,
+  };
+}
+
 export function criarWizardDraftInicial(): WizardDraft {
   return {
     nome: "",
@@ -98,6 +111,8 @@ export function criarWizardDraftInicial(): WizardDraft {
     salarioLiquido: null,
     outrasRendas: [],
     rendaMensal: null,
+    despesaMensalBase: null,
+    despesasTemporarias: [],
     despesaMensal: null,
     patrimonioInvestido: null,
     imoveis: [],

@@ -25,6 +25,13 @@ export function toDbPayload(data: WizardFormData) {
       termino_em: renda.terminoEm,
     })),
     renda_mensal: data.rendaMensal,
+    despesa_mensal_base: data.despesaMensalBase,
+    despesas_temporarias: data.despesasTemporarias.map((despesa) => ({
+      descricao: despesa.descricao,
+      valor: despesa.valor,
+      frequencia: despesa.frequencia,
+      termino_em: despesa.terminoEm,
+    })),
     despesa_mensal: data.despesaMensal,
     patrimonio_investido: data.patrimonioInvestido,
     tem_participacao_societaria: data.temParticipacaoSocietaria,

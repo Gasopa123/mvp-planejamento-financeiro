@@ -18,6 +18,10 @@ const propsBase = {
     },
   ],
   rendaMensal: 9200,
+  despesaMensalBase: 4000,
+  despesasTemporarias: [
+    { descricao: "Escola", valor: 1000, frequencia: "mensal" as const, terminoEm: "2027-12-31" },
+  ],
   despesaMensal: 5000,
   patrimonioInvestido: 0,
   errors: {},
@@ -25,7 +29,10 @@ const propsBase = {
   onAddOutraRenda: () => {},
   onRemoveOutraRenda: () => {},
   onChangeOutraRenda: () => {},
-  onDespesaMensalChange: () => {},
+  onDespesaMensalBaseChange: () => {},
+  onAddDespesaTemporaria: () => {},
+  onRemoveDespesaTemporaria: () => {},
+  onChangeDespesaTemporaria: () => {},
   onPatrimonioInvestidoChange: () => {},
 };
 
@@ -54,6 +61,8 @@ describe("deveAlertarDespesaMaiorQueRenda", () => {
         salarioLiquido: 1000,
         outrasRendas: [],
         rendaMensal: 1000,
+        despesaMensalBase: 1001,
+        despesasTemporarias: [],
         despesaMensal: 1001,
       }),
     );
@@ -71,5 +80,7 @@ describe("StepFinanceiro", () => {
     expect(html).toContain("Salário líquido");
     expect(html).toContain("Outras rendas");
     expect(html).toContain("Renda anual estimada");
+    expect(html).toContain("Despesas temporárias");
+    expect(html).toContain("Despesa anual estimada");
   });
 });

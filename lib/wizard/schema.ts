@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FREQUENCIA_DESPESA_OPTIONS } from "./despesas";
 import { FREQUENCIA_RENDA_OPTIONS } from "./rendas";
 
 export const ESTADO_CIVIL_OPTIONS = [
@@ -61,6 +62,15 @@ export const rendaExtraSchema = z.object({
   descricao: z.string().trim().min(1, "Descreva a renda."),
   valor: valorMonetarioSchema("Informe o valor da renda."),
   frequencia: z.enum(FREQUENCIA_RENDA_OPTIONS, {
+    error: "Selecione a frequência.",
+  }),
+  terminoEm: z.string().nullable(),
+});
+
+export const despesaTemporariaSchema = z.object({
+  descricao: z.string().trim().min(1, "Descreva a despesa."),
+  valor: valorMonetarioSchema("Informe o valor da despesa."),
+  frequencia: z.enum(FREQUENCIA_DESPESA_OPTIONS, {
     error: "Selecione a frequência.",
   }),
   terminoEm: z.string().nullable(),
@@ -205,6 +215,8 @@ export const financeiroSchema = z.object({
   salarioLiquido: valorMonetarioSchema("Informe o salário líquido."),
   outrasRendas: z.array(rendaExtraSchema),
   rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
+  despesaMensalBase: valorMonetarioSchema("Informe a despesa mensal fixa."),
+  despesasTemporarias: z.array(despesaTemporariaSchema),
   despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
   patrimonioInvestido: valorMonetarioSchema("Informe o patrimônio investido."),
 });
@@ -298,6 +310,8 @@ export const wizardFormSchema = z
     salarioLiquido: valorMonetarioSchema("Informe o salário líquido."),
     outrasRendas: z.array(rendaExtraSchema),
     rendaMensal: valorMonetarioSchema("Informe a renda mensal."),
+    despesaMensalBase: valorMonetarioSchema("Informe a despesa mensal fixa."),
+    despesasTemporarias: z.array(despesaTemporariaSchema),
     despesaMensal: valorMonetarioSchema("Informe a despesa mensal."),
     patrimonioInvestido: valorMonetarioSchema(
       "Informe o patrimônio investido.",
