@@ -138,6 +138,18 @@ export async function adicionarFilho(formData: FormData) {
   revalidatePath(`/carteira/${clientId}`);
 }
 
+export async function removerObjetivo(formData: FormData) {
+  const clientId = texto(formData, "clientId");
+  const objetivoId = texto(formData, "objetivoId");
+  if (!clientId || !objetivoId) return;
+
+  const supabase = await clienteDoAdvisor(clientId);
+  if (!supabase) return;
+
+  await supabase.from("goals").delete().eq("id", objetivoId).eq("client_id", clientId);
+  revalidatePath(`/carteira/${clientId}`);
+}
+
 export async function adicionarObjetivo(formData: FormData) {
   const clientId = texto(formData, "clientId");
   if (!clientId) return;
