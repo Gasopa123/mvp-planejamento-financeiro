@@ -37,4 +37,18 @@ describe("PatrimonioEvolucaoChart", () => {
     expect(anoLabelStep(36, 46)).toBe(1);
     expect(anoLabelStep(36, 90)).toBe(5);
   });
+
+  it("renderiza curva com e sem objetivos para visualizar o impacto", () => {
+    const html = renderToStaticMarkup(
+      createElement(PatrimonioEvolucaoChart, {
+        pontos,
+        pontosComparacao: pontos.map((p) => ({ ...p, saldo: p.saldo + 50000 })),
+        idadeAposentadoria: 65,
+        idadeEsgotamento: null,
+      }),
+    );
+
+    expect(html).toContain("Sem objetivos");
+    expect(html).toContain("Com objetivos");
+  });
 });

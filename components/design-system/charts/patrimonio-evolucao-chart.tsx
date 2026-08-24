@@ -7,6 +7,7 @@ import type { Objetivo } from "@/lib/types/cliente";
 
 type PatrimonioEvolucaoChartProps = {
   pontos: PontoEvolucaoPatrimonio[];
+  pontosComparacao?: PontoEvolucaoPatrimonio[];
   idadeAposentadoria: number;
   idadeEsgotamento: number | null;
   objetivos?: Objetivo[];
@@ -37,6 +38,7 @@ export function anoLabelStep(idadeInicio: number, idadeFim: number): number {
 // sopa; o detalhe ano-a-ano aparece no hover da curva.
 export function PatrimonioEvolucaoChart({
   pontos,
+  pontosComparacao,
   idadeAposentadoria,
   idadeEsgotamento,
   objetivos = [],
@@ -63,7 +65,7 @@ export function PatrimonioEvolucaoChart({
 
   const idadeInicio = pontos[0].idadeAnos;
   const idadeFim = pontos[pontos.length - 1].idadeAnos;
-  const saldos = pontos.map((p) => (mostrarNegativos ? p.saldo : Math.max(0, p.saldo)));
+  const saldos = [...pontos, ...(pontosComparacao ?? [])].map((p) => (mostrarNegativos ? p.saldo : Math.max(0, p.saldo)));
   const maxSaldo = Math.max(...saldos, 1) * 1.08;
   const minSaldo = mostrarNegativos ? Math.min(...saldos, 0) : 0;
 
@@ -159,6 +161,9 @@ export function PatrimonioEvolucaoChart({
       <path d={areaPath} fill="var(--color-green)" opacity={mounted ? 0.08 : 0} />
       <path d={areaPath} fill="var(--color-blue)" opacity={mounted ? 0.05 : 0} />
       <path d={idealPath} fill="none" stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" opacity={mounted ? 1 : 0} />
+      {pontosComparacao && (
+        <path d={pathDe(pontosComparacao)} fill="none" stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 0.9 : 0} />
+      )}
       <path d={linePathAcumulacao} fill="none" stroke="var(--color-blue)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 1 : 0} />
       <path d={linePathDrawdown} fill="none" stroke={corDrawdown} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={mounted ? 1 : 0} />
 
@@ -217,12 +222,12 @@ export function PatrimonioEvolucaoChart({
       <rect x={padL} y={padT} width={plotW} height={plotH} fill="transparent" />
 
       <g fontSize={11.5} fill="#5C6A82">
-        <circle cx={padL} cy={height - 24} r={4} fill="var(--color-green)" />
-        <text x={padL + 10} y={height - 20}>Patrimônio total projetado</text>
-        <circle cx={padL + 180} cy={height - 24} r={4} fill="var(--color-blue)" />
-        <text x={padL + 190} y={height - 20}>Patrimônio investido</text>
-        <line x1={padL + 340} x2={padL + 360} y1={height - 24} y2={height - 24} stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" />
-        <text x={padL + 368} y={height - 20}>Aposentadoria ideal</text>
+        <circle cx={padL} cy={height - 24} r={4} fill="var(--color-blue)" />
+        <text x={padL + 10} y={height - 20}>Com objetivos</text>
+        <line x1={padL + 128} x2={padL + 148} y1={height - 24} y2={height - 24} stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" />
+        <text x={padL + 156} y={height - 20}>Sem objetivos</text>
+        <line x1={padL + 286} x2={padL + 306} y1={height - 24} y2={height - 24} stroke="var(--color-gold)" strokeWidth={2} strokeDasharray="5 5" />
+        <text x={padL + 314} y={height - 20}>Aposentadoria ideal</text>
       </g>
     </svg>
   );
