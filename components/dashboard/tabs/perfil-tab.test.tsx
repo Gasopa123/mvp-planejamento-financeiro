@@ -25,15 +25,27 @@ const cliente = {
   frequencia_moto: "",
 } as Cliente;
 
+const conjuge = {
+  id: "pessoa-1",
+  client_id: "client-1",
+  nome: "Cônjuge Teste",
+  data_nascimento: "1992-01-01",
+  dependente: true,
+} as PessoaVinculada;
+
 describe("PerfilTab", () => {
-  it("mostra formulário para alterar dados pessoais", () => {
+  it("deixa edição sob demanda nas categorias mutáveis", () => {
     const html = renderToStaticMarkup(
-      createElement(PerfilTab, { cliente, conjuge: null as PessoaVinculada | null, filhos: [] }),
+      createElement(PerfilTab, { cliente, conjuge, filhos: [conjuge] }),
     );
 
-    expect(html).toContain("Alterar dados pessoais");
+    expect(html).not.toContain("Alterar dados pessoais");
+    expect(html).toContain("Dados pessoais");
+    expect(html).toContain("Saúde e risco");
+    expect(html).toContain("Cônjuge");
+    expect(html).toContain("Filhos");
+    expect(html.match(/<summary/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
     expect(html).toContain('name="nome"');
-    expect(html).toContain('name="profissao"');
-    expect(html).toContain("Salvar dados pessoais");
+    expect(html).toContain('name="peso_kg"');
   });
 });

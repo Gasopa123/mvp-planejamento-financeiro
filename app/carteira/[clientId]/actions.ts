@@ -16,10 +16,41 @@ function numero(formData: FormData, key: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export async function atualizarDadosPessoais(formData: FormData) {
+export async function atualizarCliente(formData: FormData) {
   const clientId = texto(formData, "clientId");
-  const nome = texto(formData, "nome");
-  if (!clientId || !nome) return;
+  if (!clientId) return;
+
+  const camposTexto = [
+    "nome",
+    "data_nascimento",
+    "profissao",
+    "estado_civil",
+    "esporte_favorito",
+    "hobbies",
+    "patologias",
+    "medicamentos",
+    "frequencia_moto",
+  ];
+  const camposNumero = [
+    "renda_mensal",
+    "despesa_mensal_base",
+    "despesa_mensal",
+    "peso_kg",
+    "altura_cm",
+  ];
+  const camposBooleanos = [
+    "e_clt",
+    "possui_patologia",
+    "usa_medicamentos",
+    "fuma",
+    "anda_moto",
+  ];
+
+  const update: Record<string, string | number | boolean | null> = {};
+  for (const campo of camposTexto) if (formData.has(campo)) update[campo] = texto(formData, campo);
+  for (const campo of camposNumero) if (formData.has(campo)) update[campo] = numero(formData, campo);
+  for (const campo of camposBooleanos) if (formData.has(campo)) update[campo] = formData.get(campo) === "on";
+  if (Object.keys(update).length === 0 || update.nome === null) return;
 
   const supabase = await createClient();
   const {
@@ -27,19 +58,43 @@ export async function atualizarDadosPessoais(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  await supabase
+  await supabase.from("clients").update(update).eq("id", clientId).eq("advisor_id", user.id);
+
+  revalidatePath(`/carteira/${clientId}`);
+}
+
+export const atualizarDadosPessoais = atualizarCliente;
+
+export async function atualizarPessoaVinculada(formData: FormData) {
+  const clientId = texto(formData, "clientId");
+  const pessoaId = texto(formData, "pessoaId");
+  const tabela = texto(formData, "tabela");
+  const nome = texto(formData, "nome");
+  if (!clientId || !pessoaId || !nome || (tabela !== "spouses" && tabela !== "children")) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: cliente } = await supabase
     .from("clients")
+    .select("id")
+    .eq("id", clientId)
+    .eq("advisor_id", user.id)
+    .maybeSingle<{ id: string }>();
+  if (!cliente) return;
+
+  await supabase
+    .from(tabela)
     .update({
       nome,
       data_nascimento: texto(formData, "data_nascimento"),
-      profissao: texto(formData, "profissao"),
-      estado_civil: texto(formData, "estado_civil"),
-      esporte_favorito: texto(formData, "esporte_favorito"),
-      hobbies: texto(formData, "hobbies"),
-      e_clt: formData.get("e_clt") === "on",
+      dependente: formData.get("dependente") === "on",
     })
-    .eq("id", clientId)
-    .eq("advisor_id", user.id);
+    .eq("id", pessoaId)
+    .eq("client_id", clientId);
 
   revalidatePath(`/carteira/${clientId}`);
 }
