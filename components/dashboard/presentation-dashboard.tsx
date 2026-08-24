@@ -6,6 +6,8 @@ import {
   capacidadeInvestimento,
   compararCenariosAposentadoria,
   impactoObjetivos,
+  reservaEmergenciaIdeal,
+  scoreSaudePlano,
   simularEvolucaoPatrimonio,
 } from "@/lib/calculos";
 import { formatarMoeda } from "@/lib/format";
@@ -44,6 +46,14 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         taxaAnualPct: rentabilidadeRealPadraoPct,
       })
     : null;
+  const saudePlano = scoreSaudePlano({
+    reservaAtual: cliente.patrimonio_investido ?? 0,
+    reservaIdeal: reservaEmergenciaIdeal(cliente.despesa_mensal ?? 0),
+    capacidadeMensal: capacidade,
+    rendaMensal: cliente.renda_mensal ?? 0,
+    idadeEsgotamento: simulacao?.idadeEsgotamento ?? null,
+    expectativaVida: cliente.expectativa_vida ?? 100,
+  });
 
   return (
     <main className="bg-canvas -m-6 min-h-[calc(100vh-65px)] p-6 print:m-0 print:bg-white">
@@ -59,7 +69,7 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
           <Card tone="navy">
             <CardLabel>Valor visual para o cliente</CardLabel>
             <div className="font-display text-3xl font-semibold text-white">
@@ -76,6 +86,11 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
             <CardLabel>Objetivos mapeados</CardLabel>
             <div className="font-display text-3xl font-semibold text-navy">{objetivos.length}</div>
             <p className="mt-2 text-sm text-ink-60">Total futuro: {formatarMoeda(impacto.totalObjetivos)}</p>
+          </Card>
+          <Card>
+            <CardLabel>Saúde do plano</CardLabel>
+            <div className="font-display text-3xl font-semibold text-navy">{saudePlano.score}/100</div>
+            <p className="mt-2 text-sm font-semibold text-blue">{saudePlano.status}</p>
           </Card>
         </div>
 

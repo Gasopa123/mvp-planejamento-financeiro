@@ -7,6 +7,7 @@ import {
   impactoObjetivos,
   compararCenariosAposentadoria,
   simularStressTestAposentadoria,
+  scoreSaudePlano,
   projecaoMetaComInflacao,
   reservaEmergenciaIdeal,
   simularAcumulacaoMensal,
@@ -151,6 +152,22 @@ describe("simularStressTestAposentadoria", () => {
     ]);
     expect(cenarios[3].patrimonioNaAposentadoria).toBeLessThan(cenarios[0].patrimonioNaAposentadoria);
     expect(cenarios[4].idadeReferencia).toBe(95);
+  });
+});
+
+describe("scoreSaudePlano", () => {
+  it("resume reserva, capacidade e aposentadoria em score de 0 a 100", () => {
+    const resultado = scoreSaudePlano({
+      reservaAtual: 60000,
+      reservaIdeal: 60000,
+      capacidadeMensal: 2000,
+      rendaMensal: 10000,
+      idadeEsgotamento: null,
+      expectativaVida: 90,
+    });
+
+    expect(resultado.score).toBe(100);
+    expect(resultado.status).toBe("Saudável");
   });
 });
 

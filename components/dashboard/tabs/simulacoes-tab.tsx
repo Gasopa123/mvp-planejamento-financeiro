@@ -10,6 +10,8 @@ import {
   capacidadeInvestimento,
   compararCenariosAposentadoria,
   impactoObjetivos,
+  reservaEmergenciaIdeal,
+  scoreSaudePlano,
   simularEvolucaoPatrimonio,
   simularStressTestAposentadoria,
   taxaRealIpcaMais,
@@ -184,6 +186,14 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
+  const saudePlano = scoreSaudePlano({
+    reservaAtual: cliente.patrimonio_investido ?? 0,
+    reservaIdeal: reservaEmergenciaIdeal(cliente.despesa_mensal ?? 0),
+    capacidadeMensal: capacidadeAtual,
+    rendaMensal: cliente.renda_mensal ?? 0,
+    idadeEsgotamento,
+    expectativaVida,
+  });
 
   const limiteAporte = Math.max(2500, Math.round(capacidadeAtual * 2));
   const limiteRenda = 1_000_000;
@@ -349,6 +359,15 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
         }
         badgeLabel={sustentavel ? "Objetivo atingido" : "Requer ajuste"}
       />
+
+      <Card>
+        <CardLabel>Saúde do plano</CardLabel>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="font-display text-4xl font-semibold text-navy">{saudePlano.score}/100</div>
+          <span className="rounded-full bg-blue-soft px-3 py-1 text-sm font-semibold text-blue">{saudePlano.status}</span>
+        </div>
+        <p className="mt-2 text-sm text-ink-60">Resumo de reserva, capacidade de investimento e sustentabilidade da aposentadoria.</p>
+      </Card>
 
       <Card>
         <CardLabel>Stress test</CardLabel>
