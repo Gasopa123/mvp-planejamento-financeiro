@@ -1,3 +1,4 @@
+import { atualizarCliente } from "@/app/carteira/[clientId]/actions";
 import { Card, CardLabel, StatCard } from "@/components/design-system/card";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { DrawdownChart } from "@/components/design-system/charts/drawdown-chart";
@@ -70,6 +71,32 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
         />
         <StatCard label="Expectativa de vida" value={`${expectativaVida} anos`} accent="muted" />
       </div>
+
+      <Card>
+        <details>
+          <summary className="cursor-pointer rounded-full border border-line px-3 py-1.5 text-center text-sm font-semibold text-navy hover:bg-blue-soft">
+            Editar aposentadoria
+          </summary>
+          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+            <input type="hidden" name="clientId" value={cliente.id} />
+            <label className="space-y-1">
+              <span className="font-medium text-ink-60">Idade-alvo</span>
+              <input name="idade_aposentadoria" defaultValue={idadeAposentadoria} className="w-full rounded-xl border border-line px-3 py-2" />
+            </label>
+            <label className="space-y-1">
+              <span className="font-medium text-ink-60">Expectativa de vida</span>
+              <input name="expectativa_vida" defaultValue={expectativaVida} className="w-full rounded-xl border border-line px-3 py-2" />
+            </label>
+            <label className="space-y-1">
+              <span className="font-medium text-ink-60">Renda desejada</span>
+              <input name="pretensao_salarial_aposentadoria" defaultValue={pretensaoSalarial ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+            </label>
+            <button type="submit" className="rounded-full bg-navy px-4 py-2 font-semibold text-white sm:col-start-3 sm:justify-self-end">
+              Salvar
+            </button>
+          </form>
+        </details>
+      </Card>
 
       <Card>
         <CardLabel>Patrimônio estimado ao se aposentar</CardLabel>

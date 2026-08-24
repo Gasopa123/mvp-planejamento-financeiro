@@ -37,6 +37,9 @@ export async function atualizarCliente(formData: FormData) {
     "despesa_mensal",
     "peso_kg",
     "altura_cm",
+    "idade_aposentadoria",
+    "expectativa_vida",
+    "pretensao_salarial_aposentadoria",
   ];
   const camposBooleanos = [
     "e_clt",
