@@ -237,6 +237,50 @@ export function impactoObjetivos(
   };
 }
 
+export type ComparacaoCenariosAposentadoriaInput = {
+  idadeAtual: number;
+  idadeAposentadoria: number;
+  patrimonioInicial: number;
+  aporteMensalAtual: number;
+  aporteMensalRecomendado: number;
+  saqueMensalAposentadoria: number;
+  taxaAnualPct: number;
+};
+
+export function compararCenariosAposentadoria({
+  idadeAtual,
+  idadeAposentadoria,
+  patrimonioInicial,
+  aporteMensalAtual,
+  aporteMensalRecomendado,
+  saqueMensalAposentadoria,
+  taxaAnualPct,
+}: ComparacaoCenariosAposentadoriaInput) {
+  const atual = simularEvolucaoPatrimonio(
+    idadeAtual,
+    idadeAposentadoria,
+    patrimonioInicial,
+    aporteMensalAtual,
+    saqueMensalAposentadoria,
+    taxaAnualPct,
+  ).patrimonioNaAposentadoria;
+  const recomendado = simularEvolucaoPatrimonio(
+    idadeAtual,
+    idadeAposentadoria,
+    patrimonioInicial,
+    aporteMensalRecomendado,
+    saqueMensalAposentadoria,
+    taxaAnualPct,
+  ).patrimonioNaAposentadoria;
+
+  return {
+    atual,
+    recomendado,
+    valorCriado: recomendado - atual,
+    aporteMensalAdicional: aporteMensalRecomendado - aporteMensalAtual,
+  };
+}
+
 export type PontoAcumulacaoMensal = {
   /** Idade fracionária (idade atual + mês/12) — permite plotar mês a mês. */
   idadeAnos: number;

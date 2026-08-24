@@ -52,6 +52,9 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Aposentadoria ideal");
     expect(html).toContain("Comprar imóvel");
     expect(html).toContain("Objetivos consomem capacidade");
+    expect(html).toContain("Valor da recomendação");
+    expect(html).toContain("Cenário atual");
+    expect(html).toContain("Cenário recomendado");
   });
 
   it("filtra a curva no horizonte selecionado", () => {

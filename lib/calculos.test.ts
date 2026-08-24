@@ -5,6 +5,7 @@ import {
   computeAccumulation,
   computeDrawdown,
   impactoObjetivos,
+  compararCenariosAposentadoria,
   projecaoMetaComInflacao,
   reservaEmergenciaIdeal,
   simularAcumulacaoMensal,
@@ -107,6 +108,24 @@ describe("impactoObjetivos", () => {
       capacidadeRestante: -2000,
       patrimonioDepoisObjetivos: 22000,
     });
+  });
+});
+
+describe("compararCenariosAposentadoria", () => {
+  it("mostra em reais o valor criado pelo aporte recomendado", () => {
+    const resultado = compararCenariosAposentadoria({
+      idadeAtual: 40,
+      idadeAposentadoria: 65,
+      patrimonioInicial: 100000,
+      aporteMensalAtual: 0,
+      aporteMensalRecomendado: 2000,
+      saqueMensalAposentadoria: 8000,
+      taxaAnualPct: 5,
+    });
+
+    expect(resultado.recomendado).toBeGreaterThan(resultado.atual);
+    expect(resultado.valorCriado).toBeCloseTo(resultado.recomendado - resultado.atual, 6);
+    expect(resultado.aporteMensalAdicional).toBe(2000);
   });
 });
 

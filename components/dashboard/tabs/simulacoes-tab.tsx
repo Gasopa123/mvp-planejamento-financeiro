@@ -8,6 +8,7 @@ import { VerdictCard } from "@/components/design-system/verdict-card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import {
   capacidadeInvestimento,
+  compararCenariosAposentadoria,
   impactoObjetivos,
   simularEvolucaoPatrimonio,
   taxaRealIpcaMais,
@@ -151,6 +152,15 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     rentabilidadeReal,
     100,
   );
+  const valorDaRecomendacao = compararCenariosAposentadoria({
+    idadeAtual: idade,
+    idadeAposentadoria,
+    patrimonioInicial: cliente.patrimonio_investido ?? 0,
+    aporteMensalAtual: 0,
+    aporteMensalRecomendado: aporte,
+    saqueMensalAposentadoria: rendaDesejada,
+    taxaAnualPct: rentabilidadeReal,
+  });
   const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
@@ -269,6 +279,29 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             </b>
           </div>
         </div>
+      </Card>
+
+      <Card>
+        <CardLabel>Valor da recomendação</CardLabel>
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <span className="text-ink-60">Cenário atual</span>
+            <b className="block text-ink">{formatarMoeda(valorDaRecomendacao.atual)}</b>
+          </div>
+          <div>
+            <span className="text-ink-60">Cenário recomendado</span>
+            <b className="block text-navy">{formatarMoeda(valorDaRecomendacao.recomendado)}</b>
+          </div>
+          <div>
+            <span className="text-ink-60">Valor criado até a aposentadoria</span>
+            <b className={valorDaRecomendacao.valorCriado >= 0 ? "block text-green-ink" : "block text-gold-ink"}>
+              {formatarMoeda(valorDaRecomendacao.valorCriado)}
+            </b>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-ink-40">
+          Compara manter só o patrimônio atual investido contra investir o aporte recomendado nesta simulação.
+        </p>
       </Card>
 
       <Card>
