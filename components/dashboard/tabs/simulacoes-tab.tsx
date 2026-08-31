@@ -9,6 +9,7 @@ import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patri
 import {
   capacidadeInvestimento,
   compararCenariosAposentadoria,
+  explicarTendenciaPatrimonio,
   impactoObjetivos,
   simularEvolucaoPatrimonio,
   simularStressTestAposentadoria,
@@ -184,6 +185,12 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
+  const explicacaoTendencia = explicarTendenciaPatrimonio({
+    aporteMensal: aporte,
+    saqueMensalAposentadoria: rendaDesejada,
+    idadeEsgotamento,
+    expectativaVida,
+  });
 
   const limiteAporte = Math.max(2500, Math.round(capacidadeAtual * 2));
   const limiteRenda = 1_000_000;
@@ -412,6 +419,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             mostrarNegativos={mostrarNegativos}
           />
         </div>
+        <p className="mt-3 text-sm text-ink-60">{explicacaoTendencia}</p>
       </Card>
     </div>
   );

@@ -33,6 +33,11 @@ export function ClientWizard() {
   const [errors, setErrors] = useState<StepErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  // "Possui imóveis?"/"Possui automóveis?" só controlam a UI (mostrar ou não
+  // a lista de bens) — a resposta em si já vive nos arrays imoveis/automoveis
+  // (lista vazia = não possui), por isso não entram no WizardDraft.
+  const [possuiImoveis, setPossuiImoveis] = useState(false);
+  const [possuiAutomoveis, setPossuiAutomoveis] = useState(false);
 
   const visibleSteps = WIZARD_STEPS;
   const currentStep = visibleSteps[stepIndex];
@@ -92,6 +97,28 @@ export function ClientWizard() {
     if (Object.keys(stepErrors).length > 0) return;
     setErrors({});
     setStepIndex((index) => Math.min(index + 1, visibleSteps.length - 1));
+  }
+
+  function handleTogglePossuiImoveis(value: boolean) {
+    setPossuiImoveis(value);
+    if (value) {
+      if (formData.imoveis.length === 0) {
+        updateFormData({ imoveis: [criarPropriedadeVazia()] });
+      }
+    } else {
+      updateFormData({ imoveis: [] });
+    }
+  }
+
+  function handleTogglePossuiAutomoveis(value: boolean) {
+    setPossuiAutomoveis(value);
+    if (value) {
+      if (formData.automoveis.length === 0) {
+        updateFormData({ automoveis: [criarPropriedadeVazia()] });
+      }
+    } else {
+      updateFormData({ automoveis: [] });
+    }
   }
 
   function handlePrevious() {
@@ -229,6 +256,7 @@ export function ClientWizard() {
         )}
 
         {currentStep.id === "financeiro" && (
+          <>
           <StepFinanceiro
             salarioLiquido={formData.salarioLiquido}
             outrasRendas={formData.outrasRendas}
@@ -301,111 +329,130 @@ export function ClientWizard() {
               updateFormData({ valorInvestimentoExterior })
             }
           />
+
+            <div className="border-t border-gray-200 pt-6">
+              <h2 className="mb-4 text-sm font-semibold text-gray-900">
+                Imóveis e automóveis
+              </h2>
+              <StepPatrimonio
+                imoveis={formData.imoveis}
+                automoveis={formData.automoveis}
+                errors={errors}
+                possuiImoveis={possuiImoveis}
+                possuiAutomoveis={possuiAutomoveis}
+                onTogglePossuiImoveis={handleTogglePossuiImoveis}
+                onTogglePossuiAutomoveis={handleTogglePossuiAutomoveis}
+                onAddImovel={() =>
+                  updateFormData({
+                    imoveis: [...formData.imoveis, criarPropriedadeVazia()],
+                  })
+                }
+                onRemoveImovel={(index) =>
+                  updateFormData({
+                    imoveis: formData.imoveis.filter((_, i) => i !== index),
+                  })
+                }
+                onChangeImovel={(index, item) =>
+                  updateFormData({
+                    imoveis: formData.imoveis.map((it, i) =>
+                      i === index ? item : it,
+                    ),
+                  })
+                }
+                onAddAutomovel={() =>
+                  updateFormData({
+                    automoveis: [...formData.automoveis, criarPropriedadeVazia()],
+                  })
+                }
+                onRemoveAutomovel={(index) =>
+                  updateFormData({
+                    automoveis: formData.automoveis.filter((_, i) => i !== index),
+                  })
+                }
+                onChangeAutomovel={(index, item) =>
+                  updateFormData({
+                    automoveis: formData.automoveis.map((it, i) =>
+                      i === index ? item : it,
+                    ),
+                  })
+                }
+              />
+            </div>
+
+            <div className="border-t border-gray-200 pt-6">
+              <h2 className="mb-4 text-sm font-semibold text-gray-900">
+                Participação societária
+              </h2>
+              <StepSocietario
+                temParticipacaoSocietaria={formData.temParticipacaoSocietaria}
+                valorParticipacao={formData.valorParticipacao}
+                percentualParticipacao={formData.percentualParticipacao}
+                errors={errors}
+                onTemParticipacaoSocietariaChange={(temParticipacaoSocietaria) =>
+                  updateFormData({ temParticipacaoSocietaria })
+                }
+                onValorParticipacaoChange={(valorParticipacao) =>
+                  updateFormData({ valorParticipacao })
+                }
+                onPercentualParticipacaoChange={(percentualParticipacao) =>
+                  updateFormData({ percentualParticipacao })
+                }
+              />
+            </div>
+          </>
         )}
 
-        {currentStep.id === "patrimonio" && (
-          <StepPatrimonio
-            imoveis={formData.imoveis}
-            automoveis={formData.automoveis}
-            errors={errors}
-            onAddImovel={() =>
-              updateFormData({
-                imoveis: [...formData.imoveis, criarPropriedadeVazia()],
-              })
-            }
-            onRemoveImovel={(index) =>
-              updateFormData({
-                imoveis: formData.imoveis.filter((_, i) => i !== index),
-              })
-            }
-            onChangeImovel={(index, item) =>
-              updateFormData({
-                imoveis: formData.imoveis.map((it, i) =>
-                  i === index ? item : it,
-                ),
-              })
-            }
-            onAddAutomovel={() =>
-              updateFormData({
-                automoveis: [...formData.automoveis, criarPropriedadeVazia()],
-              })
-            }
-            onRemoveAutomovel={(index) =>
-              updateFormData({
-                automoveis: formData.automoveis.filter((_, i) => i !== index),
-              })
-            }
-            onChangeAutomovel={(index, item) =>
-              updateFormData({
-                automoveis: formData.automoveis.map((it, i) =>
-                  i === index ? item : it,
-                ),
-              })
-            }
-          />
-        )}
+        {currentStep.id === "aposentadoria-objetivos" && (
+          <>
+            <StepAposentadoria
+              idade={formData.idade}
+              idadeAposentadoria={formData.idadeAposentadoria}
+              expectativaVida={formData.expectativaVida}
+              pretensaoSalarialAposentadoria={
+                formData.pretensaoSalarialAposentadoria
+              }
+              errors={errors}
+              onIdadeAposentadoriaChange={(idadeAposentadoria) =>
+                updateFormData({ idadeAposentadoria })
+              }
+              onExpectativaVidaChange={(expectativaVida) =>
+                updateFormData({ expectativaVida })
+              }
+              onPretensaoSalarialAposentadoriaChange={(
+                pretensaoSalarialAposentadoria,
+              ) => updateFormData({ pretensaoSalarialAposentadoria })}
+            />
 
-        {currentStep.id === "objetivos" && (
-          <StepObjetivos
-            objetivos={formData.objetivos}
-            errors={errors}
-            onAdd={() =>
-              updateFormData({
-                objetivos: [...formData.objetivos, criarObjetivoVazio()],
-              })
-            }
-            onRemove={(index) =>
-              updateFormData({
-                objetivos: formData.objetivos.filter((_, i) => i !== index),
-              })
-            }
-            onChange={(index, objetivo) =>
-              updateFormData({
-                objetivos: formData.objetivos.map((o, i) =>
-                  i === index ? objetivo : o,
-                ),
-              })
-            }
-          />
-        )}
-
-        {currentStep.id === "societario" && (
-          <StepSocietario
-            temParticipacaoSocietaria={formData.temParticipacaoSocietaria}
-            valorParticipacao={formData.valorParticipacao}
-            percentualParticipacao={formData.percentualParticipacao}
-            errors={errors}
-            onTemParticipacaoSocietariaChange={(temParticipacaoSocietaria) =>
-              updateFormData({ temParticipacaoSocietaria })
-            }
-            onValorParticipacaoChange={(valorParticipacao) =>
-              updateFormData({ valorParticipacao })
-            }
-            onPercentualParticipacaoChange={(percentualParticipacao) =>
-              updateFormData({ percentualParticipacao })
-            }
-          />
-        )}
-
-        {currentStep.id === "aposentadoria" && (
-          <StepAposentadoria
-            idade={formData.idade}
-            idadeAposentadoria={formData.idadeAposentadoria}
-            expectativaVida={formData.expectativaVida}
-            pretensaoSalarialAposentadoria={
-              formData.pretensaoSalarialAposentadoria
-            }
-            errors={errors}
-            onIdadeAposentadoriaChange={(idadeAposentadoria) =>
-              updateFormData({ idadeAposentadoria })
-            }
-            onExpectativaVidaChange={(expectativaVida) =>
-              updateFormData({ expectativaVida })
-            }
-            onPretensaoSalarialAposentadoriaChange={(
-              pretensaoSalarialAposentadoria,
-            ) => updateFormData({ pretensaoSalarialAposentadoria })}
-          />
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <h2 className="mb-1 text-sm font-semibold text-gray-900">
+                Objetivos
+              </h2>
+              <p className="mb-4 text-sm text-gray-600">
+                Complementares à aposentadoria — curto, médio e longo prazo.
+              </p>
+              <StepObjetivos
+                objetivos={formData.objetivos}
+                errors={errors}
+                onAdd={() =>
+                  updateFormData({
+                    objetivos: [...formData.objetivos, criarObjetivoVazio()],
+                  })
+                }
+                onRemove={(index) =>
+                  updateFormData({
+                    objetivos: formData.objetivos.filter((_, i) => i !== index),
+                  })
+                }
+                onChange={(index, objetivo) =>
+                  updateFormData({
+                    objetivos: formData.objetivos.map((o, i) =>
+                      i === index ? objetivo : o,
+                    ),
+                  })
+                }
+              />
+            </div>
+          </>
         )}
 
         {currentStep.id === "planos-futuros" && (

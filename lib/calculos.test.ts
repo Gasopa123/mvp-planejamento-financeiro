@@ -5,6 +5,8 @@ import {
   computeAccumulation,
   computeDrawdown,
   impactoObjetivos,
+  valorMensalSugeridoObjetivo,
+  explicarTendenciaPatrimonio,
   compararCenariosAposentadoria,
   simularStressTestAposentadoria,
   projecaoMetaComInflacao,
@@ -283,8 +285,8 @@ describe("capacidadeInvestimento / taxaPoupanca / reservaEmergenciaIdeal", () =>
     expect(taxaPoupanca(10000, 6000)).toBeCloseTo(0.4, 10);
   });
 
-  it("calcula a reserva de emergência ideal como 6x a despesa mensal", () => {
-    expect(reservaEmergenciaIdeal(6000)).toBe(36000);
+  it("calcula a reserva de emergência ideal como 4x a despesa mensal", () => {
+    expect(reservaEmergenciaIdeal(6000)).toBe(24000);
   });
 });
 
@@ -293,6 +295,69 @@ describe("projecaoMetaComInflacao", () => {
     const resultado = projecaoMetaComInflacao(100000, 4, 10);
 
     expect(resultado).toBeCloseTo(100000 * Math.pow(1.04, 10), 6);
+  });
+});
+
+describe("valorMensalSugeridoObjetivo", () => {
+  it("projeta o valor estimado pela inflação e divide pelos meses até o horizonte", () => {
+    const sugerido = valorMensalSugeridoObjetivo(
+      { valor_estimado: 120000, horizonte_anos: 5 },
+      4,
+    );
+
+    const valorFuturo = 120000 * Math.pow(1.04, 5);
+    expect(sugerido).toBeCloseTo(valorFuturo / 60, 6);
+  });
+
+  it("usa 1 mês como piso quando o horizonte é zero, sem dividir por zero", () => {
+    const sugerido = valorMensalSugeridoObjetivo(
+      { valor_estimado: 1000, horizonte_anos: 0 },
+      4,
+    );
+
+    expect(sugerido).toBe(1000);
+  });
+
+  it("trata valor estimado nulo como 0", () => {
+    expect(
+      valorMensalSugeridoObjetivo({ valor_estimado: null, horizonte_anos: 5 }, 4),
+    ).toBe(0);
+  });
+});
+
+describe("explicarTendenciaPatrimonio", () => {
+  it("aponta aportes insuficientes quando não há capacidade de investimento", () => {
+    const texto = explicarTendenciaPatrimonio({
+      aporteMensal: 0,
+      saqueMensalAposentadoria: 5000,
+      idadeEsgotamento: null,
+      expectativaVida: 90,
+    });
+
+    expect(texto).toContain("aportes insuficientes");
+  });
+
+  it("explica o esgotamento por retirada maior que rendimento quando o patrimônio se esgota antes da expectativa de vida", () => {
+    const texto = explicarTendenciaPatrimonio({
+      aporteMensal: 1000,
+      saqueMensalAposentadoria: 8000,
+      idadeEsgotamento: 82,
+      expectativaVida: 90,
+    });
+
+    expect(texto).toContain("82 anos");
+    expect(texto).toContain("antes da expectativa de vida de 90 anos");
+  });
+
+  it("descreve sustentabilidade quando o patrimônio nunca se esgota", () => {
+    const texto = explicarTendenciaPatrimonio({
+      aporteMensal: 1000,
+      saqueMensalAposentadoria: 3000,
+      idadeEsgotamento: null,
+      expectativaVida: 90,
+    });
+
+    expect(texto).toContain("sem consumir o saldo principal");
   });
 });
 

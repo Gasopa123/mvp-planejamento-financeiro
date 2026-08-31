@@ -2,7 +2,12 @@ import { atualizarCliente } from "@/app/carteira/[clientId]/actions";
 import { Card, CardLabel, StatCard } from "@/components/design-system/card";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { DrawdownChart } from "@/components/design-system/charts/drawdown-chart";
-import { computeAccumulation, computeDrawdown } from "@/lib/calculos";
+import {
+  computeAccumulation,
+  computeDrawdown,
+  explicarTendenciaPatrimonio,
+  projecaoMetaComInflacao,
+} from "@/lib/calculos";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
 import type { Assumptions, Cliente } from "@/lib/types/cliente";
@@ -35,7 +40,8 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
     );
   }
 
-  const { rentabilidadeRealPadraoPct } = resolverAssumptions(assumptions);
+  const { rentabilidadeRealPadraoPct, inflacaoProjetadaPct } =
+    resolverAssumptions(assumptions);
   const tempoRestanteAnos = Math.max(0, idadeAposentadoria - idade);
   const aporteMensal = Math.max(0, (renda ?? 0) - (despesa ?? 0));
 
@@ -58,6 +64,25 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
   );
 
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
+
+  // Relatório de investimento: patrimonioEstimado já é "valor real" (a
+  // rentabilidade usada é a real, líquida de inflação — ver
+  // resolverAssumptions); o "valor nominal" é quanto isso representa em
+  // reais correntes daqui a tempoRestanteAnos, projetando pela inflação.
+  const valorReal = patrimonioEstimado;
+  const valorNominal = projecaoMetaComInflacao(
+    valorReal,
+    inflacaoProjetadaPct,
+    tempoRestanteAnos,
+  );
+  const diferencaNominalReal = valorNominal - valorReal;
+
+  const explicacaoTendencia = explicarTendenciaPatrimonio({
+    aporteMensal,
+    saqueMensalAposentadoria: pretensaoSalarial ?? 0,
+    idadeEsgotamento,
+    expectativaVida,
+  });
 
   return (
     <div className="space-y-6">
@@ -133,6 +158,32 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
       <Card>
         <CardLabel>Sustentabilidade do patrimônio na aposentadoria</CardLabel>
         <DrawdownChart pontos={pontos} idadeEsgotamento={idadeEsgotamento} />
+        <p className="mt-3 text-sm text-ink-60">{explicacaoTendencia}</p>
+      </Card>
+
+      <Card>
+        <CardLabel>Relatório de investimento</CardLabel>
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <span className="text-ink-60">Valor real (poder de compra de hoje)</span>
+            <b className="block text-navy">{formatarMoeda(valorReal)}</b>
+          </div>
+          <div>
+            <span className="text-ink-60">Valor nominal (reais na data)</span>
+            <b className="block text-navy">{formatarMoeda(valorNominal)}</b>
+          </div>
+          <div>
+            <span className="text-ink-60">Diferença (efeito da inflação)</span>
+            <b className="block text-gold-ink">{formatarMoeda(diferencaNominalReal)}</b>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-ink-40">
+          Valor real é quanto {formatarMoeda(patrimonioEstimado)} valem hoje;
+          valor nominal é quanto efetivamente estará na conta em{" "}
+          {tempoRestanteAnos} anos, já contando a inflação projetada de{" "}
+          {inflacaoProjetadaPct.toLocaleString("pt-BR")}% a.a. — a diferença é
+          só efeito da inflação, não poder de compra a mais.
+        </p>
       </Card>
     </div>
   );

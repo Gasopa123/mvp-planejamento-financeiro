@@ -160,21 +160,19 @@ export function criarWizardDraftInicial(): WizardDraft {
 
 export type StepId =
   | "pessoal"
+  | "aposentadoria-objetivos"
   | "financeiro"
-  | "patrimonio"
-  | "objetivos"
-  | "societario"
-  | "aposentadoria"
   | "planos-futuros";
 
 // Cônjuge, filhos e estilo de vida não são mais etapas próprias do
 // wizard: viraram subtópicos dentro de "Dados pessoais" (ver StepPessoal).
+// Aposentadoria e objetivos viraram uma etapa só (aposentadoria é o assunto
+// principal, objetivos é o subtópico complementar — ver ClientWizard), e
+// financeiro, patrimônio e participação societária viraram subtópicos de
+// "Financeiro", pelo mesmo motivo.
 export const WIZARD_STEPS: { id: StepId; label: string }[] = [
   { id: "pessoal", label: "Dados pessoais" },
+  { id: "aposentadoria-objetivos", label: "Aposentadoria e objetivos" },
   { id: "financeiro", label: "Financeiro" },
-  { id: "patrimonio", label: "Patrimônio" },
-  { id: "objetivos", label: "Objetivos" },
-  { id: "societario", label: "Participação societária" },
-  { id: "aposentadoria", label: "Aposentadoria" },
   { id: "planos-futuros", label: "Planos futuros" },
 ];

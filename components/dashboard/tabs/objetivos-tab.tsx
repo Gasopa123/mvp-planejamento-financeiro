@@ -1,7 +1,12 @@
 import { Card } from "@/components/design-system/card";
 import { Badge } from "@/components/design-system/badge";
 import { PRAZO_LABELS, type Prazo } from "@/lib/wizard/schema";
-import { capacidadeInvestimento, impactoObjetivos, projecaoMetaComInflacao } from "@/lib/calculos";
+import {
+  capacidadeInvestimento,
+  impactoObjetivos,
+  projecaoMetaComInflacao,
+  valorMensalSugeridoObjetivo,
+} from "@/lib/calculos";
 import { adicionarObjetivo, removerObjetivo } from "@/app/carteira/[clientId]/actions";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
@@ -71,6 +76,10 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                       objetivo.horizonte_anos ?? 0,
                     )
                   : null;
+              const valorMensalSugerido =
+                objetivo.valor_estimado != null
+                  ? valorMensalSugeridoObjetivo(objetivo, inflacaoProjetadaPct)
+                  : null;
 
               return (
                 <Card key={objetivo.id}>
@@ -93,6 +102,12 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                           ` (${objetivo.horizonte_anos} anos)`}
                       </span>
                       <b className="text-gold-ink">{formatarMoeda(valorFuturo)}</b>
+                    </div>
+                  )}
+                  {valorMensalSugerido != null && (
+                    <div className="mt-1.5 flex justify-between border-t border-line pt-1.5 text-[13px] text-ink-60">
+                      <span>Guardar por mês até a meta</span>
+                      <b className="text-blue">{formatarMoeda(valorMensalSugerido)}</b>
                     </div>
                   )}
                   <form action={removerObjetivo} className="mt-4">

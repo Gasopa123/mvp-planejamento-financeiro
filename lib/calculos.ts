@@ -7,6 +7,8 @@
 //
 // Fórmulas conforme CLAUDE.md § "Motor de cálculo financeiro".
 
+import { formatarMoeda } from "./format";
+
 /**
  * Converte uma taxa anual (%) na taxa mensal equivalente (fração), pelo
  * regime de juros compostos: i_mensal = (1 + taxa_anual)^(1/12) - 1.
@@ -32,9 +34,9 @@ export function taxaPoupanca(
   return capacidadeInvestimento(rendaMensal, despesaMensal) / rendaMensal;
 }
 
-/** reserva_emergencia_ideal = despesa_mensal × 6 */
+/** reserva_emergencia_ideal = despesa_mensal × 4 (ajuste pedido pelo assessor) */
 export function reservaEmergenciaIdeal(despesaMensal: number): number {
-  return despesaMensal * 6;
+  return despesaMensal * 4;
 }
 
 /**
@@ -200,6 +202,27 @@ export type ImpactoObjetivoInput = {
   horizonte_anos: number | null;
 };
 
+/**
+ * Valor mensal sugerido pra guardar até alcançar um objetivo: projeta o
+ * valor de hoje pela inflação até o horizonte do objetivo e divide o valor
+ * futuro pelo número de meses até lá. Mesmo cálculo usado no agregado de
+ * impactoObjetivos — exposto aqui também pra mostrar o valor por objetivo
+ * individualmente (ver ObjetivosTab), sem duplicar a fórmula em dois lugares.
+ */
+export function valorMensalSugeridoObjetivo(
+  objetivo: ImpactoObjetivoInput,
+  inflacaoProjetadaPct: number,
+): number {
+  const meses = Math.max(1, (objetivo.horizonte_anos ?? 0) * 12);
+  return (
+    projecaoMetaComInflacao(
+      objetivo.valor_estimado ?? 0,
+      inflacaoProjetadaPct,
+      objetivo.horizonte_anos ?? 0,
+    ) / meses
+  );
+}
+
 export function impactoObjetivos(
   objetivos: ImpactoObjetivoInput[],
   capacidadeMensal: number,
@@ -216,18 +239,11 @@ export function impactoObjetivos(
       ),
     0,
   );
-  const aporteMensalObjetivos = objetivos.reduce((total, objetivo) => {
-    const meses = Math.max(1, (objetivo.horizonte_anos ?? 0) * 12);
-    return (
-      total +
-      projecaoMetaComInflacao(
-        objetivo.valor_estimado ?? 0,
-        inflacaoProjetadaPct,
-        objetivo.horizonte_anos ?? 0,
-      ) /
-        meses
-    );
-  }, 0);
+  const aporteMensalObjetivos = objetivos.reduce(
+    (total, objetivo) =>
+      total + valorMensalSugeridoObjetivo(objetivo, inflacaoProjetadaPct),
+    0,
+  );
 
   return {
     totalObjetivos,
@@ -425,6 +441,41 @@ export function simularEvolucaoPatrimonio(
     patrimonioNaAposentadoria,
     idadeEsgotamento,
   };
+}
+
+export type ExplicacaoTendenciaPatrimonioInput = {
+  /** Aporte mensal atual (capacidade de investimento) na fase de acumulação. */
+  aporteMensal: number;
+  /** Retirada mensal desejada na aposentadoria. */
+  saqueMensalAposentadoria: number;
+  /** Idade em que o patrimônio se esgota no drawdown, ou null se não se esgota. */
+  idadeEsgotamento: number | null;
+  expectativaVida: number;
+};
+
+/**
+ * Explicação em linguagem simples do motivo do patrimônio subir ou cair no
+ * gráfico: sobe por aportes + rendimento na acumulação; cai na aposentadoria
+ * quando a retirada mensal supera o rendimento gerado (consumo do
+ * patrimônio), o que pode levar ao esgotamento antes da expectativa de vida.
+ */
+export function explicarTendenciaPatrimonio(
+  input: ExplicacaoTendenciaPatrimonioInput,
+): string {
+  if (input.aporteMensal <= 0) {
+    return "Sem capacidade de investimento hoje (aportes insuficientes), o patrimônio só cresce pelo rendimento do que já está investido — vale revisar renda e despesas antes da aposentadoria.";
+  }
+
+  if (
+    input.idadeEsgotamento != null &&
+    input.idadeEsgotamento < input.expectativaVida
+  ) {
+    return `O patrimônio sobe na fase de acumulação (aportes mensais + rendimento) e cai na aposentadoria porque a retirada mensal de ${formatarMoeda(
+      input.saqueMensalAposentadoria,
+    )} é maior que o rendimento gerado — o saldo é consumido até se esgotar aos ${input.idadeEsgotamento} anos, antes da expectativa de vida de ${input.expectativaVida} anos.`;
+  }
+
+  return "O patrimônio sobe na fase de acumulação (aportes mensais + rendimento) e, na aposentadoria, o rendimento gerado cobre as retiradas sem consumir o saldo principal — por isso a curva se mantém estável ou continua subindo.";
 }
 
 export type IndicadoresMercado = {
