@@ -59,6 +59,7 @@ describe("AposentadoriaTab", () => {
     const html = renderToStaticMarkup(
       createElement(AposentadoriaTab, {
         cliente: clienteExpectativaInvalida,
+        objetivos: [],
         assumptions: null,
       }),
     );
