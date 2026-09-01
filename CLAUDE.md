@@ -1,5 +1,16 @@
 # MVP — Planejamento Financeiro Dinâmico para Assessores
 
+## Agentes e skills compartilhadas
+
+Antes de implementar ou revisar, use os arquivos relevantes em `.agent-skills/`:
+- `ponytail.md` — menor diff útil, sem overbuild.
+- `security.md` — Supabase/Auth/RLS/secrets/LGPD.
+- `design.md` — cálculos em módulo, UI só exibe.
+- `review-only.md` — contrato para revisão sem editar.
+- `qa.md` — checklist de produção.
+
+Regras fixas: não usar `git add .`; não abrir PR/merge sem pedido; não mexer em Supabase/secrets sem escopo explícito.
+
 ## Contexto
 App para assessores financeiros cadastrarem clientes e gerarem dashboards
 dinâmicos de planejamento financeiro (gráficos, projeções de aposentadoria,
