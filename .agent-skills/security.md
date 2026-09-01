@@ -18,3 +18,13 @@ Use on every change touching auth, Supabase, data access, client records, env va
 - Did this bypass `auth.uid()`/advisor scoping?
 - Did this trust browser input without validation?
 - Did this add storage, cookies, localStorage, or network calls?
+
+## Codex insecure-defaults audit
+
+If Codex has `insecure-defaults@trailofbits` installed, run before production security review:
+
+```text
+/insecure-defaults:audit app components lib supabase middleware.ts proxy.ts next.config.ts package.json
+```
+
+Expected output: defaults reachable, sink, severity, and correction. Save notable reports under `docs/security/`.
