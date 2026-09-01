@@ -92,6 +92,52 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("saem do patrimônio de uma vez, no ano em que");
   });
 
+  // Regressão do bug reportado: cliente de 26 anos, sem patrimônio investido,
+  // com objetivo cadastrado. A tela mostrava "Patrimônio se esgota aos 26
+  // anos" (a idade atual) mesmo projetando milhões na aposentadoria.
+  it("não afirma que o patrimônio se esgota na idade atual do cliente", () => {
+    const clienteSemPatrimonio = {
+      ...cliente,
+      idade: 26,
+      expectativa_vida: 100,
+      patrimonio_investido: 0,
+      renda_mensal: 12000,
+      despesa_mensal: 9500,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteSemPatrimonio,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).not.toContain("Patrimônio se esgota aos 26 anos");
+    expect(html).not.toContain("74 ano(s) antes da expectativa de vida");
+  });
+
+  it("pede correção quando a idade de aposentadoria é menor ou igual à atual", () => {
+    const clienteIdadeInvalida = {
+      ...cliente,
+      idade: 65,
+      idade_aposentadoria: 65,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteIdadeInvalida,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain("menor ou igual à idade atual");
+    // Nada de veredito ou curva em cima de dado inconsistente.
+    expect(html).not.toContain("Patrimônio se esgota aos");
+    expect(html).not.toContain("Curva única do futuro financeiro");
+  });
+
   it("filtra a curva no horizonte selecionado", () => {
     const pontos = [
       { idadeAnos: 36, saldo: 100, fase: "acumulacao" as const },

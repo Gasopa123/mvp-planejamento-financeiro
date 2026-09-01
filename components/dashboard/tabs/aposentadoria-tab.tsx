@@ -40,6 +40,20 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
     );
   }
 
+  // Sem tempo de acumulação não há projeção pra mostrar: melhor apontar o
+  // dado inconsistente do que exibir patrimônio e veredito sem significado.
+  if (idadeAposentadoria <= idade) {
+    return (
+      <Card>
+        <p className="text-sm text-ink-60">
+          A idade de aposentadoria cadastrada ({idadeAposentadoria} anos) é
+          menor ou igual à idade atual ({idade} anos) — corrija esse dado pra
+          ver a projeção de aposentadoria.
+        </p>
+      </Card>
+    );
+  }
+
   const { rentabilidadeRealPadraoPct, inflacaoProjetadaPct } =
     resolverAssumptions(assumptions);
   const tempoRestanteAnos = Math.max(0, idadeAposentadoria - idade);

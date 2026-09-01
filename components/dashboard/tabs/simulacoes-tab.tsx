@@ -137,6 +137,21 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     );
   }
 
+  // Sem tempo de acumulação não há cenário pra simular: melhor dizer que o
+  // dado está inconsistente do que desenhar uma curva e um veredito que não
+  // significam nada.
+  if (idadeAposentadoria <= idade) {
+    return (
+      <Card>
+        <p className="text-sm text-ink-60">
+          A idade de aposentadoria cadastrada ({idadeAposentadoria} anos) é
+          menor ou igual à idade atual ({idade} anos) — corrija esse dado pra
+          simular cenários.
+        </p>
+      </Card>
+    );
+  }
+
   // A rentabilidade real usada em toda a simulação vem só do tipo
   // atualmente selecionado — os outros dois campos ficam guardados, mas não
   // entram na conta enquanto não forem selecionados.

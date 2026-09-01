@@ -318,11 +318,16 @@ describe("projecaoMetaComInflacao", () => {
 describe("aplicarObjetivosNaCurva", () => {
   // Curva plana e taxa 0 deixam o efeito do objetivo isolado: qualquer
   // diferença vem só do desconto, não do rendimento.
-  function curvaPlana(idadeInicial: number, anos: number, saldo: number) {
+  function curvaPlana(
+    idadeInicial: number,
+    anos: number,
+    saldo: number,
+    fase: "acumulacao" | "drawdown" = "acumulacao",
+  ) {
     return Array.from({ length: anos + 1 }, (_, i) => ({
       idadeAnos: idadeInicial + i,
       saldo,
-      fase: "acumulacao" as const,
+      fase,
     }));
   }
 
@@ -416,8 +421,48 @@ describe("aplicarObjetivosNaCurva", () => {
     expect(ajustados[2].saldo).toBeCloseTo(89000, 6);
   });
 
-  it("aponta a idade em que o saldo zera por causa dos objetivos", () => {
-    const pontos = curvaPlana(30, 3, 20000);
+  // Regressão do bug reportado: cliente de 26 anos, sem nada investido ainda,
+  // aporte de R$ 2.500/mês e patrimônio projetado em milhões. O primeiro
+  // ponto da curva vale 0 (fase de acumulação) e satisfazia saldo <= 0, então
+  // a tela dizia "Patrimônio se esgota aos 26 anos" — a idade ATUAL, não uma
+  // idade de esgotamento real.
+  it("não marca esgotamento na idade atual quando o cliente começa sem patrimônio investido", () => {
+    const resultado = simularEvolucaoPatrimonio(26, 65, 0, 2500, 12000, 4.75, 100);
+
+    const { idadeEsgotamento } = aplicarObjetivosNaCurva(
+      resultado.pontos,
+      [{ valor_estimado: 30000, horizonte_anos: 5 }],
+      4.75,
+    );
+
+    expect(resultado.pontos[0]).toMatchObject({ idadeAnos: 26, saldo: 0 });
+    expect(resultado.patrimonioNaAposentadoria).toBeGreaterThan(3_000_000);
+    expect(idadeEsgotamento).not.toBe(26);
+    // Sem objetivos a curva não esgotava; um objetivo de R$ 30 mil aos 5 anos
+    // não pode passar a esgotá-la.
+    expect(resultado.idadeEsgotamento).toBeNull();
+    expect(idadeEsgotamento).toBeNull();
+  });
+
+  it("nunca devolve idade de esgotamento anterior à aposentadoria", () => {
+    // Objetivo enorme durante a acumulação derruba o saldo, mas isso não é
+    // "esgotamento de aposentadoria" — só passa a contar depois dela.
+    const resultado = simularEvolucaoPatrimonio(30, 60, 50000, 500, 20000, 4.75, 100);
+
+    const { idadeEsgotamento } = aplicarObjetivosNaCurva(
+      resultado.pontos,
+      [{ valor_estimado: 5_000_000, horizonte_anos: 2 }],
+      4.75,
+    );
+
+    expect(idadeEsgotamento).not.toBeNull();
+    expect(idadeEsgotamento as number).toBeGreaterThanOrEqual(
+      resultado.idadeAposentadoria,
+    );
+  });
+
+  it("aponta a idade em que o saldo zera por causa dos objetivos, na aposentadoria", () => {
+    const pontos = curvaPlana(30, 3, 20000, "drawdown");
 
     const { idadeEsgotamento } = aplicarObjetivosNaCurva(
       pontos,
@@ -426,6 +471,21 @@ describe("aplicarObjetivosNaCurva", () => {
     );
 
     expect(idadeEsgotamento).toBe(32);
+  });
+
+  it("não chama de esgotamento um saldo zerado ainda na acumulação", () => {
+    const pontos = curvaPlana(30, 3, 20000, "acumulacao");
+
+    const { idadeEsgotamento, pontos: ajustados } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 25000, horizonte_anos: 2 }],
+      0,
+    );
+
+    // O desconto continua aparecendo na curva...
+    expect(ajustados[2].saldo).toBe(-5000);
+    // ...mas não vira "patrimônio se esgota", que só existe na aposentadoria.
+    expect(idadeEsgotamento).toBeNull();
   });
 
   it("devolve a curva intacta quando não há objetivos", () => {

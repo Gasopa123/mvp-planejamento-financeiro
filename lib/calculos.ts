@@ -530,10 +530,13 @@ export type ObjetivoNaCurvaInput = {
 export type ResultadoCurvaComObjetivos = {
   pontos: PontoEvolucaoPatrimonio[];
   /**
-   * Primeira idade em que o saldo fica <= 0 já contando as retiradas dos
-   * objetivos, ou null se isso não acontece dentro da curva. Pode ser mais
-   * cedo que o idadeEsgotamento da curva original — por isso é recalculado
-   * aqui, pra marcação do gráfico não contradizer a linha desenhada.
+   * Primeira idade DA FASE DE APOSENTADORIA em que o saldo fica <= 0 já
+   * contando as retiradas dos objetivos, ou null se isso não acontece dentro
+   * da curva. Pode ser mais cedo que o idadeEsgotamento da curva original —
+   * por isso é recalculado aqui, pra marcação do gráfico não contradizer a
+   * linha desenhada. Nunca é anterior à idade de aposentadoria: um saldo
+   * zerado durante a acumulação (ex.: cliente que ainda não tem nada
+   * investido) não é esgotamento de aposentadoria.
    */
   idadeEsgotamento: number | null;
 };
@@ -606,7 +609,14 @@ export function aplicarObjetivosNaCurva(
     }
 
     const saldo = ponto.saldo - descontoAcumulado;
-    if (idadeEsgotamento == null && saldo <= 0) {
+    // Só a fase de drawdown conta como "esgotamento": é o patrimônio acabando
+    // durante a aposentadoria. Varrer também a acumulação marcava esgotamento
+    // na idade ATUAL de quem começa sem nada investido — o primeiro ponto da
+    // curva vale 0, satisfaz saldo <= 0, e a tela dizia "esgota aos 26 anos"
+    // mesmo com a curva chegando a milhões depois. Como os pontos de drawdown
+    // começam na aposentadoria, isso também garante que a idade devolvida
+    // nunca é anterior a ela.
+    if (idadeEsgotamento == null && ponto.fase === "drawdown" && saldo <= 0) {
       idadeEsgotamento = ponto.idadeAnos;
     }
 

@@ -29,7 +29,13 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
   // o mesmo objetivo duas vezes. O impacto mensal continua no card abaixo,
   // como leitura alternativa ("se preferir poupar mês a mês").
   const aporte = Math.max(0, capacidade);
-  const podeSimular = cliente.idade != null && cliente.idade_aposentadoria != null && cliente.expectativa_vida != null;
+  // idade_aposentadoria <= idade não deixa tempo de acumulação: a curva e o
+  // veredito sairiam sem significado, então nem simulamos.
+  const podeSimular =
+    cliente.idade != null &&
+    cliente.idade_aposentadoria != null &&
+    cliente.expectativa_vida != null &&
+    cliente.idade_aposentadoria > cliente.idade;
   const simulacao = podeSimular
     ? simularEvolucaoPatrimonio(
         cliente.idade!,
