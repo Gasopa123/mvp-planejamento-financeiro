@@ -516,6 +516,77 @@ describe("aplicarObjetivosNaCurva", () => {
   });
 });
 
+// Déficit "causado pelos objetivos" só existe depois que algum objetivo vence.
+// Cliente de 26 anos sem nada investido começa a curva valendo 0: isso satisfaz
+// saldo <= 0 no ano 0 e virava "Os objetivos comprometem o patrimônio aos 26
+// anos" mesmo com o único objetivo vencendo daqui a 5 anos.
+describe("aplicarObjetivosNaCurva — déficit só após objetivo vencido", () => {
+  function curvaAcumulacao(
+    idadeInicial: number,
+    anos: number,
+    saldoPorAno: (ano: number) => number,
+  ) {
+    return Array.from({ length: anos + 1 }, (_, i) => ({
+      idadeAnos: idadeInicial + i,
+      saldo: saldoPorAno(i),
+      fase: "acumulacao" as const,
+    }));
+  }
+
+  it("não marca déficit no ano 0 quando o patrimônio inicial é 0 e o objetivo só vence em 5 anos", () => {
+    // Patrimônio inicial 0 aos 26, crescendo com o aporte: 0, 12k, 24k, ...
+    const pontos = curvaAcumulacao(26, 10, (ano) => ano * 12000);
+
+    const { idadeDeficitPreAposentadoria } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 30000, horizonte_anos: 5 }],
+      0,
+    );
+
+    expect(idadeDeficitPreAposentadoria).not.toBe(26);
+    // Aos 31 o saldo seria 60.000 e o objetivo custa 30.000 — sobra, sem déficit.
+    expect(idadeDeficitPreAposentadoria).toBeNull();
+  });
+
+  it("marca o déficit no ano do objetivo, não na idade atual", () => {
+    // Saldo cresce devagar: aos 31 há 10.000 e o objetivo custa 30.000.
+    const pontos = curvaAcumulacao(26, 10, (ano) => ano * 2000);
+
+    const { idadeDeficitPreAposentadoria } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 30000, horizonte_anos: 5 }],
+      0,
+    );
+
+    expect(idadeDeficitPreAposentadoria).toBe(31);
+  });
+
+  it("não marca déficit quando o patrimônio inicial é 0 e não há objetivo com prazo", () => {
+    const pontos = curvaAcumulacao(26, 5, (ano) => ano * 12000);
+
+    // Objetivo sem prazo fica fora da curva — nada a descontar, nada a marcar.
+    expect(
+      aplicarObjetivosNaCurva(
+        pontos,
+        [{ valor_estimado: 30000, horizonte_anos: null }],
+        0,
+      ).idadeDeficitPreAposentadoria,
+    ).toBeNull();
+  });
+
+  it("marca déficit na idade atual quando o objetivo realmente vence agora (horizonte 0)", () => {
+    const pontos = curvaAcumulacao(26, 5, (ano) => ano * 2000);
+
+    const { idadeDeficitPreAposentadoria } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 30000, horizonte_anos: 0 }],
+      0,
+    );
+
+    expect(idadeDeficitPreAposentadoria).toBe(26);
+  });
+});
+
 describe("valorMensalSugeridoObjetivo", () => {
   it("projeta o valor estimado pela inflação e divide pelos meses até o horizonte", () => {
     const sugerido = valorMensalSugeridoObjetivo(
