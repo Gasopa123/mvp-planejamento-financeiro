@@ -1,8 +1,7 @@
 import { IconCheck } from "@/components/design-system/icons";
 import {
   capacidadeInvestimento,
-  computeAccumulation,
-  computeDrawdown,
+  projetarPatrimonioComObjetivos,
   reservaEmergenciaIdeal,
   taxaPoupanca,
 } from "@/lib/calculos";
@@ -70,34 +69,55 @@ function montarItens({
     concluido: objetivos.length > 0,
   });
 
-  if (
+  // Mesmas guardas das abas Aposentadoria e Simulações: com idade de
+  // aposentadoria <= idade atual, ou expectativa <= idade de aposentadoria,
+  // não dá pra afirmar nada sobre sustentabilidade — o plano pedia "sustentar
+  // a aposentadoria até os 65 anos" em cima de dado inconsistente.
+  const dadosAposentadoriaValidos =
     cliente.idade != null &&
     cliente.idade_aposentadoria != null &&
-    cliente.expectativa_vida != null
-  ) {
-    const { rentabilidadeRealPadraoPct } = resolverAssumptions(assumptions);
-    const tempoRestante = Math.max(0, cliente.idade_aposentadoria - cliente.idade);
-    const aporte = Math.max(0, capacidadeInvestimento(cliente.renda_mensal ?? 0, cliente.despesa_mensal ?? 0));
-    const patrimonioEstimado =
-      tempoRestante > 0
-        ? computeAccumulation(
-            aporte,
-            tempoRestante,
-            cliente.patrimonio_investido ?? 0,
-            rentabilidadeRealPadraoPct,
-          )
-        : (cliente.patrimonio_investido ?? 0);
-    const { idadeEsgotamento } = computeDrawdown(
-      rentabilidadeRealPadraoPct,
-      cliente.pretensao_salarial_aposentadoria ?? 0,
-      patrimonioEstimado,
-      cliente.idade_aposentadoria,
-      cliente.expectativa_vida,
-    );
+    cliente.expectativa_vida != null &&
+    cliente.idade_aposentadoria > cliente.idade &&
+    cliente.expectativa_vida > cliente.idade_aposentadoria;
+
+  if (!dadosAposentadoriaValidos) {
     itens.push({
-      texto: `Ter patrimônio suficiente para sustentar a aposentadoria até os ${cliente.expectativa_vida} anos`,
-      concluido: idadeEsgotamento == null || idadeEsgotamento >= cliente.expectativa_vida,
+      texto:
+        "Corrigir os dados de aposentadoria: a idade de aposentadoria precisa ser maior que a idade atual, e a expectativa de vida maior que a idade de aposentadoria",
+      concluido: false,
     });
+  } else {
+    const { rentabilidadeRealPadraoPct } = resolverAssumptions(assumptions);
+    const aporte = Math.max(
+      0,
+      capacidadeInvestimento(cliente.renda_mensal ?? 0, cliente.despesa_mensal ?? 0),
+    );
+    // Mesma projeção das outras telas — inclusive com os objetivos descontados
+    // da curva, pro plano não contradizer o dashboard.
+    const { idadeEsgotamento, idadeDeficitPreAposentadoria } =
+      projetarPatrimonioComObjetivos({
+        idadeAtual: cliente.idade!,
+        idadeAposentadoria: cliente.idade_aposentadoria!,
+        patrimonioInicial: cliente.patrimonio_investido ?? 0,
+        aporteMensal: aporte,
+        saqueMensalAposentadoria: cliente.pretensao_salarial_aposentadoria ?? 0,
+        taxaAnualPct: rentabilidadeRealPadraoPct,
+        objetivos,
+        idadeMaxima: cliente.expectativa_vida!,
+      });
+
+    if (idadeDeficitPreAposentadoria != null) {
+      itens.push({
+        texto: `Rever prazo, valor ou aporte dos objetivos: eles comprometem o patrimônio aos ${idadeDeficitPreAposentadoria} anos, antes da aposentadoria`,
+        concluido: false,
+      });
+    } else {
+      itens.push({
+        texto: `Ter patrimônio suficiente para sustentar a aposentadoria até os ${cliente.expectativa_vida} anos`,
+        concluido:
+          idadeEsgotamento == null || idadeEsgotamento >= cliente.expectativa_vida!,
+      });
+    }
   }
 
   if (cliente.tem_participacao_societaria) {

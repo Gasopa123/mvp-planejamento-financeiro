@@ -7,11 +7,11 @@ import { PercentField } from "@/components/design-system/percent-field";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import {
-  aplicarObjetivosNaCurva,
   capacidadeInvestimento,
   compararCenariosAposentadoria,
   explicarTendenciaPatrimonio,
   impactoObjetivos,
+  projetarPatrimonioComObjetivos,
   simularEvolucaoPatrimonio,
   simularStressTestAposentadoria,
   taxaRealIpcaMais,
@@ -179,15 +179,17 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
 
   const horizonteSelecionado = HORIZONTES.find((h) => h.id === horizonte) ?? HORIZONTES[3];
   const idadeMaxima = horizonteSelecionado.anos == null ? 100 : idade + horizonteSelecionado.anos;
-  const resultado = simularEvolucaoPatrimonio(
-    idade,
+  // Mesma projeção usada por Aposentadoria, Plano de ação e apresentação —
+  // uma história só pro cliente (ver projetarPatrimonioComObjetivos).
+  const resultado = projetarPatrimonioComObjetivos({
+    idadeAtual: idade,
     idadeAposentadoria,
-    cliente.patrimonio_investido ?? 0,
-    aporte,
-    rendaDesejada,
-    rentabilidadeReal,
-    100,
-  );
+    patrimonioInicial: cliente.patrimonio_investido ?? 0,
+    aporteMensal: aporte,
+    saqueMensalAposentadoria: rendaDesejada,
+    taxaAnualPct: rentabilidadeReal,
+    objetivos,
+  });
   const resultadoSemObjetivos = simularEvolucaoPatrimonio(
     idade,
     idadeAposentadoria,
@@ -215,34 +217,12 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
   });
-  // Linha "Com objetivos": cada objetivo com valor e prazo sai do patrimônio
-  // no ano em que vence, e a curva segue a partir do saldo já reduzido. A
-  // linha de comparação ("Sem objetivos") continua sem esses descontos — é
+  // A linha de comparação ("Sem objetivos") continua sem os descontos — é
   // justamente a diferença entre as duas que mostra o custo dos objetivos.
-  const curvaComObjetivos = aplicarObjetivosNaCurva(
-    resultado.pontos,
-    objetivos,
-    rentabilidadeReal,
-  );
-  const pontosDaCurva = pontosAteHorizonte(curvaComObjetivos.pontos, idadeMaxima);
+  const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
-  // Déficit antes da aposentadoria é outro problema: os objetivos consomem o
-  // patrimônio antes de chegar lá. Não dá pra falar de sustentabilidade da
-  // aposentadoria quando o dinheiro acaba antes dela.
-  const idadeDeficitPreAposentadoria = curvaComObjetivos.idadeDeficitPreAposentadoria;
-  // Esgotamento e patrimônio na aposentadoria vêm da curva já descontada,
-  // pro número e o gráfico não contarem histórias diferentes. Havendo déficit
-  // pré-aposentadoria não existe esgotamento a mostrar — sem isso o fallback
-  // cairia na curva SEM objetivos e marcaria no gráfico uma idade que não
-  // pertence à linha desenhada.
-  const idadeEsgotamento =
-    idadeDeficitPreAposentadoria != null
-      ? null
-      : (curvaComObjetivos.idadeEsgotamento ?? resultado.idadeEsgotamento);
-  const patrimonioNaAposentadoria =
-    curvaComObjetivos.pontos.find(
-      (ponto) => ponto.idadeAnos >= resultado.idadeAposentadoria,
-    )?.saldo ?? resultado.patrimonioNaAposentadoria;
+  const { idadeDeficitPreAposentadoria, idadeEsgotamento, patrimonioNaAposentadoria } =
+    resultado;
   const sustentavel =
     idadeDeficitPreAposentadoria == null &&
     (idadeEsgotamento == null || idadeEsgotamento >= expectativaVida);
@@ -250,7 +230,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
   // deles, e não de idadeEsgotamento: não zerar até o fim da simulação não
   // quer dizer que o principal tenha sido preservado.
   const ultimoPontoSimulado =
-    curvaComObjetivos.pontos[curvaComObjetivos.pontos.length - 1];
+    resultado.pontos[resultado.pontos.length - 1];
   const explicacaoTendencia = explicarTendenciaPatrimonio({
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,

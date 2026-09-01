@@ -3,17 +3,17 @@ import { Card, CardLabel, StatCard } from "@/components/design-system/card";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { DrawdownChart } from "@/components/design-system/charts/drawdown-chart";
 import {
-  computeAccumulation,
-  computeDrawdown,
   explicarTendenciaPatrimonio,
   projecaoMetaComInflacao,
+  projetarPatrimonioComObjetivos,
 } from "@/lib/calculos";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
-import type { Assumptions, Cliente } from "@/lib/types/cliente";
+import type { Assumptions, Cliente, Objetivo } from "@/lib/types/cliente";
 
 type AposentadoriaTabProps = {
   cliente: Cliente;
+  objetivos: Objetivo[];
   assumptions: Assumptions | null;
 };
 
@@ -87,7 +87,7 @@ function AposentadoriaDadoInvalido({
   );
 }
 
-export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps) {
+export function AposentadoriaTab({ cliente, objetivos, assumptions }: AposentadoriaTabProps) {
   const {
     idade,
     idade_aposentadoria: idadeAposentadoria,
@@ -135,25 +135,34 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
   const tempoRestanteAnos = Math.max(0, idadeAposentadoria - idade);
   const aporteMensal = Math.max(0, (renda ?? 0) - (despesa ?? 0));
 
-  const patrimonioEstimado =
-    tempoRestanteAnos > 0
-      ? computeAccumulation(
-          aporteMensal,
-          tempoRestanteAnos,
-          patrimonioAtual ?? 0,
-          rentabilidadeRealPadraoPct,
-        )
-      : (patrimonioAtual ?? 0);
-
-  const { pontos, idadeEsgotamento } = computeDrawdown(
-    rentabilidadeRealPadraoPct,
-    pretensaoSalarial ?? 0,
-    patrimonioEstimado,
+  // Mesma projeção de Simulações, Plano de ação e apresentação — com os
+  // objetivos descontados da curva. Antes esta aba calculava sem objetivos e
+  // contradizia as outras na mesma página.
+  const projecao = projetarPatrimonioComObjetivos({
+    idadeAtual: idade,
     idadeAposentadoria,
-    expectativaVida,
-  );
+    patrimonioInicial: patrimonioAtual ?? 0,
+    aporteMensal,
+    saqueMensalAposentadoria: pretensaoSalarial ?? 0,
+    taxaAnualPct: rentabilidadeRealPadraoPct,
+    objetivos,
+    idadeMaxima: expectativaVida,
+  });
+  const { idadeEsgotamento, idadeDeficitPreAposentadoria } = projecao;
+  const patrimonioEstimado = projecao.patrimonioNaAposentadoria;
 
-  const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
+  // O gráfico desta aba mostra só a fase de aposentadoria; o ponto de virada
+  // (início da aposentadoria) entra como primeiro ponto do traçado.
+  const pontos = projecao.pontos
+    .filter(
+      (ponto) =>
+        ponto.fase === "drawdown" || ponto.idadeAnos === projecao.idadeAposentadoria,
+    )
+    .map((ponto) => ({ idade: ponto.idadeAnos, saldo: ponto.saldo }));
+
+  const sustentavel =
+    idadeDeficitPreAposentadoria == null &&
+    (idadeEsgotamento == null || idadeEsgotamento >= expectativaVida);
 
   // Relatório de investimento: patrimonioEstimado já é "valor real" (a
   // rentabilidade usada é a real, líquida de inflação — ver
@@ -218,18 +227,22 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
       <VerdictCard
         positivo={sustentavel}
         titulo={
-          idadeEsgotamento == null
-            ? `Patrimônio sustenta além dos ${pontos[pontos.length - 1]?.idade ?? expectativaVida} anos`
-            : sustentavel
-              ? `Patrimônio dura até os ${idadeEsgotamento} anos`
-              : `Patrimônio se esgota aos ${idadeEsgotamento} anos`
+          idadeDeficitPreAposentadoria != null
+            ? `Os objetivos comprometem o patrimônio aos ${idadeDeficitPreAposentadoria} anos`
+            : idadeEsgotamento == null
+              ? `Patrimônio sustenta além dos ${pontos[pontos.length - 1]?.idade ?? expectativaVida} anos`
+              : sustentavel
+                ? `Patrimônio dura até os ${idadeEsgotamento} anos`
+                : `Patrimônio se esgota aos ${idadeEsgotamento} anos`
         }
         subtitulo={
-          idadeEsgotamento == null
-            ? "Com essas premissas, o saldo nunca se esgota na simulação — ainda sobra patrimônio como herança."
-            : sustentavel
-              ? `Cobre a expectativa de vida de ${expectativaVida} anos.`
-              : `Isso é ${expectativaVida - idadeEsgotamento} ano(s) antes da expectativa de vida de ${expectativaVida} anos — vale ajustar aporte ou rentabilidade na aba Simulações.`
+          idadeDeficitPreAposentadoria != null
+            ? "Os objetivos comprometem o patrimônio antes da aposentadoria. Revise prazo, valor ou aporte."
+            : idadeEsgotamento == null
+              ? "Com essas premissas, o saldo nunca se esgota na simulação — ainda sobra patrimônio como herança."
+              : sustentavel
+                ? `Cobre a expectativa de vida de ${expectativaVida} anos.`
+                : `Isso é ${expectativaVida - idadeEsgotamento} ano(s) antes da expectativa de vida de ${expectativaVida} anos — vale ajustar aporte ou rentabilidade na aba Simulações.`
         }
         badgeLabel={sustentavel ? "Objetivo atingido" : "Requer ajuste"}
       />

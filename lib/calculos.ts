@@ -649,6 +649,77 @@ export function aplicarObjetivosNaCurva(
   return { pontos: ajustados, idadeEsgotamento, idadeDeficitPreAposentadoria };
 }
 
+export type ProjecaoComObjetivosInput = {
+  idadeAtual: number;
+  idadeAposentadoria: number;
+  patrimonioInicial: number;
+  aporteMensal: number;
+  saqueMensalAposentadoria: number;
+  taxaAnualPct: number;
+  objetivos: ObjetivoNaCurvaInput[];
+  idadeMaxima?: number;
+};
+
+export type ProjecaoComObjetivos = {
+  pontos: PontoEvolucaoPatrimonio[];
+  idadeAposentadoria: number;
+  /** Saldo no início da aposentadoria, já descontados os objetivos vencidos até lá. */
+  patrimonioNaAposentadoria: number;
+  /** Esgotamento na aposentadoria; null quando há déficit antes dela. */
+  idadeEsgotamento: number | null;
+  idadeDeficitPreAposentadoria: number | null;
+};
+
+/**
+ * Projeção única do patrimônio já com os objetivos descontados — a "história"
+ * que todas as telas do planejamento devem contar.
+ *
+ * Existe pra que Aposentadoria, Simulações, Plano de ação e apresentação não
+ * montem cada uma a sua versão da curva: antes disso, a aba Aposentadoria
+ * calculava sem objetivos e dizia "patrimônio se esgota aos 65" enquanto
+ * Simulações, na mesma página, dizia que os objetivos comprometiam o
+ * patrimônio aos 32.
+ *
+ * Havendo déficit antes da aposentadoria, idadeEsgotamento vem null: o
+ * problema é anterior à aposentadoria e quem mostra isso é
+ * idadeDeficitPreAposentadoria (ver aplicarObjetivosNaCurva).
+ */
+export function projetarPatrimonioComObjetivos(
+  input: ProjecaoComObjetivosInput,
+): ProjecaoComObjetivos {
+  const evolucao = simularEvolucaoPatrimonio(
+    input.idadeAtual,
+    input.idadeAposentadoria,
+    input.patrimonioInicial,
+    input.aporteMensal,
+    input.saqueMensalAposentadoria,
+    input.taxaAnualPct,
+    input.idadeMaxima ?? 100,
+  );
+  const curva = aplicarObjetivosNaCurva(
+    evolucao.pontos,
+    input.objetivos,
+    input.taxaAnualPct,
+  );
+
+  const idadeEsgotamento =
+    curva.idadeDeficitPreAposentadoria != null
+      ? null
+      : (curva.idadeEsgotamento ?? evolucao.idadeEsgotamento);
+
+  const patrimonioNaAposentadoria =
+    curva.pontos.find((ponto) => ponto.idadeAnos >= evolucao.idadeAposentadoria)
+      ?.saldo ?? evolucao.patrimonioNaAposentadoria;
+
+  return {
+    pontos: curva.pontos,
+    idadeAposentadoria: evolucao.idadeAposentadoria,
+    patrimonioNaAposentadoria,
+    idadeEsgotamento,
+    idadeDeficitPreAposentadoria: curva.idadeDeficitPreAposentadoria,
+  };
+}
+
 export type IndicadoresMercado = {
   /** taxa_nominal_prefixada, em % a.a. */
   taxaNominalPrefixada: number;
