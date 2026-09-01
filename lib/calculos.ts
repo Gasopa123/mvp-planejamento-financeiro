@@ -625,7 +625,16 @@ export function aplicarObjetivosNaCurva(
       // Saldo zerado/negativo antes da aposentadoria é déficit: o cliente não
       // consegue bancar os objetivos com o aporte atual. Não é "esgotamento",
       // que é o patrimônio acabando DURANTE a aposentadoria.
-      if (idadeDeficitPreAposentadoria == null && saldo <= 0) {
+      //
+      // Só conta a partir do primeiro objetivo vencido (descontoAcumulado > 0,
+      // já somado no while acima): quem começa sem nada investido tem saldo 0
+      // no ano 0, e sem essa condição isso virava "os objetivos comprometem o
+      // patrimônio aos 26 anos" mesmo com o único objetivo vencendo aos 31.
+      if (
+        idadeDeficitPreAposentadoria == null &&
+        descontoAcumulado > 0 &&
+        saldo <= 0
+      ) {
         idadeDeficitPreAposentadoria = ponto.idadeAnos;
       }
       // O último ponto de acumulação é o início da aposentadoria; como os
