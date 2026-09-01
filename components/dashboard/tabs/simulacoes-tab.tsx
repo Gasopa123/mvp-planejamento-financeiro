@@ -7,6 +7,7 @@ import { PercentField } from "@/components/design-system/percent-field";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import {
+  aplicarObjetivosNaCurva,
   capacidadeInvestimento,
   compararCenariosAposentadoria,
   explicarTendenciaPatrimonio,
@@ -181,14 +182,31 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
   });
-  const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
+  // Linha "Com objetivos": cada objetivo com valor e prazo sai do patrimônio
+  // no ano em que vence, e a curva segue a partir do saldo já reduzido. A
+  // linha de comparação ("Sem objetivos") continua sem esses descontos — é
+  // justamente a diferença entre as duas que mostra o custo dos objetivos.
+  const curvaComObjetivos = aplicarObjetivosNaCurva(
+    resultado.pontos,
+    objetivos,
+    rentabilidadeReal,
+  );
+  const pontosDaCurva = pontosAteHorizonte(curvaComObjetivos.pontos, idadeMaxima);
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
-  const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
+  // Esgotamento e patrimônio na aposentadoria vêm da curva já descontada,
+  // pro número e o gráfico não contarem histórias diferentes.
+  const idadeEsgotamento =
+    curvaComObjetivos.idadeEsgotamento ?? resultado.idadeEsgotamento;
+  const patrimonioNaAposentadoria =
+    curvaComObjetivos.pontos.find(
+      (ponto) => ponto.idadeAnos >= resultado.idadeAposentadoria,
+    )?.saldo ?? resultado.patrimonioNaAposentadoria;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
   // Saldos reais da curva simulada — a tendência (subiu/caiu/estável) é lida
   // deles, e não de idadeEsgotamento: não zerar até o fim da simulação não
   // quer dizer que o principal tenha sido preservado.
-  const ultimoPontoSimulado = resultado.pontos[resultado.pontos.length - 1];
+  const ultimoPontoSimulado =
+    curvaComObjetivos.pontos[curvaComObjetivos.pontos.length - 1];
   const explicacaoTendencia = explicarTendenciaPatrimonio({
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
@@ -387,6 +405,8 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             <CardLabel>Curva única do futuro financeiro</CardLabel>
             <p className="text-sm text-ink-60">
               Patrimônio, aposentadoria e objetivos na mesma linha do tempo.
+              Cada objetivo com valor e prazo sai do patrimônio no ano em que
+              vence — é projeção com as premissas informadas, não promessa.
             </p>
           </div>
           <label className="flex items-center gap-2 text-sm font-semibold text-ink-60">

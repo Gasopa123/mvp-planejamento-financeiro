@@ -3,6 +3,7 @@ import { Card, CardLabel } from "@/components/design-system/card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import { resolverAssumptions } from "@/lib/assumptions";
 import {
+  aplicarObjetivosNaCurva,
   capacidadeInvestimento,
   compararCenariosAposentadoria,
   impactoObjetivos,
@@ -54,6 +55,11 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 0,
         rentabilidadeRealPadraoPct,
       )
+    : null;
+  // Mesma regra da aba Simulações: os objetivos com valor e prazo saem do
+  // patrimônio no ano em que vencem, e a curva segue do saldo já reduzido.
+  const curvaComObjetivos = simulacao
+    ? aplicarObjetivosNaCurva(simulacao.pontos, objetivos, rentabilidadeRealPadraoPct)
     : null;
   const stressTests = podeSimular
     ? simularStressTestAposentadoria({
@@ -119,16 +125,22 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
           </div>
         </Card>
 
-        {simulacao && (
+        {simulacao && curvaComObjetivos && (
           <Card>
             <CardLabel>Curva do futuro financeiro</CardLabel>
             <PatrimonioEvolucaoChart
-              pontos={simulacao.pontos}
+              pontos={curvaComObjetivos.pontos}
               pontosComparacao={simulacaoSemObjetivos?.pontos}
               idadeAposentadoria={simulacao.idadeAposentadoria}
-              idadeEsgotamento={simulacao.idadeEsgotamento}
+              idadeEsgotamento={
+                curvaComObjetivos.idadeEsgotamento ?? simulacao.idadeEsgotamento
+              }
               objetivos={objetivos}
             />
+            <p className="mt-3 text-sm text-ink-60">
+              Cada objetivo com valor e prazo sai do patrimônio no ano em que
+              vence — é projeção com as premissas informadas, não promessa.
+            </p>
           </Card>
         )}
 

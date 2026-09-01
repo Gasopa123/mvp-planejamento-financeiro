@@ -522,6 +522,100 @@ export function explicarTendenciaPatrimonio(
   return `${acumulacao} Na aposentadoria ela fica praticamente estável: com as premissas informadas o rendimento cobre quase exatamente a retirada mensal de ${saque}, mantendo o saldo perto de ${inicio} até os ${input.idadeFinalSimulacao} anos.`;
 }
 
+export type ObjetivoNaCurvaInput = {
+  valor_estimado: number | null;
+  horizonte_anos: number | null;
+};
+
+export type ResultadoCurvaComObjetivos = {
+  pontos: PontoEvolucaoPatrimonio[];
+  /**
+   * Primeira idade em que o saldo fica <= 0 já contando as retiradas dos
+   * objetivos, ou null se isso não acontece dentro da curva. Pode ser mais
+   * cedo que o idadeEsgotamento da curva original — por isso é recalculado
+   * aqui, pra marcação do gráfico não contradizer a linha desenhada.
+   */
+  idadeEsgotamento: number | null;
+};
+
+/**
+ * Aplica os objetivos como saídas de caixa pontuais sobre uma curva já
+ * simulada: no ano em que cada objetivo vence (idade inicial + horizonte), o
+ * valor estimado sai do patrimônio, e os pontos seguintes seguem a partir do
+ * saldo já reduzido.
+ *
+ * O desconto acumulado é capitalizado à mesma taxa da curva entre um ponto e
+ * o próximo: o dinheiro retirado deixa de render dali em diante, então o
+ * "buraco" que ele abre cresce junto com o resto do patrimônio. Sem isso a
+ * queda apareceria, mas os anos seguintes ainda renderiam sobre um dinheiro
+ * que já saiu.
+ *
+ * Objetivo sem valor estimado (ou <= 0) e objetivo sem horizonte não entram:
+ * sem uma das duas informações não dá pra dizer quanto sai nem quando.
+ *
+ * É projeção, não promessa: o valor do objetivo entra como está cadastrado,
+ * na idade cadastrada, sem prever mudança de plano nem de preço.
+ */
+export function aplicarObjetivosNaCurva(
+  pontos: PontoEvolucaoPatrimonio[],
+  objetivos: ObjetivoNaCurvaInput[],
+  taxaAnualPct: number,
+): ResultadoCurvaComObjetivos {
+  if (pontos.length === 0) {
+    return { pontos, idadeEsgotamento: null };
+  }
+
+  const idadeInicial = pontos[0].idadeAnos;
+  const pendentes = objetivos
+    .filter(
+      (objetivo) =>
+        objetivo.valor_estimado != null &&
+        objetivo.valor_estimado > 0 &&
+        objetivo.horizonte_anos != null &&
+        objetivo.horizonte_anos >= 0,
+    )
+    .map((objetivo) => ({
+      idadeAlvo: idadeInicial + (objetivo.horizonte_anos as number),
+      valor: objetivo.valor_estimado as number,
+    }))
+    .sort((a, b) => a.idadeAlvo - b.idadeAlvo);
+
+  if (pendentes.length === 0) {
+    return { pontos, idadeEsgotamento: null };
+  }
+
+  const taxaAnual = taxaAnualPct / 100;
+  let proximo = 0;
+  let descontoAcumulado = 0;
+  let idadeAnterior = idadeInicial;
+  let idadeEsgotamento: number | null = null;
+
+  const ajustados = pontos.map((ponto) => {
+    const anosDecorridos = ponto.idadeAnos - idadeAnterior;
+    if (descontoAcumulado > 0 && anosDecorridos > 0) {
+      descontoAcumulado *= Math.pow(1 + taxaAnual, anosDecorridos);
+    }
+    idadeAnterior = ponto.idadeAnos;
+
+    while (
+      proximo < pendentes.length &&
+      ponto.idadeAnos >= pendentes[proximo].idadeAlvo
+    ) {
+      descontoAcumulado += pendentes[proximo].valor;
+      proximo += 1;
+    }
+
+    const saldo = ponto.saldo - descontoAcumulado;
+    if (idadeEsgotamento == null && saldo <= 0) {
+      idadeEsgotamento = ponto.idadeAnos;
+    }
+
+    return { ...ponto, saldo };
+  });
+
+  return { pontos: ajustados, idadeEsgotamento };
+}
+
 export type IndicadoresMercado = {
   /** taxa_nominal_prefixada, em % a.a. */
   taxaNominalPrefixada: number;
