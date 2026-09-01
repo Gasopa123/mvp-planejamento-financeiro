@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  aplicarObjetivosNaCurva,
   aporteMensalNecessario,
   capacidadeInvestimento,
   computeAccumulation,
@@ -311,6 +312,126 @@ describe("projecaoMetaComInflacao", () => {
     const resultado = projecaoMetaComInflacao(100000, 4, 10);
 
     expect(resultado).toBeCloseTo(100000 * Math.pow(1.04, 10), 6);
+  });
+});
+
+describe("aplicarObjetivosNaCurva", () => {
+  // Curva plana e taxa 0 deixam o efeito do objetivo isolado: qualquer
+  // diferença vem só do desconto, não do rendimento.
+  function curvaPlana(idadeInicial: number, anos: number, saldo: number) {
+    return Array.from({ length: anos + 1 }, (_, i) => ({
+      idadeAnos: idadeInicial + i,
+      saldo,
+      fase: "acumulacao" as const,
+    }));
+  }
+
+  it("desconta o objetivo no ano do horizonte e mantém o saldo menor daí em diante", () => {
+    const pontos = curvaPlana(30, 4, 100000);
+
+    const { pontos: ajustados } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 30000, horizonte_anos: 2 }],
+      0,
+    );
+
+    // Antes do horizonte, nada muda.
+    expect(ajustados[0].saldo).toBe(100000);
+    expect(ajustados[1].saldo).toBe(100000);
+    // No ano do objetivo, cai R$ 30.000.
+    expect(ajustados[2].saldo).toBe(70000);
+    // Os anos seguintes continuam a partir do saldo já reduzido.
+    expect(ajustados[3].saldo).toBe(70000);
+    expect(ajustados[4].saldo).toBe(70000);
+  });
+
+  it("acumula vários objetivos, cada um no seu ano", () => {
+    const pontos = curvaPlana(30, 5, 100000);
+
+    const { pontos: ajustados } = aplicarObjetivosNaCurva(
+      pontos,
+      [
+        { valor_estimado: 30000, horizonte_anos: 2 },
+        { valor_estimado: 10000, horizonte_anos: 4 },
+      ],
+      0,
+    );
+
+    expect(ajustados[1].saldo).toBe(100000);
+    expect(ajustados[2].saldo).toBe(70000);
+    expect(ajustados[3].saldo).toBe(70000);
+    expect(ajustados[4].saldo).toBe(60000);
+    expect(ajustados[5].saldo).toBe(60000);
+  });
+
+  it("não altera a curva quando o objetivo não tem horizonte", () => {
+    const pontos = curvaPlana(30, 3, 100000);
+
+    const { pontos: ajustados, idadeEsgotamento } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 30000, horizonte_anos: null }],
+      0,
+    );
+
+    expect(ajustados).toEqual(pontos);
+    expect(idadeEsgotamento).toBeNull();
+  });
+
+  it("não altera a curva quando o objetivo não tem valor estimado", () => {
+    const pontos = curvaPlana(30, 3, 100000);
+
+    const { pontos: ajustados } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: null, horizonte_anos: 2 }],
+      0,
+    );
+
+    expect(ajustados).toEqual(pontos);
+  });
+
+  it("ignora objetivo com valor zero ou negativo", () => {
+    const pontos = curvaPlana(30, 3, 100000);
+
+    expect(
+      aplicarObjetivosNaCurva(pontos, [{ valor_estimado: 0, horizonte_anos: 1 }], 0)
+        .pontos,
+    ).toEqual(pontos);
+    expect(
+      aplicarObjetivosNaCurva(pontos, [{ valor_estimado: -500, horizonte_anos: 1 }], 0)
+        .pontos,
+    ).toEqual(pontos);
+  });
+
+  it("capitaliza o desconto: o dinheiro retirado deixa de render dali em diante", () => {
+    const pontos = curvaPlana(30, 2, 100000);
+
+    const { pontos: ajustados } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 10000, horizonte_anos: 1 }],
+      10,
+    );
+
+    expect(ajustados[1].saldo).toBe(90000);
+    // Um ano depois o buraco de 10.000 já "renderia" 10% — vira 11.000.
+    expect(ajustados[2].saldo).toBeCloseTo(89000, 6);
+  });
+
+  it("aponta a idade em que o saldo zera por causa dos objetivos", () => {
+    const pontos = curvaPlana(30, 3, 20000);
+
+    const { idadeEsgotamento } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 25000, horizonte_anos: 2 }],
+      0,
+    );
+
+    expect(idadeEsgotamento).toBe(32);
+  });
+
+  it("devolve a curva intacta quando não há objetivos", () => {
+    const pontos = curvaPlana(30, 3, 100000);
+
+    expect(aplicarObjetivosNaCurva(pontos, [], 5).pontos).toEqual(pontos);
   });
 });
 

@@ -61,7 +61,11 @@ describe("PresentationDashboard", () => {
     expect(html).toContain("Apresentação do plano");
     expect(html).toContain("Diagnóstico executivo");
     expect(html).toContain("Valor visual para o cliente");
-    expect(html).toContain("Objetivos consomem capacidade");
+    expect(html).toContain("Objetivos — leitura alternativa (poupar mês a mês)");
+    // O aporte da curva é a capacidade cheia: os objetivos já saem dela como
+    // retirada no ano do horizonte, então não podem encolher o aporte também.
+    expect(html).toContain("Capacidade de investimento");
+    expect(html).toContain("não se somam");
     expect(html).toContain("Stress test");
     expect(html).toContain("Sem objetivos");
     expect(html).toContain("Comprar imóvel");

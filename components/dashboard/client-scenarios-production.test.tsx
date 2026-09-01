@@ -94,7 +94,7 @@ describe("cenários de produção", () => {
   it("mantém apresentação alinhada com blocos principais do dashboard", () => {
     const html = renderToStaticMarkup(createElement(PresentationDashboard, { cliente: baseCliente, objetivos: cenarios[0].objetivos, assumptions: null }));
 
-    for (const texto of ["Valor visual para o cliente", "Objetivos consomem capacidade", "Stress test", "Sem objetivos", "Comprar imóvel"]) {
+    for (const texto of ["Valor visual para o cliente", "Objetivos — leitura alternativa (poupar mês a mês)", "Stress test", "Sem objetivos", "Comprar imóvel"]) {
       expect(html).toContain(texto);
     }
   });

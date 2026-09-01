@@ -27,13 +27,16 @@ type ClientDashboardProps = {
   assumptions: Assumptions | null;
 };
 
+// A ordem aqui é a mesma das seções renderizadas abaixo — a navegação só
+// ancora nelas, então as duas listas têm que andar juntas. Aposentadoria e
+// objetivos vêm antes de patrimônio: é o que o assessor apresenta primeiro.
 const TABS = [
   { id: "perfil", label: "Perfil" },
   { id: "diagnostico", label: "Diagnóstico" },
-  { id: "patrimonio", label: "Patrimônio" },
   { id: "aposentadoria", label: "Aposentadoria" },
   { id: "objetivos", label: "Objetivos" },
   { id: "simulacoes", label: "Simulações" },
+  { id: "patrimonio", label: "Patrimônio" },
   { id: "plano-acao", label: "Plano de ação" },
 ] as const;
 
@@ -90,13 +93,6 @@ export function ClientDashboard({
           <DashboardSection id="diagnostico" title="Diagnóstico">
             <DiagnosticoTab cliente={cliente} />
           </DashboardSection>
-          <DashboardSection id="patrimonio" title="Patrimônio">
-            <PatrimonioTab
-              cliente={cliente}
-              imoveis={imoveis}
-              automoveis={automoveis}
-            />
-          </DashboardSection>
           <DashboardSection id="aposentadoria" title="Aposentadoria">
             <AposentadoriaTab cliente={cliente} assumptions={assumptions} />
           </DashboardSection>
@@ -105,6 +101,13 @@ export function ClientDashboard({
           </DashboardSection>
           <DashboardSection id="simulacoes" title="Simulações">
             <SimulacoesTab cliente={cliente} objetivos={objetivos} assumptions={assumptions} />
+          </DashboardSection>
+          <DashboardSection id="patrimonio" title="Patrimônio">
+            <PatrimonioTab
+              cliente={cliente}
+              imoveis={imoveis}
+              automoveis={automoveis}
+            />
           </DashboardSection>
           <DashboardSection id="plano-acao" title="Plano de ação">
             <PlanoAcaoTab

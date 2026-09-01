@@ -7,6 +7,7 @@ import { PercentField } from "@/components/design-system/percent-field";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import {
+  aplicarObjetivosNaCurva,
   capacidadeInvestimento,
   compararCenariosAposentadoria,
   explicarTendenciaPatrimonio,
@@ -70,9 +71,12 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     cliente.patrimonio_investido ?? 0,
     inflacaoProjetadaPct,
   );
-  const capacidadeLivreParaAposentadoria = Math.max(0, impactoDosObjetivos.capacidadeRestante);
-
-  const [aporte, setAporte] = useState(Math.round(capacidadeLivreParaAposentadoria / 50) * 50 || 500);
+  // O aporte parte da capacidade cheia, não da restante depois dos objetivos:
+  // na curva os objetivos já saem como retirada pontual no ano em que vencem
+  // (ver aplicarObjetivosNaCurva). Descontá-los também do aporte mensal
+  // contaria o mesmo objetivo duas vezes. O impacto mensal continua no card
+  // de objetivos logo abaixo, como leitura alternativa.
+  const [aporte, setAporte] = useState(Math.round(capacidadeAtual / 50) * 50 || 500);
   const [rendaDesejada, setRendaDesejada] = useState(
     cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 5000,
   );
@@ -181,14 +185,31 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
   });
-  const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
+  // Linha "Com objetivos": cada objetivo com valor e prazo sai do patrimônio
+  // no ano em que vence, e a curva segue a partir do saldo já reduzido. A
+  // linha de comparação ("Sem objetivos") continua sem esses descontos — é
+  // justamente a diferença entre as duas que mostra o custo dos objetivos.
+  const curvaComObjetivos = aplicarObjetivosNaCurva(
+    resultado.pontos,
+    objetivos,
+    rentabilidadeReal,
+  );
+  const pontosDaCurva = pontosAteHorizonte(curvaComObjetivos.pontos, idadeMaxima);
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
-  const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
+  // Esgotamento e patrimônio na aposentadoria vêm da curva já descontada,
+  // pro número e o gráfico não contarem histórias diferentes.
+  const idadeEsgotamento =
+    curvaComObjetivos.idadeEsgotamento ?? resultado.idadeEsgotamento;
+  const patrimonioNaAposentadoria =
+    curvaComObjetivos.pontos.find(
+      (ponto) => ponto.idadeAnos >= resultado.idadeAposentadoria,
+    )?.saldo ?? resultado.patrimonioNaAposentadoria;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
   // Saldos reais da curva simulada — a tendência (subiu/caiu/estável) é lida
   // deles, e não de idadeEsgotamento: não zerar até o fim da simulação não
   // quer dizer que o principal tenha sido preservado.
-  const ultimoPontoSimulado = resultado.pontos[resultado.pontos.length - 1];
+  const ultimoPontoSimulado =
+    curvaComObjetivos.pontos[curvaComObjetivos.pontos.length - 1];
   const explicacaoTendencia = explicarTendenciaPatrimonio({
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
@@ -294,7 +315,13 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
       </Card>
 
       <Card>
-        <CardLabel>Objetivos consomem capacidade</CardLabel>
+        <CardLabel>Objetivos — leitura alternativa (poupar mês a mês)</CardLabel>
+        <p className="mb-3 text-xs text-ink-40">
+          Na curva acima os objetivos saem do patrimônio de uma vez, no ano em
+          que vencem. Os números abaixo mostram o outro caminho: reservar um
+          valor todo mês até lá. São formas alternativas de pagar o mesmo
+          objetivo — não se somam.
+        </p>
         <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
           <div>
             <span className="text-ink-60">Aporte reservado a objetivos</span>
@@ -387,6 +414,8 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             <CardLabel>Curva única do futuro financeiro</CardLabel>
             <p className="text-sm text-ink-60">
               Patrimônio, aposentadoria e objetivos na mesma linha do tempo.
+              Cada objetivo com valor e prazo sai do patrimônio no ano em que
+              vence — é projeção com as premissas informadas, não promessa.
             </p>
           </div>
           <label className="flex items-center gap-2 text-sm font-semibold text-ink-60">

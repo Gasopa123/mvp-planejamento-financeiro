@@ -67,4 +67,46 @@ describe("ClientDashboard", () => {
     expect(html).toContain('id="simulacoes"');
     expect(html).toContain('href="/carteira/client-1/apresentacao"');
   });
+
+  // A ordem pedida pelo assessor: aposentadoria, objetivos e simulações vêm
+  // antes de patrimônio. Navegação e seções têm que bater — se uma delas for
+  // reordenada sozinha, as âncoras passam a pular a página fora de ordem.
+  const ORDEM_ESPERADA = [
+    "perfil",
+    "diagnostico",
+    "aposentadoria",
+    "objetivos",
+    "simulacoes",
+    "patrimonio",
+    "plano-acao",
+  ];
+
+  function renderDashboard(): string {
+    return renderToStaticMarkup(
+      createElement(ClientDashboard, {
+        cliente,
+        conjuge: null,
+        filhos: [],
+        imoveis: [],
+        automoveis: [],
+        objetivos: [],
+        assumptions: null,
+      }),
+    );
+  }
+
+  it("mostra as seções na ordem pedida, com patrimônio depois de simulações", () => {
+    const html = renderDashboard();
+
+    const posicoes = ORDEM_ESPERADA.map((id) => html.indexOf(`id="${id}"`));
+    expect(posicoes.every((p) => p >= 0)).toBe(true);
+    expect(posicoes).toEqual([...posicoes].sort((a, b) => a - b));
+  });
+
+  it("mantém o menu de âncoras na mesma ordem das seções", () => {
+    const html = renderDashboard();
+
+    const ancoras = [...html.matchAll(/href="#([a-z-]+)"/g)].map((m) => m[1]);
+    expect(ancoras).toEqual(ORDEM_ESPERADA);
+  });
 });
