@@ -444,17 +444,38 @@ describe("aplicarObjetivosNaCurva", () => {
     expect(idadeEsgotamento).toBeNull();
   });
 
-  it("nunca devolve idade de esgotamento anterior à aposentadoria", () => {
-    // Objetivo enorme durante a acumulação derruba o saldo, mas isso não é
-    // "esgotamento de aposentadoria" — só passa a contar depois dela.
+  // Objetivo grande demais durante a acumulação é déficit pré-aposentadoria,
+  // não esgotamento: a curva chega negativa na aposentadoria, então o primeiro
+  // ponto de drawdown também é negativo — chamar isso de "esgota aos 61" seria
+  // rotular como problema de aposentadoria algo que aconteceu aos 32.
+  it("classifica saldo negativo antes da aposentadoria como déficit, não esgotamento", () => {
     const resultado = simularEvolucaoPatrimonio(30, 60, 50000, 500, 20000, 4.75, 100);
 
-    const { idadeEsgotamento } = aplicarObjetivosNaCurva(
-      resultado.pontos,
-      [{ valor_estimado: 5_000_000, horizonte_anos: 2 }],
-      4.75,
-    );
+    const { idadeEsgotamento, idadeDeficitPreAposentadoria, pontos } =
+      aplicarObjetivosNaCurva(
+        resultado.pontos,
+        [{ valor_estimado: 5_000_000, horizonte_anos: 2 }],
+        4.75,
+      );
 
+    expect(idadeEsgotamento).toBeNull();
+    expect(idadeDeficitPreAposentadoria).toBe(32);
+    // A queda continua visível na curva — só não vira veredito de aposentadoria.
+    const pontoDoDeficit = pontos.find((p) => p.idadeAnos === 32);
+    expect(pontoDoDeficit!.saldo).toBeLessThan(0);
+  });
+
+  it("ainda aponta esgotamento quando a curva chega positiva na aposentadoria", () => {
+    const resultado = simularEvolucaoPatrimonio(30, 60, 50000, 2000, 40000, 4.75, 100);
+
+    const { idadeEsgotamento, idadeDeficitPreAposentadoria } =
+      aplicarObjetivosNaCurva(
+        resultado.pontos,
+        [{ valor_estimado: 20000, horizonte_anos: 2 }],
+        4.75,
+      );
+
+    expect(idadeDeficitPreAposentadoria).toBeNull();
     expect(idadeEsgotamento).not.toBeNull();
     expect(idadeEsgotamento as number).toBeGreaterThanOrEqual(
       resultado.idadeAposentadoria,

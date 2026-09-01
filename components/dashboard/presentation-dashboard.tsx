@@ -148,6 +148,19 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
           </div>
         </Card>
 
+        {!podeSimular && (
+          <Card>
+            <CardLabel>Projeção indisponível</CardLabel>
+            <p className="text-sm text-ink-60">
+              Idade, idade de aposentadoria e expectativa de vida precisam
+              estar cadastradas e coerentes entre si — idade de aposentadoria
+              maior que a idade atual, e expectativa de vida maior que a idade
+              de aposentadoria. Corrija esses dados no dashboard do cliente
+              pra ver a curva e o stress test aqui.
+            </p>
+          </Card>
+        )}
+
         {simulacao && curvaComObjetivos && (
           <Card>
             <CardLabel>Curva do futuro financeiro</CardLabel>

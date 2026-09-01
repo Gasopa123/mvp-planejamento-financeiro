@@ -165,6 +165,50 @@ describe("SimulacoesTab", () => {
     expect(html).not.toContain("Objetivo atingido");
   });
 
+  // Déficit antes da aposentadoria não é esgotamento de aposentadoria: a tela
+  // tem que apontar os objetivos, não anunciar "esgota aos [1º ano de drawdown]".
+  it("aponta déficit pré-aposentadoria em vez de esgotamento quando os objetivos estouram o patrimônio", () => {
+    const clienteApertado = {
+      ...cliente,
+      idade: 30,
+      idade_aposentadoria: 60,
+      expectativa_vida: 90,
+      patrimonio_investido: 50000,
+      renda_mensal: 10000,
+      despesa_mensal: 9500,
+    } as unknown as Cliente;
+    const objetivoImpagavel = [
+      {
+        id: "obj-caro",
+        client_id: "client-1",
+        prazo: "medio" as const,
+        descricao: "Casa nova",
+        valor_estimado: 5_000_000,
+        horizonte_anos: 2,
+      },
+    ] satisfies Objetivo[];
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteApertado,
+        objetivos: objetivoImpagavel,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain(
+      "Os objetivos comprometem o patrimônio antes da aposentadoria. Revise prazo, valor ou aporte.",
+    );
+    expect(html).not.toContain("Patrimônio se esgota aos 61 anos");
+    expect(html).not.toContain("Objetivo atingido");
+    // Nenhuma marcação de esgotamento sobra no gráfico vinda da curva sem
+    // objetivos — a idade marcada tem que pertencer à linha desenhada. (Os
+    // cards de stress test são outro cenário e podem citar esgotamento.)
+    expect(html).not.toMatch(/<text[^>]*>esgota aos/);
+    // A curva continua desenhada, com a queda visível.
+    expect(html).toContain("Curva única do futuro financeiro");
+  });
+
   it("filtra a curva no horizonte selecionado", () => {
     const pontos = [
       { idadeAnos: 36, saldo: 100, fase: "acumulacao" as const },
