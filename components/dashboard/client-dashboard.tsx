@@ -94,7 +94,11 @@ export function ClientDashboard({
             <DiagnosticoTab cliente={cliente} />
           </DashboardSection>
           <DashboardSection id="aposentadoria" title="Aposentadoria">
-            <AposentadoriaTab cliente={cliente} assumptions={assumptions} />
+            <AposentadoriaTab
+              cliente={cliente}
+              objetivos={objetivos}
+              assumptions={assumptions}
+            />
           </DashboardSection>
           <DashboardSection id="objetivos" title="Objetivos">
             <ObjetivosTab objetivos={objetivos} assumptions={assumptions} cliente={cliente} />

@@ -1,8 +1,9 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { Cliente } from "@/lib/types/cliente";
+import type { Cliente, Objetivo } from "@/lib/types/cliente";
 import { AposentadoriaTab } from "./aposentadoria-tab";
+import { SimulacoesTab } from "./simulacoes-tab";
 
 const cliente = {
   id: "client-1",
@@ -17,7 +18,7 @@ const cliente = {
 
 describe("AposentadoriaTab", () => {
   it("permite editar premissas de aposentadoria sob demanda", () => {
-    const html = renderToStaticMarkup(createElement(AposentadoriaTab, { cliente, assumptions: null }));
+    const html = renderToStaticMarkup(createElement(AposentadoriaTab, { cliente, objetivos: [], assumptions: null }));
 
     expect(html).toContain("Editar aposentadoria");
     expect(html).toContain('name="idade_aposentadoria"');
@@ -33,7 +34,7 @@ describe("AposentadoriaTab", () => {
     } as unknown as Cliente;
 
     const html = renderToStaticMarkup(
-      createElement(AposentadoriaTab, { cliente: clienteIdadeInvalida, assumptions: null }),
+      createElement(AposentadoriaTab, { cliente: clienteIdadeInvalida, objetivos: [], assumptions: null }),
     );
 
     expect(html).toContain("menor ou igual à idade atual");
@@ -58,6 +59,7 @@ describe("AposentadoriaTab", () => {
     const html = renderToStaticMarkup(
       createElement(AposentadoriaTab, {
         cliente: clienteExpectativaInvalida,
+        objetivos: [],
         assumptions: null,
       }),
     );
@@ -78,7 +80,7 @@ describe("AposentadoriaTab", () => {
     const clienteInvalido = { ...cliente, ...patch } as unknown as Cliente;
 
     const html = renderToStaticMarkup(
-      createElement(AposentadoriaTab, { cliente: clienteInvalido, assumptions: null }),
+      createElement(AposentadoriaTab, { cliente: clienteInvalido, objetivos: [], assumptions: null }),
     );
 
     expect(html).toContain("Editar aposentadoria");
@@ -104,7 +106,7 @@ describe("AposentadoriaTab", () => {
     } as unknown as Cliente;
 
     const html = renderToStaticMarkup(
-      createElement(AposentadoriaTab, { cliente: clienteJovem, assumptions: null }),
+      createElement(AposentadoriaTab, { cliente: clienteJovem, objetivos: [], assumptions: null }),
     );
 
     expect(html).not.toContain("se esgota aos 26 anos");
@@ -112,5 +114,88 @@ describe("AposentadoriaTab", () => {
     if (esgotamento) {
       expect(Number(esgotamento[1])).toBeGreaterThanOrEqual(65);
     }
+  });
+});
+
+// QA encontrou as duas abas contando histórias diferentes do mesmo cliente:
+// Aposentadoria calculava sem objetivos ("se esgota aos 65") enquanto
+// Simulações, na mesma página, dizia que os objetivos comprometiam o
+// patrimônio aos 32.
+describe("AposentadoriaTab x SimulacoesTab — mesma história", () => {
+  const clienteApertado = {
+    ...cliente,
+    idade: 30,
+    idade_aposentadoria: 60,
+    expectativa_vida: 90,
+    renda_mensal: 10000,
+    despesa_mensal: 9500,
+    patrimonio_investido: 50000,
+  } as unknown as Cliente;
+
+  const objetivoAbsurdo = [
+    {
+      id: "obj-caro",
+      client_id: "client-1",
+      prazo: "medio" as const,
+      descricao: "Mansão",
+      valor_estimado: 5_000_000,
+      horizonte_anos: 2,
+    },
+  ] satisfies Objetivo[];
+
+  function renderAposentadoria(objetivos: Objetivo[]) {
+    return renderToStaticMarkup(
+      createElement(AposentadoriaTab, { cliente: clienteApertado, objetivos, assumptions: null }),
+    );
+  }
+
+  it("mostra déficit pré-aposentadoria, não veredito de esgotamento", () => {
+    const html = renderAposentadoria(objetivoAbsurdo);
+
+    expect(html).toContain("Os objetivos comprometem o patrimônio aos 32 anos");
+    expect(html).toContain(
+      "Os objetivos comprometem o patrimônio antes da aposentadoria. Revise prazo, valor ou aporte.",
+    );
+    expect(html).not.toContain("Patrimônio se esgota aos");
+    expect(html).not.toContain("Objetivo atingido");
+  });
+
+  it("conta a mesma história que Simulações no caso do objetivo absurdo", () => {
+    const apo = renderAposentadoria(objetivoAbsurdo);
+    const sim = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteApertado,
+        objetivos: objetivoAbsurdo,
+        assumptions: null,
+      }),
+    );
+
+    const deficit = "Os objetivos comprometem o patrimônio aos 32 anos";
+    expect(apo).toContain(deficit);
+    expect(sim).toContain(deficit);
+    // Nenhuma das duas pode anunciar esgotamento de aposentadoria nesse caso.
+    expect(apo).not.toContain("Patrimônio se esgota aos");
+    expect(sim).not.toContain("Patrimônio se esgota aos");
+  });
+
+  it("desconta os objetivos do patrimônio estimado ao se aposentar", () => {
+    const semObjetivos = renderAposentadoria([]);
+    const comObjetivo = renderAposentadoria([
+      {
+        id: "obj-1",
+        client_id: "client-1",
+        prazo: "medio" as const,
+        descricao: "Carro",
+        valor_estimado: 100000,
+        horizonte_anos: 5,
+      },
+    ] satisfies Objetivo[]);
+
+    const valor = (html: string) =>
+      html.match(/Patrimônio estimado ao se aposentar<\/div><div[^>]*>([^<]+)</)?.[1] ?? "";
+
+    expect(valor(semObjetivos)).not.toBe("");
+    expect(valor(comObjetivo)).not.toBe("");
+    expect(valor(comObjetivo)).not.toBe(valor(semObjetivos));
   });
 });
