@@ -41,6 +41,33 @@ describe("AposentadoriaTab", () => {
     expect(html).not.toContain("Patrimônio estimado ao se aposentar");
   });
 
+  // expectativa_vida <= idade_aposentadoria não deixa aposentadoria pra
+  // simular: o drawdown não roda, idadeEsgotamento volta null e a tela
+  // concluiria que o patrimônio "sustenta" — falso, vindo de dado inválido.
+  it.each([
+    ["igual à idade de aposentadoria", 65],
+    ["menor que a idade de aposentadoria", 60],
+  ])("não diz que o patrimônio sustenta quando a expectativa de vida é %s", (_caso, expectativaVida) => {
+    const clienteExpectativaInvalida = {
+      ...cliente,
+      idade: 40,
+      idade_aposentadoria: 65,
+      expectativa_vida: expectativaVida,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(AposentadoriaTab, {
+        cliente: clienteExpectativaInvalida,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain("menor ou igual à idade de aposentadoria");
+    expect(html).not.toContain("sustenta");
+    expect(html).not.toContain("Patrimônio estimado ao se aposentar");
+    expect(html).not.toContain("Objetivo atingido");
+  });
+
   // A idade de esgotamento vem de computeDrawdown começando na aposentadoria,
   // então nunca pode cair antes dela nem na idade atual do cliente.
   it("não afirma esgotamento antes da idade de aposentadoria", () => {

@@ -54,6 +54,21 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
     );
   }
 
+  // Sem anos de aposentadoria pra simular, o drawdown não roda: o saldo nunca
+  // é sacado, idadeEsgotamento volta null e a tela diria que o patrimônio
+  // "sustenta" — conclusão falsa vinda de dado inconsistente.
+  if (expectativaVida <= idadeAposentadoria) {
+    return (
+      <Card>
+        <p className="text-sm text-ink-60">
+          A expectativa de vida cadastrada ({expectativaVida} anos) é menor ou
+          igual à idade de aposentadoria ({idadeAposentadoria} anos) — informe
+          uma expectativa de vida maior pra ver a projeção de aposentadoria.
+        </p>
+      </Card>
+    );
+  }
+
   const { rentabilidadeRealPadraoPct, inflacaoProjetadaPct } =
     resolverAssumptions(assumptions);
   const tempoRestanteAnos = Math.max(0, idadeAposentadoria - idade);

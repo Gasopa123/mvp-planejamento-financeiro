@@ -138,6 +138,33 @@ describe("SimulacoesTab", () => {
     expect(html).not.toContain("Curva única do futuro financeiro");
   });
 
+  // Mesmo caso de dado inválido na aba Simulações: sem anos de aposentadoria
+  // o drawdown não roda e o veredito de sustentabilidade seria falso.
+  it.each([
+    ["igual à idade de aposentadoria", 65],
+    ["menor que a idade de aposentadoria", 60],
+  ])("não diz que o patrimônio sustenta quando a expectativa de vida é %s", (_caso, expectativaVida) => {
+    const clienteExpectativaInvalida = {
+      ...cliente,
+      idade: 40,
+      idade_aposentadoria: 65,
+      expectativa_vida: expectativaVida,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteExpectativaInvalida,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain("menor ou igual à idade de aposentadoria");
+    expect(html).not.toContain("sustenta");
+    expect(html).not.toContain("Curva única do futuro financeiro");
+    expect(html).not.toContain("Objetivo atingido");
+  });
+
   it("filtra a curva no horizonte selecionado", () => {
     const pontos = [
       { idadeAnos: 36, saldo: 100, fase: "acumulacao" as const },
