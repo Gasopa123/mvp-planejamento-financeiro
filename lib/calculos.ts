@@ -205,21 +205,29 @@ export type ImpactoObjetivoInput = {
 /**
  * Valor mensal sugerido pra guardar até alcançar um objetivo: projeta o
  * valor de hoje pela inflação até o horizonte do objetivo e divide o valor
- * futuro pelo número de meses até lá. Mesmo cálculo usado no agregado de
- * impactoObjetivos — exposto aqui também pra mostrar o valor por objetivo
- * individualmente (ver ObjetivosTab), sem duplicar a fórmula em dois lugares.
+ * futuro pelo número de meses até lá — divisão linear simples, sem contar
+ * rendimento sobre o que for guardado.
+ *
+ * Retorna null quando o objetivo não tem prazo (horizonte nulo ou <= 0):
+ * sem prazo não existe aporte mensal a sugerir, e qualquer piso artificial
+ * (ex.: 1 mês) transformaria uma meta de R$ 100 mil numa sugestão de
+ * "guardar R$ 100 mil por mês". Cabe a quem chama tratar o null — ver
+ * ObjetivosTab, que pede o prazo, e impactoObjetivos, que soma como zero.
  */
 export function valorMensalSugeridoObjetivo(
   objetivo: ImpactoObjetivoInput,
   inflacaoProjetadaPct: number,
-): number {
-  const meses = Math.max(1, (objetivo.horizonte_anos ?? 0) * 12);
+): number | null {
+  const horizonteAnos = objetivo.horizonte_anos;
+  if (horizonteAnos == null || horizonteAnos <= 0) return null;
+
   return (
     projecaoMetaComInflacao(
       objetivo.valor_estimado ?? 0,
       inflacaoProjetadaPct,
-      objetivo.horizonte_anos ?? 0,
-    ) / meses
+      horizonteAnos,
+    ) /
+    (horizonteAnos * 12)
   );
 }
 
@@ -239,9 +247,12 @@ export function impactoObjetivos(
       ),
     0,
   );
+  // Objetivo sem prazo não entra no aporte mensal (valorMensalSugeridoObjetivo
+  // devolve null): ele ainda conta no total futuro, mas não há como distribuir
+  // um valor por mês sem saber até quando.
   const aporteMensalObjetivos = objetivos.reduce(
     (total, objetivo) =>
-      total + valorMensalSugeridoObjetivo(objetivo, inflacaoProjetadaPct),
+      total + (valorMensalSugeridoObjetivo(objetivo, inflacaoProjetadaPct) ?? 0),
     0,
   );
 
@@ -448,34 +459,67 @@ export type ExplicacaoTendenciaPatrimonioInput = {
   aporteMensal: number;
   /** Retirada mensal desejada na aposentadoria. */
   saqueMensalAposentadoria: number;
-  /** Idade em que o patrimônio se esgota no drawdown, ou null se não se esgota. */
+  /**
+   * Idade em que o saldo chega a zero no drawdown, ou null se ele não zera
+   * até o fim da simulação. Atenção: null NÃO significa que o principal foi
+   * preservado — o saldo pode ter caído bastante sem chegar a zero, por isso
+   * a tendência é lida dos saldos reais da curva, não desse campo.
+   */
   idadeEsgotamento: number | null;
   expectativaVida: number;
+  /** Saldo no início da aposentadoria — ponto de virada entre acumulação e drawdown. */
+  saldoInicioAposentadoria: number;
+  /** Saldo no último ponto simulado da curva. */
+  saldoFinalSimulacao: number;
+  /** Idade do último ponto simulado da curva. */
+  idadeFinalSimulacao: number;
 };
 
+/** Variação relativa tolerada pra considerar o saldo "praticamente estável". */
+const TOLERANCIA_SALDO_ESTAVEL = 0.01;
+
 /**
- * Explicação em linguagem simples do motivo do patrimônio subir ou cair no
- * gráfico: sobe por aportes + rendimento na acumulação; cai na aposentadoria
- * quando a retirada mensal supera o rendimento gerado (consumo do
- * patrimônio), o que pode levar ao esgotamento antes da expectativa de vida.
+ * Explicação em linguagem simples do motivo da curva de patrimônio subir ou
+ * cair, lida dos saldos reais simulados: na acumulação sobe por aportes +
+ * rendimento; na aposentadoria compara o saldo do início com o do último
+ * ponto simulado pra dizer se caiu, subiu ou ficou estável. Texto sempre em
+ * tom de projeção ("nesta simulação", "com as premissas informadas"), porque
+ * é cenário projetado, não garantia.
  */
 export function explicarTendenciaPatrimonio(
   input: ExplicacaoTendenciaPatrimonioInput,
 ): string {
-  if (input.aporteMensal <= 0) {
-    return "Sem capacidade de investimento hoje (aportes insuficientes), o patrimônio só cresce pelo rendimento do que já está investido — vale revisar renda e despesas antes da aposentadoria.";
+  const acumulacao =
+    input.aporteMensal > 0
+      ? "Na fase de acumulação a curva sobe por aportes mensais somados ao rendimento."
+      : "Sem capacidade de investimento hoje (aportes insuficientes), na acumulação a curva só cresce pelo rendimento do que já está investido.";
+
+  const saque = formatarMoeda(input.saqueMensalAposentadoria);
+
+  if (input.idadeEsgotamento != null) {
+    const antesDaExpectativa = input.idadeEsgotamento < input.expectativaVida;
+    return `${acumulacao} Na aposentadoria ela cai porque a retirada mensal de ${saque} supera o rendimento gerado: nesta simulação o saldo é consumido até zerar aos ${input.idadeEsgotamento} anos${
+      antesDaExpectativa
+        ? `, antes da expectativa de vida de ${input.expectativaVida} anos`
+        : ""
+    }.`;
   }
 
-  if (
-    input.idadeEsgotamento != null &&
-    input.idadeEsgotamento < input.expectativaVida
-  ) {
-    return `O patrimônio sobe na fase de acumulação (aportes mensais + rendimento) e cai na aposentadoria porque a retirada mensal de ${formatarMoeda(
-      input.saqueMensalAposentadoria,
-    )} é maior que o rendimento gerado — o saldo é consumido até se esgotar aos ${input.idadeEsgotamento} anos, antes da expectativa de vida de ${input.expectativaVida} anos.`;
+  const inicio = formatarMoeda(input.saldoInicioAposentadoria);
+  const fim = formatarMoeda(input.saldoFinalSimulacao);
+  const variacao = input.saldoFinalSimulacao - input.saldoInicioAposentadoria;
+  const limiteEstavel =
+    Math.abs(input.saldoInicioAposentadoria) * TOLERANCIA_SALDO_ESTAVEL;
+
+  if (variacao < -limiteEstavel) {
+    return `${acumulacao} Na aposentadoria ela cai: a retirada mensal de ${saque} supera o rendimento gerado, então parte do principal vai sendo consumida — nesta simulação o saldo vai de ${inicio} para ${fim} aos ${input.idadeFinalSimulacao} anos. Não chega a zerar dentro do período simulado, mas segue em queda.`;
   }
 
-  return "O patrimônio sobe na fase de acumulação (aportes mensais + rendimento) e, na aposentadoria, o rendimento gerado cobre as retiradas sem consumir o saldo principal — por isso a curva se mantém estável ou continua subindo.";
+  if (variacao > limiteEstavel) {
+    return `${acumulacao} Na aposentadoria ela continua subindo: com as premissas informadas o rendimento supera a retirada mensal de ${saque}, e nesta simulação o saldo vai de ${inicio} para ${fim} aos ${input.idadeFinalSimulacao} anos.`;
+  }
+
+  return `${acumulacao} Na aposentadoria ela fica praticamente estável: com as premissas informadas o rendimento cobre quase exatamente a retirada mensal de ${saque}, mantendo o saldo perto de ${inicio} até os ${input.idadeFinalSimulacao} anos.`;
 }
 
 export type IndicadoresMercado = {

@@ -94,6 +94,9 @@ describe("computeDrawdown", () => {
 });
 
 describe("impactoObjetivos", () => {
+  // O objetivo sem prazo (horizonte 0) continua contando no total futuro,
+  // mas não entra no aporte mensal — antes ele entrava inteiro, o que fazia
+  // R$ 6.000 sem prazo virar R$ 6.000/mês no agregado.
   it("calcula aporte mensal, capacidade restante e patrimônio após objetivos", () => {
     expect(
       impactoObjetivos(
@@ -107,10 +110,23 @@ describe("impactoObjetivos", () => {
       ),
     ).toEqual({
       totalObjetivos: 18000,
-      aporteMensalObjetivos: 7000,
-      capacidadeRestante: -2000,
+      aporteMensalObjetivos: 1000,
+      capacidadeRestante: 4000,
       patrimonioDepoisObjetivos: 22000,
     });
+  });
+
+  it("não infla o aporte mensal com objetivos sem prazo", () => {
+    const impacto = impactoObjetivos(
+      [{ valor_estimado: 100000, horizonte_anos: null }],
+      5000,
+      40000,
+      0,
+    );
+
+    expect(impacto.aporteMensalObjetivos).toBe(0);
+    expect(impacto.totalObjetivos).toBe(100000);
+    expect(impacto.capacidadeRestante).toBe(5000);
   });
 });
 
@@ -309,16 +325,25 @@ describe("valorMensalSugeridoObjetivo", () => {
     expect(sugerido).toBeCloseTo(valorFuturo / 60, 6);
   });
 
-  it("usa 1 mês como piso quando o horizonte é zero, sem dividir por zero", () => {
-    const sugerido = valorMensalSugeridoObjetivo(
-      { valor_estimado: 1000, horizonte_anos: 0 },
-      4,
-    );
-
-    expect(sugerido).toBe(1000);
+  // Regressão do bloqueio apontado na revisão: sem prazo não existe aporte
+  // mensal a sugerir. Um piso de 1 mês faria uma meta de R$ 100 mil virar
+  // "guardar R$ 100 mil por mês".
+  it("devolve null quando o objetivo não tem prazo", () => {
+    expect(
+      valorMensalSugeridoObjetivo(
+        { valor_estimado: 100000, horizonte_anos: null },
+        4,
+      ),
+    ).toBeNull();
   });
 
-  it("trata valor estimado nulo como 0", () => {
+  it("devolve null quando o horizonte é zero, em vez de usar piso de 1 mês", () => {
+    expect(
+      valorMensalSugeridoObjetivo({ valor_estimado: 1000, horizonte_anos: 0 }, 4),
+    ).toBeNull();
+  });
+
+  it("trata valor estimado nulo como 0 quando há prazo", () => {
     expect(
       valorMensalSugeridoObjetivo({ valor_estimado: null, horizonte_anos: 5 }, 4),
     ).toBe(0);
@@ -326,38 +351,87 @@ describe("valorMensalSugeridoObjetivo", () => {
 });
 
 describe("explicarTendenciaPatrimonio", () => {
+  const base = {
+    aporteMensal: 1000,
+    saqueMensalAposentadoria: 3000,
+    idadeEsgotamento: null as number | null,
+    expectativaVida: 90,
+    saldoInicioAposentadoria: 1_000_000,
+    saldoFinalSimulacao: 1_000_000,
+    idadeFinalSimulacao: 90,
+  };
+
   it("aponta aportes insuficientes quando não há capacidade de investimento", () => {
-    const texto = explicarTendenciaPatrimonio({
-      aporteMensal: 0,
-      saqueMensalAposentadoria: 5000,
-      idadeEsgotamento: null,
-      expectativaVida: 90,
-    });
+    const texto = explicarTendenciaPatrimonio({ ...base, aporteMensal: 0 });
 
     expect(texto).toContain("aportes insuficientes");
   });
 
   it("explica o esgotamento por retirada maior que rendimento quando o patrimônio se esgota antes da expectativa de vida", () => {
     const texto = explicarTendenciaPatrimonio({
-      aporteMensal: 1000,
+      ...base,
       saqueMensalAposentadoria: 8000,
       idadeEsgotamento: 82,
-      expectativaVida: 90,
+      saldoFinalSimulacao: 0,
+      idadeFinalSimulacao: 82,
     });
 
     expect(texto).toContain("82 anos");
     expect(texto).toContain("antes da expectativa de vida de 90 anos");
   });
 
-  it("descreve sustentabilidade quando o patrimônio nunca se esgota", () => {
+  // Regressão do bloqueio apontado na revisão: idadeEsgotamento === null só
+  // diz que o saldo não zerou até o fim da simulação — NÃO que o principal
+  // tenha sido preservado. Uma curva caindo de R$ 1.000.000 para R$ 871.800
+  // sem zerar tem que ser descrita como queda/consumo de principal.
+  it("descreve queda e consumo de principal quando o saldo cai sem zerar", () => {
     const texto = explicarTendenciaPatrimonio({
-      aporteMensal: 1000,
-      saqueMensalAposentadoria: 3000,
+      ...base,
+      saqueMensalAposentadoria: 5000,
       idadeEsgotamento: null,
-      expectativaVida: 90,
+      saldoInicioAposentadoria: 1_000_000,
+      saldoFinalSimulacao: 871_800,
     });
 
-    expect(texto).toContain("sem consumir o saldo principal");
+    expect(texto).toContain("cai");
+    expect(texto).toContain("principal");
+    expect(texto).not.toContain("sem consumir o saldo principal");
+    expect(texto).not.toContain("continua subindo");
+    expect(texto).not.toContain("praticamente estável");
+  });
+
+  it("descreve crescimento quando o saldo termina acima do início da aposentadoria", () => {
+    const texto = explicarTendenciaPatrimonio({
+      ...base,
+      saldoInicioAposentadoria: 1_000_000,
+      saldoFinalSimulacao: 1_400_000,
+    });
+
+    expect(texto).toContain("continua subindo");
+  });
+
+  it("descreve estabilidade quando o saldo termina praticamente igual ao início", () => {
+    const texto = explicarTendenciaPatrimonio({
+      ...base,
+      saldoInicioAposentadoria: 1_000_000,
+      saldoFinalSimulacao: 1_002_000,
+    });
+
+    expect(texto).toContain("praticamente estável");
+  });
+
+  it("usa linguagem de projeção, sem afirmar certeza sobre o futuro", () => {
+    const caindo = explicarTendenciaPatrimonio({
+      ...base,
+      saldoFinalSimulacao: 500_000,
+    });
+    const subindo = explicarTendenciaPatrimonio({
+      ...base,
+      saldoFinalSimulacao: 1_400_000,
+    });
+
+    expect(caindo).toContain("nesta simulação");
+    expect(subindo).toContain("com as premissas informadas");
   });
 });
 

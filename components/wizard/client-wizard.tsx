@@ -33,11 +33,6 @@ export function ClientWizard() {
   const [errors, setErrors] = useState<StepErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  // "Possui imóveis?"/"Possui automóveis?" só controlam a UI (mostrar ou não
-  // a lista de bens) — a resposta em si já vive nos arrays imoveis/automoveis
-  // (lista vazia = não possui), por isso não entram no WizardDraft.
-  const [possuiImoveis, setPossuiImoveis] = useState(false);
-  const [possuiAutomoveis, setPossuiAutomoveis] = useState(false);
 
   const visibleSteps = WIZARD_STEPS;
   const currentStep = visibleSteps[stepIndex];
@@ -99,25 +94,23 @@ export function ClientWizard() {
     setStepIndex((index) => Math.min(index + 1, visibleSteps.length - 1));
   }
 
+  // "Possui imóveis?"/"Possui automóveis?" são derivados da própria lista
+  // (lista vazia = "Não"), nunca guardados em estado à parte: assim o rádio
+  // não tem como divergir do array — remover o último bem já devolve "Não".
+  // Marcar "Sim" semeia um item em branco pro advisor preencher.
   function handleTogglePossuiImoveis(value: boolean) {
-    setPossuiImoveis(value);
-    if (value) {
-      if (formData.imoveis.length === 0) {
-        updateFormData({ imoveis: [criarPropriedadeVazia()] });
-      }
-    } else {
+    if (!value) {
       updateFormData({ imoveis: [] });
+    } else if (formData.imoveis.length === 0) {
+      updateFormData({ imoveis: [criarPropriedadeVazia()] });
     }
   }
 
   function handleTogglePossuiAutomoveis(value: boolean) {
-    setPossuiAutomoveis(value);
-    if (value) {
-      if (formData.automoveis.length === 0) {
-        updateFormData({ automoveis: [criarPropriedadeVazia()] });
-      }
-    } else {
+    if (!value) {
       updateFormData({ automoveis: [] });
+    } else if (formData.automoveis.length === 0) {
+      updateFormData({ automoveis: [criarPropriedadeVazia()] });
     }
   }
 
@@ -338,8 +331,6 @@ export function ClientWizard() {
                 imoveis={formData.imoveis}
                 automoveis={formData.automoveis}
                 errors={errors}
-                possuiImoveis={possuiImoveis}
-                possuiAutomoveis={possuiAutomoveis}
                 onTogglePossuiImoveis={handleTogglePossuiImoveis}
                 onTogglePossuiAutomoveis={handleTogglePossuiAutomoveis}
                 onAddImovel={() =>

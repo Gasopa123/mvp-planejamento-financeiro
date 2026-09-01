@@ -15,11 +15,10 @@ type StepPatrimonioProps = {
   onRemoveAutomovel: (index: number) => void;
   onChangeAutomovel: (index: number, item: PropriedadeDraft) => void;
   // "Possui imóveis?"/"Possui automóveis?" já existiam implicitamente (lista
-  // vazia = não possui) — esses dois pares tornam a resposta explícita
-  // (Sim/Não) na UI. Opcionais e com fallback derivado da lista pra não
-  // quebrar quem ainda não passa esses props (ver step-patrimonio.test.ts).
-  possuiImoveis?: boolean;
-  possuiAutomoveis?: boolean;
+  // vazia = não possui) — esses callbacks tornam a resposta explícita
+  // (Sim/Não) na UI. O valor do rádio NÃO é prop: é sempre derivado da lista
+  // logo abaixo, pra não existir estado paralelo capaz de divergir do array
+  // (ex.: remover o último bem e o rádio continuar em "Sim").
   onTogglePossuiImoveis?: (value: boolean) => void;
   onTogglePossuiAutomoveis?: (value: boolean) => void;
 };
@@ -34,11 +33,12 @@ export function StepPatrimonio({
   onAddAutomovel,
   onRemoveAutomovel,
   onChangeAutomovel,
-  possuiImoveis = imoveis.length > 0,
-  possuiAutomoveis = automoveis.length > 0,
   onTogglePossuiImoveis,
   onTogglePossuiAutomoveis,
 }: StepPatrimonioProps) {
+  const possuiImoveis = imoveis.length > 0;
+  const possuiAutomoveis = automoveis.length > 0;
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">

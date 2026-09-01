@@ -77,11 +77,19 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
   );
   const diferencaNominalReal = valorNominal - valorReal;
 
+  // Saldos reais da curva de drawdown — a tendência (subiu/caiu/estável) é
+  // lida deles, e não de idadeEsgotamento: não zerar até o fim da simulação
+  // não quer dizer que o principal tenha sido preservado.
+  const primeiroPontoDrawdown = pontos[0];
+  const ultimoPontoDrawdown = pontos[pontos.length - 1];
   const explicacaoTendencia = explicarTendenciaPatrimonio({
     aporteMensal,
     saqueMensalAposentadoria: pretensaoSalarial ?? 0,
     idadeEsgotamento,
     expectativaVida,
+    saldoInicioAposentadoria: primeiroPontoDrawdown?.saldo ?? patrimonioEstimado,
+    saldoFinalSimulacao: ultimoPontoDrawdown?.saldo ?? patrimonioEstimado,
+    idadeFinalSimulacao: ultimoPontoDrawdown?.idade ?? expectativaVida,
   });
 
   return (

@@ -185,11 +185,18 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
   const { idadeEsgotamento, patrimonioNaAposentadoria } = resultado;
   const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
+  // Saldos reais da curva simulada — a tendência (subiu/caiu/estável) é lida
+  // deles, e não de idadeEsgotamento: não zerar até o fim da simulação não
+  // quer dizer que o principal tenha sido preservado.
+  const ultimoPontoSimulado = resultado.pontos[resultado.pontos.length - 1];
   const explicacaoTendencia = explicarTendenciaPatrimonio({
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     idadeEsgotamento,
     expectativaVida,
+    saldoInicioAposentadoria: patrimonioNaAposentadoria,
+    saldoFinalSimulacao: ultimoPontoSimulado?.saldo ?? patrimonioNaAposentadoria,
+    idadeFinalSimulacao: Math.round(ultimoPontoSimulado?.idadeAnos ?? 100),
   });
 
   const limiteAporte = Math.max(2500, Math.round(capacidadeAtual * 2));
