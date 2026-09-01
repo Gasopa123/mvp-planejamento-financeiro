@@ -92,6 +92,123 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("saem do patrimônio de uma vez, no ano em que");
   });
 
+  // Regressão do bug reportado: cliente de 26 anos, sem patrimônio investido,
+  // com objetivo cadastrado. A tela mostrava "Patrimônio se esgota aos 26
+  // anos" (a idade atual) mesmo projetando milhões na aposentadoria.
+  it("não afirma que o patrimônio se esgota na idade atual do cliente", () => {
+    const clienteSemPatrimonio = {
+      ...cliente,
+      idade: 26,
+      expectativa_vida: 100,
+      patrimonio_investido: 0,
+      renda_mensal: 12000,
+      despesa_mensal: 9500,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteSemPatrimonio,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).not.toContain("Patrimônio se esgota aos 26 anos");
+    expect(html).not.toContain("74 ano(s) antes da expectativa de vida");
+  });
+
+  it("pede correção quando a idade de aposentadoria é menor ou igual à atual", () => {
+    const clienteIdadeInvalida = {
+      ...cliente,
+      idade: 65,
+      idade_aposentadoria: 65,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteIdadeInvalida,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain("menor ou igual à idade atual");
+    // Nada de veredito ou curva em cima de dado inconsistente.
+    expect(html).not.toContain("Patrimônio se esgota aos");
+    expect(html).not.toContain("Curva única do futuro financeiro");
+  });
+
+  // Mesmo caso de dado inválido na aba Simulações: sem anos de aposentadoria
+  // o drawdown não roda e o veredito de sustentabilidade seria falso.
+  it.each([
+    ["igual à idade de aposentadoria", 65],
+    ["menor que a idade de aposentadoria", 60],
+  ])("não diz que o patrimônio sustenta quando a expectativa de vida é %s", (_caso, expectativaVida) => {
+    const clienteExpectativaInvalida = {
+      ...cliente,
+      idade: 40,
+      idade_aposentadoria: 65,
+      expectativa_vida: expectativaVida,
+    } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteExpectativaInvalida,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain("menor ou igual à idade de aposentadoria");
+    expect(html).not.toContain("sustenta");
+    expect(html).not.toContain("Curva única do futuro financeiro");
+    expect(html).not.toContain("Objetivo atingido");
+  });
+
+  // Déficit antes da aposentadoria não é esgotamento de aposentadoria: a tela
+  // tem que apontar os objetivos, não anunciar "esgota aos [1º ano de drawdown]".
+  it("aponta déficit pré-aposentadoria em vez de esgotamento quando os objetivos estouram o patrimônio", () => {
+    const clienteApertado = {
+      ...cliente,
+      idade: 30,
+      idade_aposentadoria: 60,
+      expectativa_vida: 90,
+      patrimonio_investido: 50000,
+      renda_mensal: 10000,
+      despesa_mensal: 9500,
+    } as unknown as Cliente;
+    const objetivoImpagavel = [
+      {
+        id: "obj-caro",
+        client_id: "client-1",
+        prazo: "medio" as const,
+        descricao: "Casa nova",
+        valor_estimado: 5_000_000,
+        horizonte_anos: 2,
+      },
+    ] satisfies Objetivo[];
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteApertado,
+        objetivos: objetivoImpagavel,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain(
+      "Os objetivos comprometem o patrimônio antes da aposentadoria. Revise prazo, valor ou aporte.",
+    );
+    expect(html).not.toContain("Patrimônio se esgota aos 61 anos");
+    expect(html).not.toContain("Objetivo atingido");
+    // Nenhuma marcação de esgotamento sobra no gráfico vinda da curva sem
+    // objetivos — a idade marcada tem que pertencer à linha desenhada. (Os
+    // cards de stress test são outro cenário e podem citar esgotamento.)
+    expect(html).not.toMatch(/<text[^>]*>esgota aos/);
+    // A curva continua desenhada, com a queda visível.
+    expect(html).toContain("Curva única do futuro financeiro");
+  });
+
   it("filtra a curva no horizonte selecionado", () => {
     const pontos = [
       { idadeAnos: 36, saldo: 100, fase: "acumulacao" as const },

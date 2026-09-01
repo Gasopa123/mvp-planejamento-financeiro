@@ -530,12 +530,24 @@ export type ObjetivoNaCurvaInput = {
 export type ResultadoCurvaComObjetivos = {
   pontos: PontoEvolucaoPatrimonio[];
   /**
-   * Primeira idade em que o saldo fica <= 0 já contando as retiradas dos
-   * objetivos, ou null se isso não acontece dentro da curva. Pode ser mais
-   * cedo que o idadeEsgotamento da curva original — por isso é recalculado
-   * aqui, pra marcação do gráfico não contradizer a linha desenhada.
+   * Primeira idade DA FASE DE APOSENTADORIA em que o saldo fica <= 0 já
+   * contando as retiradas dos objetivos, ou null se isso não acontece dentro
+   * da curva. Pode ser mais cedo que o idadeEsgotamento da curva original —
+   * por isso é recalculado aqui, pra marcação do gráfico não contradizer a
+   * linha desenhada. Nunca é anterior à idade de aposentadoria: um saldo
+   * zerado durante a acumulação (ex.: cliente que ainda não tem nada
+   * investido) não é esgotamento de aposentadoria. Também é null quando a
+   * curva já chega negativa na aposentadoria: aí o problema é o déficit
+   * anterior a ela, sinalizado em idadeDeficitPreAposentadoria.
    */
   idadeEsgotamento: number | null;
+  /**
+   * Primeira idade AINDA NA ACUMULAÇÃO em que o saldo fica <= 0 por causa dos
+   * objetivos, ou null se isso não acontece. É um problema diferente do
+   * esgotamento: o cliente não consegue bancar os objetivos com o aporte
+   * atual, e a saída é rever prazo, valor ou aporte — não a aposentadoria.
+   */
+  idadeDeficitPreAposentadoria: number | null;
 };
 
 /**
@@ -562,7 +574,7 @@ export function aplicarObjetivosNaCurva(
   taxaAnualPct: number,
 ): ResultadoCurvaComObjetivos {
   if (pontos.length === 0) {
-    return { pontos, idadeEsgotamento: null };
+    return { pontos, idadeEsgotamento: null, idadeDeficitPreAposentadoria: null };
   }
 
   const idadeInicial = pontos[0].idadeAnos;
@@ -581,7 +593,7 @@ export function aplicarObjetivosNaCurva(
     .sort((a, b) => a.idadeAlvo - b.idadeAlvo);
 
   if (pendentes.length === 0) {
-    return { pontos, idadeEsgotamento: null };
+    return { pontos, idadeEsgotamento: null, idadeDeficitPreAposentadoria: null };
   }
 
   const taxaAnual = taxaAnualPct / 100;
@@ -589,6 +601,8 @@ export function aplicarObjetivosNaCurva(
   let descontoAcumulado = 0;
   let idadeAnterior = idadeInicial;
   let idadeEsgotamento: number | null = null;
+  let idadeDeficitPreAposentadoria: number | null = null;
+  let saldoNaAposentadoria: number | null = null;
 
   const ajustados = pontos.map((ponto) => {
     const anosDecorridos = ponto.idadeAnos - idadeAnterior;
@@ -606,14 +620,33 @@ export function aplicarObjetivosNaCurva(
     }
 
     const saldo = ponto.saldo - descontoAcumulado;
-    if (idadeEsgotamento == null && saldo <= 0) {
+
+    if (ponto.fase === "acumulacao") {
+      // Saldo zerado/negativo antes da aposentadoria é déficit: o cliente não
+      // consegue bancar os objetivos com o aporte atual. Não é "esgotamento",
+      // que é o patrimônio acabando DURANTE a aposentadoria.
+      if (idadeDeficitPreAposentadoria == null && saldo <= 0) {
+        idadeDeficitPreAposentadoria = ponto.idadeAnos;
+      }
+      // O último ponto de acumulação é o início da aposentadoria; como os
+      // pontos vêm em ordem, ao chegar no drawdown isto já é o saldo de lá.
+      saldoNaAposentadoria = saldo;
+    } else if (
+      idadeEsgotamento == null &&
+      saldo <= 0 &&
+      // Se a curva já chega negativa na aposentadoria, o primeiro ponto de
+      // drawdown também vem negativo — chamar isso de "esgota aos 61" seria
+      // rotular como problema de aposentadoria um déficit que é anterior a
+      // ela. Só há esgotamento quando havia saldo pra gastar.
+      (saldoNaAposentadoria == null || saldoNaAposentadoria > 0)
+    ) {
       idadeEsgotamento = ponto.idadeAnos;
     }
 
     return { ...ponto, saldo };
   });
 
-  return { pontos: ajustados, idadeEsgotamento };
+  return { pontos: ajustados, idadeEsgotamento, idadeDeficitPreAposentadoria };
 }
 
 export type IndicadoresMercado = {

@@ -70,5 +70,29 @@ describe("PresentationDashboard", () => {
     expect(html).toContain("Sem objetivos");
     expect(html).toContain("Comprar imóvel");
     expect(html).not.toContain("Alterar dados pessoais");
+    // Com dados válidos não aparece o aviso de projeção indisponível.
+    expect(html).not.toContain("Projeção indisponível");
+  });
+
+  // Antes a apresentação só escondia curva e stress test, sem dizer por quê —
+  // numa reunião com o cliente isso parece uma tela quebrada.
+  it.each([
+    ["idade de aposentadoria menor que a atual", { idade: 70, idade_aposentadoria: 65 }],
+    ["expectativa de vida menor que a aposentadoria", { idade: 40, idade_aposentadoria: 65, expectativa_vida: 60 }],
+    ["dados de idade ausentes", { idade: null, idade_aposentadoria: null, expectativa_vida: null }],
+  ])("avisa que a projeção está indisponível quando %s", (_caso, patch) => {
+    const clienteInvalido = { ...cliente, ...patch } as unknown as Cliente;
+
+    const html = renderToStaticMarkup(
+      createElement(PresentationDashboard, {
+        cliente: clienteInvalido,
+        objetivos,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain("Projeção indisponível");
+    expect(html).not.toContain("Curva do futuro financeiro");
+    expect(html).not.toContain("Stress test");
   });
 });

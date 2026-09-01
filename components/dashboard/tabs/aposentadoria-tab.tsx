@@ -17,6 +17,76 @@ type AposentadoriaTabProps = {
   assumptions: Assumptions | null;
 };
 
+// Formulário de correção da aposentadoria. Fica fora do fluxo feliz de
+// propósito: quando os dados estão inválidos é exatamente aqui que o advisor
+// conserta, então a tela de erro precisa mostrá-lo também (já aberto).
+function FormEditarAposentadoria({
+  clienteId,
+  idadeAposentadoria,
+  expectativaVida,
+  pretensaoSalarial,
+  aberto = false,
+}: {
+  clienteId: string;
+  idadeAposentadoria: number | null;
+  expectativaVida: number | null;
+  pretensaoSalarial: number | null;
+  aberto?: boolean;
+}) {
+  return (
+    <Card>
+      <details open={aberto}>
+        <summary className="cursor-pointer rounded-full border border-line px-3 py-1.5 text-center text-sm font-semibold text-navy hover:bg-blue-soft">
+          Editar aposentadoria
+        </summary>
+        <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <input type="hidden" name="clientId" value={clienteId} />
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Idade-alvo</span>
+            <input name="idade_aposentadoria" defaultValue={idadeAposentadoria ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Expectativa de vida</span>
+            <input name="expectativa_vida" defaultValue={expectativaVida ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label className="space-y-1">
+            <span className="font-medium text-ink-60">Renda desejada</span>
+            <input name="pretensao_salarial_aposentadoria" defaultValue={pretensaoSalarial ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <button type="submit" className="rounded-full bg-navy px-4 py-2 font-semibold text-white sm:col-start-3 sm:justify-self-end">
+            Salvar
+          </button>
+        </form>
+      </details>
+    </Card>
+  );
+}
+
+// Erro de dado + formulário de correção logo abaixo, pra quem abre a aba já
+// conseguir arrumar sem caçar onde editar.
+function AposentadoriaDadoInvalido({
+  mensagem,
+  cliente,
+}: {
+  mensagem: string;
+  cliente: Cliente;
+}) {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <p className="text-sm text-ink-60">{mensagem}</p>
+      </Card>
+      <FormEditarAposentadoria
+        clienteId={cliente.id}
+        idadeAposentadoria={cliente.idade_aposentadoria}
+        expectativaVida={cliente.expectativa_vida}
+        pretensaoSalarial={cliente.pretensao_salarial_aposentadoria}
+        aberto
+      />
+    </div>
+  );
+}
+
 export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps) {
   const {
     idade,
@@ -30,13 +100,33 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
 
   if (idade == null || idadeAposentadoria == null || expectativaVida == null) {
     return (
-      <Card>
-        <p className="text-sm text-ink-60">
-          Idade, idade de aposentadoria e/ou expectativa de vida não
-          informadas — cadastre esses dados pra ver a projeção de
-          aposentadoria.
-        </p>
-      </Card>
+      <AposentadoriaDadoInvalido
+        cliente={cliente}
+        mensagem="Idade, idade de aposentadoria e/ou expectativa de vida não informadas — cadastre esses dados pra ver a projeção de aposentadoria."
+      />
+    );
+  }
+
+  // Sem tempo de acumulação não há projeção pra mostrar: melhor apontar o
+  // dado inconsistente do que exibir patrimônio e veredito sem significado.
+  if (idadeAposentadoria <= idade) {
+    return (
+      <AposentadoriaDadoInvalido
+        cliente={cliente}
+        mensagem={`A idade de aposentadoria cadastrada (${idadeAposentadoria} anos) é menor ou igual à idade atual (${idade} anos) — corrija esse dado pra ver a projeção de aposentadoria.`}
+      />
+    );
+  }
+
+  // Sem anos de aposentadoria pra simular, o drawdown não roda: o saldo nunca
+  // é sacado, idadeEsgotamento volta null e a tela diria que o patrimônio
+  // "sustenta" — conclusão falsa vinda de dado inconsistente.
+  if (expectativaVida <= idadeAposentadoria) {
+    return (
+      <AposentadoriaDadoInvalido
+        cliente={cliente}
+        mensagem={`A expectativa de vida cadastrada (${expectativaVida} anos) é menor ou igual à idade de aposentadoria (${idadeAposentadoria} anos) — informe uma expectativa de vida maior pra ver a projeção de aposentadoria.`}
+      />
     );
   }
 
@@ -105,31 +195,12 @@ export function AposentadoriaTab({ cliente, assumptions }: AposentadoriaTabProps
         <StatCard label="Expectativa de vida" value={`${expectativaVida} anos`} accent="muted" />
       </div>
 
-      <Card>
-        <details>
-          <summary className="cursor-pointer rounded-full border border-line px-3 py-1.5 text-center text-sm font-semibold text-navy hover:bg-blue-soft">
-            Editar aposentadoria
-          </summary>
-          <form action={atualizarCliente} className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-            <input type="hidden" name="clientId" value={cliente.id} />
-            <label className="space-y-1">
-              <span className="font-medium text-ink-60">Idade-alvo</span>
-              <input name="idade_aposentadoria" defaultValue={idadeAposentadoria} className="w-full rounded-xl border border-line px-3 py-2" />
-            </label>
-            <label className="space-y-1">
-              <span className="font-medium text-ink-60">Expectativa de vida</span>
-              <input name="expectativa_vida" defaultValue={expectativaVida} className="w-full rounded-xl border border-line px-3 py-2" />
-            </label>
-            <label className="space-y-1">
-              <span className="font-medium text-ink-60">Renda desejada</span>
-              <input name="pretensao_salarial_aposentadoria" defaultValue={pretensaoSalarial ?? ""} className="w-full rounded-xl border border-line px-3 py-2" />
-            </label>
-            <button type="submit" className="rounded-full bg-navy px-4 py-2 font-semibold text-white sm:col-start-3 sm:justify-self-end">
-              Salvar
-            </button>
-          </form>
-        </details>
-      </Card>
+      <FormEditarAposentadoria
+        clienteId={cliente.id}
+        idadeAposentadoria={idadeAposentadoria}
+        expectativaVida={expectativaVida}
+        pretensaoSalarial={pretensaoSalarial}
+      />
 
       <Card>
         <CardLabel>Patrimônio estimado ao se aposentar</CardLabel>

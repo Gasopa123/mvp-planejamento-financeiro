@@ -137,6 +137,36 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     );
   }
 
+  // Sem tempo de acumulação não há cenário pra simular: melhor dizer que o
+  // dado está inconsistente do que desenhar uma curva e um veredito que não
+  // significam nada.
+  if (idadeAposentadoria <= idade) {
+    return (
+      <Card>
+        <p className="text-sm text-ink-60">
+          A idade de aposentadoria cadastrada ({idadeAposentadoria} anos) é
+          menor ou igual à idade atual ({idade} anos) — corrija esse dado pra
+          simular cenários.
+        </p>
+      </Card>
+    );
+  }
+
+  // Sem anos de aposentadoria pra simular, o drawdown não roda: o saldo nunca
+  // é sacado, idadeEsgotamento volta null e a tela diria que o patrimônio
+  // "sustenta" — conclusão falsa vinda de dado inconsistente.
+  if (expectativaVida <= idadeAposentadoria) {
+    return (
+      <Card>
+        <p className="text-sm text-ink-60">
+          A expectativa de vida cadastrada ({expectativaVida} anos) é menor ou
+          igual à idade de aposentadoria ({idadeAposentadoria} anos) — informe
+          uma expectativa de vida maior pra simular cenários.
+        </p>
+      </Card>
+    );
+  }
+
   // A rentabilidade real usada em toda a simulação vem só do tipo
   // atualmente selecionado — os outros dois campos ficam guardados, mas não
   // entram na conta enquanto não forem selecionados.
@@ -196,15 +226,26 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
   );
   const pontosDaCurva = pontosAteHorizonte(curvaComObjetivos.pontos, idadeMaxima);
   const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
+  // Déficit antes da aposentadoria é outro problema: os objetivos consomem o
+  // patrimônio antes de chegar lá. Não dá pra falar de sustentabilidade da
+  // aposentadoria quando o dinheiro acaba antes dela.
+  const idadeDeficitPreAposentadoria = curvaComObjetivos.idadeDeficitPreAposentadoria;
   // Esgotamento e patrimônio na aposentadoria vêm da curva já descontada,
-  // pro número e o gráfico não contarem histórias diferentes.
+  // pro número e o gráfico não contarem histórias diferentes. Havendo déficit
+  // pré-aposentadoria não existe esgotamento a mostrar — sem isso o fallback
+  // cairia na curva SEM objetivos e marcaria no gráfico uma idade que não
+  // pertence à linha desenhada.
   const idadeEsgotamento =
-    curvaComObjetivos.idadeEsgotamento ?? resultado.idadeEsgotamento;
+    idadeDeficitPreAposentadoria != null
+      ? null
+      : (curvaComObjetivos.idadeEsgotamento ?? resultado.idadeEsgotamento);
   const patrimonioNaAposentadoria =
     curvaComObjetivos.pontos.find(
       (ponto) => ponto.idadeAnos >= resultado.idadeAposentadoria,
     )?.saldo ?? resultado.patrimonioNaAposentadoria;
-  const sustentavel = idadeEsgotamento == null || idadeEsgotamento >= expectativaVida;
+  const sustentavel =
+    idadeDeficitPreAposentadoria == null &&
+    (idadeEsgotamento == null || idadeEsgotamento >= expectativaVida);
   // Saldos reais da curva simulada — a tendência (subiu/caiu/estável) é lida
   // deles, e não de idadeEsgotamento: não zerar até o fim da simulação não
   // quer dizer que o principal tenha sido preservado.
@@ -375,18 +416,22 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
       <VerdictCard
         positivo={sustentavel}
         titulo={
-          idadeEsgotamento == null
-            ? "Patrimônio sustenta até os 100 anos"
-            : sustentavel
-              ? `Patrimônio dura até os ${idadeEsgotamento} anos`
-              : `Patrimônio se esgota aos ${idadeEsgotamento} anos`
+          idadeDeficitPreAposentadoria != null
+            ? `Os objetivos comprometem o patrimônio aos ${idadeDeficitPreAposentadoria} anos`
+            : idadeEsgotamento == null
+              ? "Patrimônio sustenta até os 100 anos"
+              : sustentavel
+                ? `Patrimônio dura até os ${idadeEsgotamento} anos`
+                : `Patrimônio se esgota aos ${idadeEsgotamento} anos`
         }
         subtitulo={
-          idadeEsgotamento == null
-            ? "Com esse cenário, o saldo nunca se esgota até os 100 anos simulados."
-            : sustentavel
-              ? `Cobre a expectativa de vida de ${expectativaVida} anos.`
-              : `Isso é ${expectativaVida - idadeEsgotamento} ano(s) antes da expectativa de vida de ${expectativaVida} anos.`
+          idadeDeficitPreAposentadoria != null
+            ? "Os objetivos comprometem o patrimônio antes da aposentadoria. Revise prazo, valor ou aporte."
+            : idadeEsgotamento == null
+              ? "Com esse cenário, o saldo nunca se esgota até os 100 anos simulados."
+              : sustentavel
+                ? `Cobre a expectativa de vida de ${expectativaVida} anos.`
+                : `Isso é ${expectativaVida - idadeEsgotamento} ano(s) antes da expectativa de vida de ${expectativaVida} anos.`
         }
         badgeLabel={sustentavel ? "Objetivo atingido" : "Requer ajuste"}
       />
