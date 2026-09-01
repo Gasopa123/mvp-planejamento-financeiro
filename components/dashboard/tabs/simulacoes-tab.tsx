@@ -71,9 +71,12 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     cliente.patrimonio_investido ?? 0,
     inflacaoProjetadaPct,
   );
-  const capacidadeLivreParaAposentadoria = Math.max(0, impactoDosObjetivos.capacidadeRestante);
-
-  const [aporte, setAporte] = useState(Math.round(capacidadeLivreParaAposentadoria / 50) * 50 || 500);
+  // O aporte parte da capacidade cheia, não da restante depois dos objetivos:
+  // na curva os objetivos já saem como retirada pontual no ano em que vencem
+  // (ver aplicarObjetivosNaCurva). Descontá-los também do aporte mensal
+  // contaria o mesmo objetivo duas vezes. O impacto mensal continua no card
+  // de objetivos logo abaixo, como leitura alternativa.
+  const [aporte, setAporte] = useState(Math.round(capacidadeAtual / 50) * 50 || 500);
   const [rendaDesejada, setRendaDesejada] = useState(
     cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 5000,
   );
@@ -312,7 +315,13 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
       </Card>
 
       <Card>
-        <CardLabel>Objetivos consomem capacidade</CardLabel>
+        <CardLabel>Objetivos — leitura alternativa (poupar mês a mês)</CardLabel>
+        <p className="mb-3 text-xs text-ink-40">
+          Na curva acima os objetivos saem do patrimônio de uma vez, no ano em
+          que vencem. Os números abaixo mostram o outro caminho: reservar um
+          valor todo mês até lá. São formas alternativas de pagar o mesmo
+          objetivo — não se somam.
+        </p>
         <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
           <div>
             <span className="text-ink-60">Aporte reservado a objetivos</span>

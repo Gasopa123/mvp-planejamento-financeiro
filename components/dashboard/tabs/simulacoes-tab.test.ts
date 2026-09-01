@@ -51,7 +51,7 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Com objetivos");
     expect(html).toContain("Aposentadoria ideal");
     expect(html).toContain("Comprar imóvel");
-    expect(html).toContain("Objetivos consomem capacidade");
+    expect(html).toContain("Objetivos — leitura alternativa (poupar mês a mês)");
     expect(html).toContain("Valor da recomendação");
     expect(html).toContain("Cenário atual");
     expect(html).toContain("Cenário recomendado");
@@ -60,6 +60,36 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Stress test");
     expect(html).toContain("Inflação +2%");
     expect(html).toContain("Aporte -30%");
+  });
+
+  // Regressão da dupla contagem: os objetivos já saem da curva como retirada
+  // pontual no ano do horizonte, então o aporte mensal NÃO pode vir reduzido
+  // por eles também — senão o mesmo objetivo é pago duas vezes.
+  it("inicializa o aporte com a capacidade cheia, mesmo havendo objetivos", () => {
+    const semObjetivos = renderToStaticMarkup(
+      createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos: [], assumptions: null }),
+    );
+    const comObjetivos = renderToStaticMarkup(
+      createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos, assumptions: null }),
+    );
+
+    // renda 10.000 - despesa 5.000 = capacidade cheia de 5.000.
+    const sliderAporte = /aria-label="Aporte mensal até a aposentadoria"[^>]*value="(\d+)"/;
+    const valorSemObjetivos = semObjetivos.match(sliderAporte)?.[1];
+    const valorComObjetivos = comObjetivos.match(sliderAporte)?.[1];
+
+    expect(valorSemObjetivos).toBe("5000");
+    // Cadastrar um objetivo não pode encolher o aporte mensal da curva.
+    expect(valorComObjetivos).toBe(valorSemObjetivos);
+  });
+
+  it("deixa claro que poupar mês a mês é alternativa, não soma com a retirada da curva", () => {
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos, assumptions: null }),
+    );
+
+    expect(html).toContain("não se somam");
+    expect(html).toContain("saem do patrimônio de uma vez, no ano em que");
   });
 
   it("filtra a curva no horizonte selecionado", () => {

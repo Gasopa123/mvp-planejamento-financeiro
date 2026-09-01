@@ -23,7 +23,12 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
   const { rentabilidadeRealPadraoPct, inflacaoProjetadaPct } = resolverAssumptions(assumptions);
   const capacidade = capacidadeInvestimento(cliente.renda_mensal ?? 0, cliente.despesa_mensal ?? 0);
   const impacto = impactoObjetivos(objetivos, capacidade, cliente.patrimonio_investido ?? 0, inflacaoProjetadaPct);
-  const aporte = Math.max(0, impacto.capacidadeRestante);
+  // Capacidade cheia, não a restante depois dos objetivos: na curva os
+  // objetivos já saem como retirada pontual no ano em que vencem (ver
+  // aplicarObjetivosNaCurva). Descontá-los também do aporte mensal contaria
+  // o mesmo objetivo duas vezes. O impacto mensal continua no card abaixo,
+  // como leitura alternativa ("se preferir poupar mês a mês").
+  const aporte = Math.max(0, capacidade);
   const podeSimular = cliente.idade != null && cliente.idade_aposentadoria != null && cliente.expectativa_vida != null;
   const simulacao = podeSimular
     ? simularEvolucaoPatrimonio(
@@ -96,9 +101,12 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
             <p className="mt-2 text-sm text-ink-40">Diferença estimada entre não aportar e seguir o plano.</p>
           </Card>
           <Card>
-            <CardLabel>Capacidade livre</CardLabel>
+            <CardLabel>Capacidade de investimento</CardLabel>
             <div className="font-display text-3xl font-semibold text-navy">{formatarMoeda(aporte)}</div>
-            <p className="mt-2 text-sm text-ink-60">Depois de reservar objetivos.</p>
+            <p className="mt-2 text-sm text-ink-60">
+              Renda menos despesa. É o aporte usado na curva — os objetivos
+              entram lá como retirada no ano em que vencem.
+            </p>
           </Card>
           <Card>
             <CardLabel>Objetivos mapeados</CardLabel>
@@ -108,7 +116,12 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         </div>
 
         <Card>
-          <CardLabel>Objetivos consomem capacidade</CardLabel>
+          <CardLabel>Objetivos — leitura alternativa (poupar mês a mês)</CardLabel>
+          <p className="mb-3 text-xs text-ink-40">
+            Na curva os objetivos saem do patrimônio de uma vez, no ano em que
+            vencem. Abaixo, o outro caminho: reservar um valor todo mês até lá.
+            São formas alternativas de pagar o mesmo objetivo — não se somam.
+          </p>
           <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
             <Resumo label="Aporte reservado" valor={formatarMoeda(impacto.aporteMensalObjetivos)} />
             <Resumo label="Livre para aposentadoria" valor={formatarMoeda(impacto.capacidadeRestante)} />
