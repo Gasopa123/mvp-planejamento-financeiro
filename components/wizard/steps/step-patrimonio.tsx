@@ -1,4 +1,5 @@
 import { PropriedadeList } from "../propriedade-list";
+import { SimNaoField } from "../sim-nao-field";
 import { formatarMoeda } from "@/lib/format";
 import { scopeErrors, type StepErrors } from "@/lib/wizard/validate-step";
 import type { PropriedadeDraft } from "@/lib/wizard/types";
@@ -13,6 +14,13 @@ type StepPatrimonioProps = {
   onAddAutomovel: () => void;
   onRemoveAutomovel: (index: number) => void;
   onChangeAutomovel: (index: number, item: PropriedadeDraft) => void;
+  // "Possui imóveis?"/"Possui automóveis?" já existiam implicitamente (lista
+  // vazia = não possui) — esses callbacks tornam a resposta explícita
+  // (Sim/Não) na UI. O valor do rádio NÃO é prop: é sempre derivado da lista
+  // logo abaixo, pra não existir estado paralelo capaz de divergir do array
+  // (ex.: remover o último bem e o rádio continuar em "Sim").
+  onTogglePossuiImoveis?: (value: boolean) => void;
+  onTogglePossuiAutomoveis?: (value: boolean) => void;
 };
 
 export function StepPatrimonio({
@@ -25,36 +33,61 @@ export function StepPatrimonio({
   onAddAutomovel,
   onRemoveAutomovel,
   onChangeAutomovel,
+  onTogglePossuiImoveis,
+  onTogglePossuiAutomoveis,
 }: StepPatrimonioProps) {
+  const possuiImoveis = imoveis.length > 0;
+  const possuiAutomoveis = automoveis.length > 0;
+
   return (
     <div className="space-y-8">
-      <PropriedadeList
-        idPrefix="imovel"
-        bemTipo="imovel"
-        titulo="Imóveis"
-        itemLabel="Imóvel"
-        addLabel="+ Adicionar imóvel"
-        emptyLabel="Nenhum imóvel cadastrado ainda."
-        items={imoveis}
-        errors={scopeErrors(errors, "imoveis")}
-        onAdd={onAddImovel}
-        onRemove={onRemoveImovel}
-        onChange={onChangeImovel}
-      />
+      <div className="space-y-4">
+        <SimNaoField
+          label="Possui imóveis?"
+          name="possuiImoveis"
+          value={possuiImoveis}
+          onChange={(value) => onTogglePossuiImoveis?.(value)}
+        />
+        {possuiImoveis && (
+          <PropriedadeList
+            idPrefix="imovel"
+            bemTipo="imovel"
+            titulo="Imóveis"
+            itemLabel="Imóvel"
+            addLabel="+ Adicionar imóvel"
+            emptyLabel="Nenhum imóvel cadastrado ainda."
+            items={imoveis}
+            errors={scopeErrors(errors, "imoveis")}
+            onAdd={onAddImovel}
+            onRemove={onRemoveImovel}
+            onChange={onChangeImovel}
+          />
+        )}
+      </div>
 
-      <PropriedadeList
-        idPrefix="automovel"
-        bemTipo="automovel"
-        titulo="Automóveis"
-        itemLabel="Automóvel"
-        addLabel="+ Adicionar automóvel"
-        emptyLabel="Nenhum automóvel cadastrado ainda."
-        items={automoveis}
-        errors={scopeErrors(errors, "automoveis")}
-        onAdd={onAddAutomovel}
-        onRemove={onRemoveAutomovel}
-        onChange={onChangeAutomovel}
-      />
+      <div className="space-y-4">
+        <SimNaoField
+          label="Possui automóveis?"
+          name="possuiAutomoveis"
+          value={possuiAutomoveis}
+          onChange={(value) => onTogglePossuiAutomoveis?.(value)}
+        />
+        {possuiAutomoveis && (
+          <PropriedadeList
+            idPrefix="automovel"
+            bemTipo="automovel"
+            titulo="Automóveis"
+            itemLabel="Automóvel"
+            addLabel="+ Adicionar automóvel"
+            emptyLabel="Nenhum automóvel cadastrado ainda."
+            items={automoveis}
+            errors={scopeErrors(errors, "automoveis")}
+            onAdd={onAddAutomovel}
+            onRemove={onRemoveAutomovel}
+            onChange={onChangeAutomovel}
+          />
+        )}
+      </div>
 
       <ResumoPatrimonio imoveis={imoveis} automoveis={automoveis} />
     </div>

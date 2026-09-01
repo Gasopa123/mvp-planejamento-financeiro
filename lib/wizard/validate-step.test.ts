@@ -163,6 +163,126 @@ describe("validateStep('pessoal') — saúde e risco (subtópico)", () => {
   });
 });
 
+describe("validateStep('aposentadoria-objetivos') — etapa fundida", () => {
+  const draftAposentadoria = (): WizardDraft => ({
+    ...draftBase(),
+    idadeAposentadoria: 65,
+    expectativaVida: 90,
+    pretensaoSalarialAposentadoria: 12000,
+  });
+
+  it("passa quando a aposentadoria está completa e não há objetivos", () => {
+    const errors = validateStep("aposentadoria-objetivos", draftAposentadoria());
+    expect(errors).toEqual({});
+  });
+
+  it("acusa erro de aposentadoria (assunto principal da etapa)", () => {
+    const draft: WizardDraft = {
+      ...draftAposentadoria(),
+      idadeAposentadoria: null,
+    };
+    const errors = validateStep("aposentadoria-objetivos", draft);
+    expect(errors.idadeAposentadoria).toBeDefined();
+  });
+
+  it("acusa erro de objetivo (subtópico complementar) na mesma etapa", () => {
+    const draft: WizardDraft = {
+      ...draftAposentadoria(),
+      objetivos: [
+        { prazo: "", descricao: "", valorEstimado: null, horizonteAnos: null },
+      ],
+    };
+    const errors = validateStep("aposentadoria-objetivos", draft);
+    expect(errors["0.prazo"]).toBeDefined();
+    expect(errors["0.descricao"]).toBeDefined();
+  });
+
+  it("acumula erros de aposentadoria e de objetivos ao mesmo tempo", () => {
+    const draft: WizardDraft = {
+      ...draftAposentadoria(),
+      expectativaVida: null,
+      objetivos: [
+        { prazo: "", descricao: "", valorEstimado: null, horizonteAnos: null },
+      ],
+    };
+    const errors = validateStep("aposentadoria-objetivos", draft);
+    expect(errors.expectativaVida).toBeDefined();
+    expect(errors["0.prazo"]).toBeDefined();
+  });
+});
+
+describe("validateStep('financeiro') — etapa fundida", () => {
+  const draftFinanceiro = (): WizardDraft => ({
+    ...draftBase(),
+    salarioLiquido: 8000,
+    rendaMensal: 8000,
+    despesaMensalBase: 4000,
+    despesaMensal: 4000,
+    patrimonioInvestido: 100000,
+  });
+
+  it("passa quando o financeiro está completo, sem bens nem participação", () => {
+    const errors = validateStep("financeiro", draftFinanceiro());
+    expect(errors).toEqual({});
+  });
+
+  it("acusa erro de patrimônio (imóvel sem valor) dentro da etapa financeiro", () => {
+    const draft: WizardDraft = {
+      ...draftFinanceiro(),
+      imoveis: [
+        {
+          valor: null,
+          financiado: false,
+          adquiridoAposCasamento: false,
+          subtipo: "",
+          modelo: "",
+          financiamentoTermino: null,
+          parcelaFinanciamento: null,
+        },
+      ],
+    };
+    const errors = validateStep("financeiro", draft);
+    expect(errors["imoveis.0.valor"]).toBeDefined();
+  });
+
+  it("acusa erro de participação societária dentro da etapa financeiro", () => {
+    const draft: WizardDraft = {
+      ...draftFinanceiro(),
+      temParticipacaoSocietaria: true,
+      valorParticipacao: null,
+      percentualParticipacao: null,
+    };
+    const errors = validateStep("financeiro", draft);
+    expect(errors.valorParticipacao).toBeDefined();
+    expect(errors.percentualParticipacao).toBeDefined();
+  });
+
+  it("acumula erros de financeiro, patrimônio e societário numa etapa só", () => {
+    const draft: WizardDraft = {
+      ...draftFinanceiro(),
+      salarioLiquido: null,
+      automoveis: [
+        {
+          valor: null,
+          financiado: false,
+          adquiridoAposCasamento: false,
+          subtipo: "",
+          modelo: "",
+          financiamentoTermino: null,
+          parcelaFinanciamento: null,
+        },
+      ],
+      temParticipacaoSocietaria: true,
+      valorParticipacao: null,
+      percentualParticipacao: null,
+    };
+    const errors = validateStep("financeiro", draft);
+    expect(errors.salarioLiquido).toBeDefined();
+    expect(errors["automoveis.0.valor"]).toBeDefined();
+    expect(errors.valorParticipacao).toBeDefined();
+  });
+});
+
 describe("validateStep('planos-futuros')", () => {
   it("não exige mais 'Tem seguro de vida?' — só pretende adquirir bens", () => {
     const draft: WizardDraft = { ...draftBase(), pretendeAdquirirBens: true };

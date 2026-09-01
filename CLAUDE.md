@@ -38,7 +38,7 @@ Row Level Security: advisor só acessa linhas onde advisor_id = auth.uid().
 ## Motor de cálculo financeiro
 - capacidade_investimento = renda_mensal - despesa_mensal
 - taxa_poupanca = capacidade_investimento / renda_mensal
-- reserva_emergencia_ideal = despesa_mensal × 6
+- reserva_emergencia_ideal = despesa_mensal × 4
 - Acumulação até aposentadoria (valor futuro de anuidade + patrimônio atual capitalizado):
   i_mensal = (1 + taxa_anual)^(1/12) - 1
   FV_aportes = aporte_mensal × [((1+i_mensal)^n - 1) / i_mensal] × (1+i_mensal)

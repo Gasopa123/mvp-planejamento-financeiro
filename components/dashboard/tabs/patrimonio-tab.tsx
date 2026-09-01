@@ -67,6 +67,32 @@ export function PatrimonioTab({ cliente, imoveis, automoveis }: PatrimonioTabPro
 
   return (
     <div className="space-y-6">
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardLabel>Respostas rápidas</CardLabel>
+        </div>
+        <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <div className="flex justify-between sm:block">
+            <span className="text-ink-60">Seguro de vida</span>
+            <Badge tone={cliente.tem_seguro_vida ? "green" : "gold"} className="sm:mt-1">
+              {cliente.tem_seguro_vida ? "Sim" : "Não"}
+            </Badge>
+          </div>
+          <div className="flex justify-between sm:block">
+            <span className="text-ink-60">Possui imóveis</span>
+            <Badge tone={imoveis.length > 0 ? "green" : "gold"} className="sm:mt-1">
+              {imoveis.length > 0 ? `Sim (${imoveis.length})` : "Não"}
+            </Badge>
+          </div>
+          <div className="flex justify-between sm:block">
+            <span className="text-ink-60">Possui automóveis</span>
+            <Badge tone={automoveis.length > 0 ? "green" : "gold"} className="sm:mt-1">
+              {automoveis.length > 0 ? `Sim (${automoveis.length})` : "Não"}
+            </Badge>
+          </div>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <IconChip tone="blue">
@@ -172,7 +198,7 @@ export function PatrimonioTab({ cliente, imoveis, automoveis }: PatrimonioTabPro
           </Badge>
         </div>
         <div className="mt-3 flex justify-between text-sm">
-          <span className="text-ink-60">Ideal (6x a despesa mensal)</span>
+          <span className="text-ink-60">Ideal (4x a despesa mensal)</span>
           <b className="text-navy">{formatarMoeda(reservaIdeal)}</b>
         </div>
         <div className="mt-1.5 flex justify-between text-sm">

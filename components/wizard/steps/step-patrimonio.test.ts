@@ -67,6 +67,79 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { StepPatrimonio } from "./step-patrimonio";
 
+// Extrai o estado do par de rádios Sim/Não de um SimNaoField no HTML gerado.
+// A primeira tag é "Sim" e a segunda é "Não" (ver components/wizard/sim-nao-field.tsx).
+function radioMarcado(html: string, name: string): "sim" | "nao" {
+  const tags = html.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`, "g")) ?? [];
+  if (tags.length !== 2) {
+    throw new Error(`esperava 2 rádios para "${name}", achei ${tags.length}`);
+  }
+  return tags[0].includes("checked") ? "sim" : "nao";
+}
+
+function renderStepPatrimonio(
+  imoveis: PropriedadeDraft[],
+  automoveis: PropriedadeDraft[],
+): string {
+  return renderToStaticMarkup(
+    createElement(StepPatrimonio, {
+      imoveis,
+      automoveis,
+      errors: {},
+      onAddImovel: () => {},
+      onRemoveImovel: () => {},
+      onChangeImovel: () => {},
+      onAddAutomovel: () => {},
+      onRemoveAutomovel: () => {},
+      onChangeAutomovel: () => {},
+    }),
+  );
+}
+
+// Regressão do bloqueio apontado na revisão: o rádio "Possui imóveis/automóveis?"
+// não pode continuar em "Sim" depois que o último bem é removido. O valor é
+// derivado da própria lista, então lista vazia sempre volta pra "Não".
+describe("StepPatrimonio — rádio Possui imóveis/automóveis", () => {
+  it("marca 'Não' quando não há bens cadastrados", () => {
+    const html = renderStepPatrimonio([], []);
+
+    expect(radioMarcado(html, "possuiImoveis")).toBe("nao");
+    expect(radioMarcado(html, "possuiAutomoveis")).toBe("nao");
+  });
+
+  it("marca 'Sim' quando há bens cadastrados", () => {
+    const html = renderStepPatrimonio([propriedade(300000)], [propriedade(50000)]);
+
+    expect(radioMarcado(html, "possuiImoveis")).toBe("sim");
+    expect(radioMarcado(html, "possuiAutomoveis")).toBe("sim");
+  });
+
+  it("volta pra 'Não' quando o último imóvel/automóvel é removido", () => {
+    const comBens = renderStepPatrimonio([propriedade(300000)], [propriedade(50000)]);
+    expect(radioMarcado(comBens, "possuiImoveis")).toBe("sim");
+    expect(radioMarcado(comBens, "possuiAutomoveis")).toBe("sim");
+
+    // Estado após remover o último item de cada lista.
+    const semBens = renderStepPatrimonio([], []);
+    expect(radioMarcado(semBens, "possuiImoveis")).toBe("nao");
+    expect(radioMarcado(semBens, "possuiAutomoveis")).toBe("nao");
+  });
+
+  it("esconde a lista de bens enquanto a resposta for 'Não'", () => {
+    const html = renderStepPatrimonio([], []);
+
+    expect(html).not.toContain("+ Adicionar imóvel");
+    expect(html).not.toContain("+ Adicionar automóvel");
+  });
+
+  it("mantém rádios independentes entre imóveis e automóveis", () => {
+    const html = renderStepPatrimonio([propriedade(300000)], []);
+
+    expect(radioMarcado(html, "possuiImoveis")).toBe("sim");
+    expect(radioMarcado(html, "possuiAutomoveis")).toBe("nao");
+  });
+});
+
 describe("StepPatrimonio campos detalhados", () => {
   it("renderiza tipo do bem, modelo e campos de financiamento", () => {
     const html = renderToStaticMarkup(

@@ -40,7 +40,7 @@ function montarItens({
   if (cliente.despesa_mensal != null) {
     const reservaIdeal = reservaEmergenciaIdeal(cliente.despesa_mensal);
     itens.push({
-      texto: `Montar reserva de emergência de ${formatarMoeda(reservaIdeal)} (6x a despesa mensal)`,
+      texto: `Montar reserva de emergência de ${formatarMoeda(reservaIdeal)} (4x a despesa mensal)`,
       concluido: (cliente.patrimonio_investido ?? 0) >= reservaIdeal,
     });
   }

@@ -36,6 +36,20 @@ export function scopeErrors(errors: StepErrors, prefix: string): StepErrors {
   return scoped;
 }
 
+// Junta os erros de vários safeParse independentes numa etapa que hoje
+// agrupa mais de um schema (ex: "financeiro" cobre financeiro + patrimônio +
+// participação societária). Os schemas envolvidos não têm campos com o
+// mesmo nome, então não há risco de uma chave sobrescrever a outra.
+function mergeStepErrors(
+  ...results: { success: boolean; error?: ZodError }[]
+): StepErrors {
+  return results.reduce<StepErrors>(
+    (errors, result) =>
+      result.success ? errors : { ...errors, ...flatten(result.error!) },
+    {},
+  );
+}
+
 export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
   switch (stepId) {
     case "pessoal": {
@@ -64,8 +78,11 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
       return result.success ? {} : flatten(result.error);
     }
 
+    // Etapa "Financeiro" — hoje agrupa financeiro, patrimônio (imóveis e
+    // automóveis) e participação societária (ver StepFinanceiro,
+    // StepPatrimonio e StepSocietario dentro de ClientWizard).
     case "financeiro": {
-      const result = financeiroSchema.safeParse({
+      const financeiroResult = financeiroSchema.safeParse({
         salarioLiquido: data.salarioLiquido,
         outrasRendas: data.outrasRendas,
         rendaMensal: data.rendaMensal,
@@ -77,38 +94,29 @@ export function validateStep(stepId: StepId, data: WizardDraft): StepErrors {
         temInvestimentoExterior: data.temInvestimentoExterior,
         valorInvestimentoExterior: data.valorInvestimentoExterior,
       });
-      return result.success ? {} : flatten(result.error);
-    }
-
-    case "patrimonio": {
-      const result = patrimonioSchema.safeParse({
+      const patrimonioResult = patrimonioSchema.safeParse({
         imoveis: data.imoveis,
         automoveis: data.automoveis,
       });
-      return result.success ? {} : flatten(result.error);
-    }
-
-    case "objetivos": {
-      const result = objetivosSchema.safeParse(data.objetivos);
-      return result.success ? {} : flatten(result.error);
-    }
-
-    case "societario": {
-      const result = societarioSchema.safeParse({
+      const societarioResult = societarioSchema.safeParse({
         temParticipacaoSocietaria: data.temParticipacaoSocietaria,
         valorParticipacao: data.valorParticipacao,
         percentualParticipacao: data.percentualParticipacao,
       });
-      return result.success ? {} : flatten(result.error);
+      return mergeStepErrors(financeiroResult, patrimonioResult, societarioResult);
     }
 
-    case "aposentadoria": {
-      const result = aposentadoriaSchema.safeParse({
+    // Etapa "Aposentadoria e objetivos" — aposentadoria é o assunto
+    // principal, objetivos é o subtópico complementar (ver StepAposentadoria
+    // e StepObjetivos dentro de ClientWizard).
+    case "aposentadoria-objetivos": {
+      const aposentadoriaResult = aposentadoriaSchema.safeParse({
         idadeAposentadoria: data.idadeAposentadoria,
         expectativaVida: data.expectativaVida,
         pretensaoSalarialAposentadoria: data.pretensaoSalarialAposentadoria,
       });
-      return result.success ? {} : flatten(result.error);
+      const objetivosResult = objetivosSchema.safeParse(data.objetivos);
+      return mergeStepErrors(aposentadoriaResult, objetivosResult);
     }
 
     case "planos-futuros": {

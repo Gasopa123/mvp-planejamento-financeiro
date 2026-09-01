@@ -1,7 +1,12 @@
 import { Card } from "@/components/design-system/card";
 import { Badge } from "@/components/design-system/badge";
 import { PRAZO_LABELS, type Prazo } from "@/lib/wizard/schema";
-import { capacidadeInvestimento, impactoObjetivos, projecaoMetaComInflacao } from "@/lib/calculos";
+import {
+  capacidadeInvestimento,
+  impactoObjetivos,
+  projecaoMetaComInflacao,
+  valorMensalSugeridoObjetivo,
+} from "@/lib/calculos";
 import { adicionarObjetivo, removerObjetivo } from "@/app/carteira/[clientId]/actions";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
@@ -71,6 +76,12 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                       objetivo.horizonte_anos ?? 0,
                     )
                   : null;
+              // null quando o objetivo não tem prazo — aí pedimos o prazo em
+              // vez de sugerir um aporte mensal sem sentido.
+              const valorMensalSugerido =
+                objetivo.valor_estimado != null
+                  ? valorMensalSugeridoObjetivo(objetivo, inflacaoProjetadaPct)
+                  : null;
 
               return (
                 <Card key={objetivo.id}>
@@ -94,6 +105,18 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                       </span>
                       <b className="text-gold-ink">{formatarMoeda(valorFuturo)}</b>
                     </div>
+                  )}
+                  {valorMensalSugerido != null ? (
+                    <div className="mt-1.5 flex justify-between border-t border-line pt-1.5 text-[13px] text-ink-60">
+                      <span>Guardar por mês até a meta</span>
+                      <b className="text-blue">{formatarMoeda(valorMensalSugerido)}</b>
+                    </div>
+                  ) : (
+                    objetivo.valor_estimado != null && (
+                      <div className="mt-1.5 border-t border-line pt-1.5 text-[13px] text-ink-40">
+                        Defina um prazo para calcular o aporte mensal sugerido.
+                      </div>
+                    )
                   )}
                   <form action={removerObjetivo} className="mt-4">
                     <input type="hidden" name="clientId" value={cliente.id} />
@@ -143,6 +166,11 @@ function ImpactoObjetivos({ impacto }: { impacto: ReturnType<typeof impactoObjet
         <div><span className="text-ink-60">Capacidade após objetivos</span><b className={impacto.capacidadeRestante >= 0 ? "block text-green-ink" : "block text-gold-ink"}>{formatarMoeda(impacto.capacidadeRestante)}</b></div>
         <div><span className="text-ink-60">Patrimônio após objetivos</span><b className={impacto.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink"}>{formatarMoeda(impacto.patrimonioDepoisObjetivos)}</b></div>
       </div>
+      <p className="mt-3 text-xs text-ink-40">
+        O aporte mensal sugerido é uma divisão linear simples: o valor da meta
+        corrigido pela inflação, dividido pelos meses até o prazo informado. Não
+        considera rendimento sobre o que for guardado nem promete rentabilidade.
+      </p>
     </Card>
   );
 }

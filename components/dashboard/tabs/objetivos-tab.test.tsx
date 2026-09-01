@@ -22,6 +22,15 @@ const objetivos = [
   },
 ] satisfies Objetivo[];
 
+const objetivoSemPrazo = {
+  id: "obj-2",
+  client_id: "client-1",
+  prazo: "longo",
+  descricao: "Casa na praia",
+  valor_estimado: 100000,
+  horizonte_anos: null,
+} satisfies Objetivo;
+
 describe("ObjetivosTab", () => {
   it("permite adicionar objetivo e mostra impacto na capacidade e patrimônio", () => {
     const html = renderToStaticMarkup(
@@ -34,5 +43,45 @@ describe("ObjetivosTab", () => {
     expect(html).toContain("Patrimônio após objetivos");
     expect(html).toContain("Remover objetivo");
     expect(html).toContain('name="objetivoId" value="obj-1"');
+  });
+
+  it("mostra o aporte mensal sugerido quando o objetivo tem prazo", () => {
+    const html = renderToStaticMarkup(
+      createElement(ObjetivosTab, { objetivos, assumptions: null, cliente }),
+    );
+
+    expect(html).toContain("Guardar por mês até a meta");
+    expect(html).not.toContain("Defina um prazo");
+  });
+
+  // Regressão do bloqueio apontado na revisão: valorMensalSugeridoObjetivo usa
+  // piso de 1 mês, então um objetivo de R$ 100 mil sem horizonte viraria
+  // "guardar R$ 100.000,00 por mês". Sem prazo, não mostramos aporte nenhum.
+  it("não sugere aporte mensal para objetivo sem prazo — pede o prazo", () => {
+    const html = renderToStaticMarkup(
+      createElement(ObjetivosTab, {
+        objetivos: [objetivoSemPrazo],
+        assumptions: null,
+        cliente,
+      }),
+    );
+
+    expect(html).toContain("Defina um prazo para calcular o aporte mensal sugerido.");
+    expect(html).not.toContain("Guardar por mês até a meta");
+    // O valor cheio da meta não pode vazar como "aporte mensal" no agregado:
+    // sem prazo, o aporte mensal dos objetivos tem que ficar zerado.
+    expect(html).toMatch(
+      /Aporte mensal pros objetivos<\/span><b[^>]*>R\$\s*0,00</,
+    );
+  });
+
+  it("deixa claro que o aporte sugerido é divisão linear, sem promessa de rentabilidade", () => {
+    const html = renderToStaticMarkup(
+      createElement(ObjetivosTab, { objetivos, assumptions: null, cliente }),
+    );
+
+    expect(html).toContain("divisão linear simples");
+    expect(html).toContain("considera rendimento");
+    expect(html).toContain("promete rentabilidade");
   });
 });
