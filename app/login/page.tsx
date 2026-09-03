@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -145,7 +146,10 @@ export default function LoginPage() {
             </p>
 
             <p className="mt-4 text-center text-sm text-gray-600">
-              Acesso restrito a assessores convidados.
+              Ainda não tem conta?{" "}
+              <Link href="/cadastro" className="font-medium text-gray-900 underline">
+                Cadastre-se
+              </Link>
             </p>
           </>
         ) : (
