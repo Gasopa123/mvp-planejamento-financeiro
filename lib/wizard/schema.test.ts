@@ -94,6 +94,21 @@ describe("dados pessoais do wizard", () => {
     expect(calcularIdade("1990-08-23", hoje)).toBe(35);
   });
 
+  it("lê data AAAA-MM-DD sem depender do timezone", () => {
+    const tzOriginal = process.env.TZ;
+    try {
+      // new Date("1990-08-23") vira meia-noite UTC e, em fuso negativo como
+      // America/Sao_Paulo, cai no dia 22 local, envelhecendo o cliente um ano.
+      for (const tz of ["UTC", "America/Sao_Paulo", "Asia/Tokyo"]) {
+        process.env.TZ = tz;
+        expect(calcularIdade("1990-08-23", new Date(2026, 7, 22)), tz).toBe(35);
+      }
+    } finally {
+      if (tzOriginal === undefined) delete process.env.TZ;
+      else process.env.TZ = tzOriginal;
+    }
+  });
+
   it("valida dados pessoais com data de nascimento, profissão e CLT", () => {
     const result = pessoaSchema.safeParse({
       nome: dadosBase.nome,
