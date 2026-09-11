@@ -3,10 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClienteCompleto } from "@/app/carteira/novo/actions";
-import { calcularIdade } from "@/lib/idade";
-import { calcularTotaisDespesa } from "@/lib/wizard/despesas";
-import { calcularTotaisRenda } from "@/lib/wizard/rendas";
-import { ESTADOS_CIVIS_COM_CONJUGE, wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
+import {
+  listaAposToggle,
+  patchDeDataNascimento,
+  patchDeDespesas,
+  patchDeEstadoCivil,
+  patchDeRendas,
+} from "@/lib/wizard/draft";
+import { wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
 import {
   WIZARD_STEPS,
   criarDespesaTemporariaVazia,
@@ -44,46 +48,25 @@ export function ClientWizard() {
   }
 
   function handleEstadoCivilChange(estadoCivil: EstadoCivil | "") {
-    setFormData((prev) => ({
-      ...prev,
-      estadoCivil,
-      conjuge:
-        estadoCivil !== "" && ESTADOS_CIVIS_COM_CONJUGE.includes(estadoCivil)
-          ? prev.conjuge
-          : null,
-    }));
+    setFormData((prev) => ({ ...prev, ...patchDeEstadoCivil(prev, estadoCivil) }));
   }
 
   function handleDataNascimentoChange(dataNascimento: string) {
-    updateFormData({
-      dataNascimento,
-      idade: dataNascimento ? calcularIdade(dataNascimento) : null,
-    });
+    updateFormData(patchDeDataNascimento(dataNascimento));
   }
 
   function updateRendas(
     salarioLiquido = formData.salarioLiquido,
     outrasRendas = formData.outrasRendas,
   ) {
-    updateFormData({
-      salarioLiquido,
-      outrasRendas,
-      rendaMensal: calcularTotaisRenda(salarioLiquido, outrasRendas).mensalRecorrente,
-    });
+    updateFormData(patchDeRendas(salarioLiquido, outrasRendas));
   }
 
   function updateDespesas(
     despesaMensalBase = formData.despesaMensalBase,
     despesasTemporarias = formData.despesasTemporarias,
   ) {
-    updateFormData({
-      despesaMensalBase,
-      despesasTemporarias,
-      despesaMensal: calcularTotaisDespesa(
-        despesaMensalBase,
-        despesasTemporarias,
-      ).mensalRecorrente,
-    });
+    updateFormData(patchDeDespesas(despesaMensalBase, despesasTemporarias));
   }
 
   function handleNext() {
@@ -94,24 +77,17 @@ export function ClientWizard() {
     setStepIndex((index) => Math.min(index + 1, visibleSteps.length - 1));
   }
 
-  // "Possui imóveis?"/"Possui automóveis?" são derivados da própria lista
-  // (lista vazia = "Não"), nunca guardados em estado à parte: assim o rádio
-  // não tem como divergir do array — remover o último bem já devolve "Não".
-  // Marcar "Sim" semeia um item em branco pro advisor preencher.
+  // listaAposToggle devolve a mesma lista quando não há o que mudar, e é por
+  // isso que a comparação por referência abaixo mantém o "Sim" com a lista já
+  // preenchida como um clique sem efeito, igual a antes.
   function handleTogglePossuiImoveis(value: boolean) {
-    if (!value) {
-      updateFormData({ imoveis: [] });
-    } else if (formData.imoveis.length === 0) {
-      updateFormData({ imoveis: [criarPropriedadeVazia()] });
-    }
+    const imoveis = listaAposToggle(formData.imoveis, value);
+    if (imoveis !== formData.imoveis) updateFormData({ imoveis });
   }
 
   function handleTogglePossuiAutomoveis(value: boolean) {
-    if (!value) {
-      updateFormData({ automoveis: [] });
-    } else if (formData.automoveis.length === 0) {
-      updateFormData({ automoveis: [criarPropriedadeVazia()] });
-    }
+    const automoveis = listaAposToggle(formData.automoveis, value);
+    if (automoveis !== formData.automoveis) updateFormData({ automoveis });
   }
 
   function handlePrevious() {
