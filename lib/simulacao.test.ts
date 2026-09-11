@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { basesDaSimulacao, derivarCenarioSimulado } from "./simulacao";
+import {
+  basesDaSimulacao,
+  chaveDosValoresIniciais,
+  derivarCenarioSimulado,
+} from "./simulacao";
 import type { Cliente, Objetivo } from "./types/cliente";
 
 const cliente = {
@@ -92,5 +96,32 @@ describe("derivarCenarioSimulado", () => {
 
     expect(cenario.idadeDeficitPreAposentadoria).not.toBeNull();
     expect(cenario.sustentavel).toBe(false);
+  });
+});
+
+describe("chaveDosValoresIniciais", () => {
+  it("muda quando muda o que semeia os controles, e só nesse caso", () => {
+    const base = chaveDosValoresIniciais(cliente, null);
+
+    // Renda, despesa e pretensão semeiam aporte e renda desejada: mexeu, a
+    // aba precisa ser re-semeada.
+    for (const patch of [
+      { renda_mensal: 12000 },
+      { despesa_mensal: 3000 },
+      { pretensao_salarial_aposentadoria: 20000 },
+    ]) {
+      expect(
+        chaveDosValoresIniciais({ ...cliente, ...patch } as Cliente, null),
+      ).not.toBe(base);
+    }
+
+    // O que não semeia controle nenhum não pode remontar a aba e jogar fora
+    // o cenário que o assessor já ajustou na tela.
+    expect(
+      chaveDosValoresIniciais(
+        { ...cliente, nome: "Outro nome", patrimonio_investido: 999999 } as Cliente,
+        null,
+      ),
+    ).toBe(base);
   });
 });

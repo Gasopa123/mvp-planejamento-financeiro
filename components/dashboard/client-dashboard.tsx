@@ -15,6 +15,7 @@ import { PatrimonioTab } from "./tabs/patrimonio-tab";
 import { ObjetivosTab } from "./tabs/objetivos-tab";
 import { AposentadoriaTab } from "./tabs/aposentadoria-tab";
 import { SimulacoesTab } from "./tabs/simulacoes-tab";
+import { chaveDosValoresIniciais } from "@/lib/simulacao";
 import { PlanoAcaoTab } from "./tabs/plano-acao-tab";
 
 type ClientDashboardProps = {
@@ -104,7 +105,12 @@ export function ClientDashboard({
             <ObjetivosTab objetivos={objetivos} assumptions={assumptions} cliente={cliente} />
           </DashboardSection>
           <DashboardSection id="simulacoes" title="Simulações">
-            <SimulacoesTab cliente={cliente} objetivos={objetivos} assumptions={assumptions} />
+            <SimulacoesTab
+              key={chaveDosValoresIniciais(cliente, assumptions)}
+              cliente={cliente}
+              objetivos={objetivos}
+              assumptions={assumptions}
+            />
           </DashboardSection>
           <DashboardSection id="patrimonio" title="Patrimônio">
             <PatrimonioTab

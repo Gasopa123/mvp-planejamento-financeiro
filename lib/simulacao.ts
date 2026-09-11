@@ -22,7 +22,8 @@ import {
   updateIndicators,
   type PontoEvolucaoPatrimonio,
 } from "./calculos";
-import type { Cliente, Objetivo } from "./types/cliente";
+import { resolverAssumptions } from "./assumptions";
+import type { Assumptions, Cliente, Objetivo } from "./types/cliente";
 
 export type TipoRentabilidade = "ipca_mais" | "percentual_cdi" | "prefixado";
 
@@ -77,6 +78,32 @@ export function basesDaSimulacao({
     percentualCdiInicial: indicadoresIniciais.percentualDoCdi,
     prefixadaInicial: indicadoresIniciais.taxaNominalPrefixada,
   };
+}
+
+/**
+ * Identidade dos valores que semeiam os controles da aba de Simulações.
+ *
+ * O estado dos sliders é copiado de basesDaSimulacao uma vez, na montagem.
+ * Quando o assessor edita renda, despesa ou pretensão no dashboard, a página
+ * revalida e a aba recebe props novas, mas os controles seguem com a cópia
+ * antiga — o aporte ficava em R$ 500 ao lado de uma capacidade de R$ 5.000 no
+ * Diagnóstico, na mesma tela. Usada como `key` do componente, esta chave faz
+ * o React remontá-lo quando (e só quando) alguma dessas entradas muda.
+ */
+export function chaveDosValoresIniciais(
+  cliente: Cliente,
+  assumptions: Assumptions | null,
+): string {
+  const { inflacaoProjetadaPct, cdiAtualPct, rentabilidadeRealPadraoPct } =
+    resolverAssumptions(assumptions);
+  return [
+    cliente.renda_mensal,
+    cliente.despesa_mensal,
+    cliente.pretensao_salarial_aposentadoria,
+    inflacaoProjetadaPct,
+    cdiAtualPct,
+    rentabilidadeRealPadraoPct,
+  ].join("|");
 }
 
 export function pontosAteHorizonte(
