@@ -7,30 +7,23 @@ import { PercentField } from "@/components/design-system/percent-field";
 import { VerdictCard } from "@/components/design-system/verdict-card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
 import {
-  capacidadeInvestimento,
-  compararCenariosAposentadoria,
-  explicarTendenciaPatrimonio,
-  impactoObjetivos,
-  projetarPatrimonioComObjetivos,
-  simularEvolucaoPatrimonio,
-  simularStressTestAposentadoria,
-  taxaRealIpcaMais,
-  taxaRealPercentualCdi,
-  taxaRealPrefixada,
-  updateIndicators,
-  type PontoEvolucaoPatrimonio,
-} from "@/lib/calculos";
+  basesDaSimulacao,
+  derivarCenarioSimulado,
+  type TipoRentabilidade,
+} from "@/lib/simulacao";
 import { resolverAssumptions } from "@/lib/assumptions";
 import { formatarMoeda } from "@/lib/format";
 import type { Assumptions, Cliente, Objetivo } from "@/lib/types/cliente";
+
+// A conta mora em @/lib/simulacao; a aba segue exportando o mesmo nome de
+// antes para quem já importava daqui.
+export { pontosAteHorizonte } from "@/lib/simulacao";
 
 type SimulacoesTabProps = {
   cliente: Cliente;
   objetivos: Objetivo[];
   assumptions: Assumptions | null;
 };
-
-type TipoRentabilidade = "ipca_mais" | "percentual_cdi" | "prefixado";
 
 const TIPOS_RENTABILIDADE: { id: TipoRentabilidade; label: string }[] = [
   { id: "ipca_mais", label: "IPCA+" },
@@ -47,39 +40,29 @@ const HORIZONTES = [
 
 type HorizonteId = (typeof HORIZONTES)[number]["id"];
 
-export function pontosAteHorizonte(
-  pontos: PontoEvolucaoPatrimonio[],
-  idadeMaxima: number,
-): PontoEvolucaoPatrimonio[] {
-  const filtrados = pontos.filter((p) => p.idadeAnos <= idadeMaxima);
-  return filtrados.length > 0 ? filtrados : pontos.slice(0, 1);
-}
-
 export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTabProps) {
   const { idade, idade_aposentadoria: idadeAposentadoria, expectativa_vida: expectativaVida } =
     cliente;
   const { inflacaoProjetadaPct, cdiAtualPct, rentabilidadeRealPadraoPct } =
     resolverAssumptions(assumptions);
 
-  const capacidadeAtual =
-    cliente.renda_mensal != null && cliente.despesa_mensal != null
-      ? Math.max(0, capacidadeInvestimento(cliente.renda_mensal, cliente.despesa_mensal))
-      : 500;
-  const impactoDosObjetivos = impactoObjetivos(
-    objetivos,
+  const {
     capacidadeAtual,
-    cliente.patrimonio_investido ?? 0,
+    impactoDosObjetivos,
+    aporteInicial,
+    rendaDesejadaInicial,
+    percentualCdiInicial,
+    prefixadaInicial,
+  } = basesDaSimulacao({
+    cliente,
+    objetivos,
     inflacaoProjetadaPct,
-  );
-  // O aporte parte da capacidade cheia, não da restante depois dos objetivos:
-  // na curva os objetivos já saem como retirada pontual no ano em que vencem
-  // (ver aplicarObjetivosNaCurva). Descontá-los também do aporte mensal
-  // contaria o mesmo objetivo duas vezes. O impacto mensal continua no card
-  // de objetivos logo abaixo, como leitura alternativa.
-  const [aporte, setAporte] = useState(Math.round(capacidadeAtual / 50) * 50 || 500);
-  const [rendaDesejada, setRendaDesejada] = useState(
-    cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 5000,
-  );
+    cdiAtualPct,
+    rentabilidadeRealPadraoPct,
+  });
+
+  const [aporte, setAporte] = useState(aporteInicial);
+  const [rendaDesejada, setRendaDesejada] = useState(rendaDesejadaInicial);
 
   // Cada tipo de rentabilidade tem seu próprio campo, com valor
   // independente — trocar o tipo selecionado nunca recalcula ou sincroniza
@@ -87,22 +70,8 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
   const [tipoRentabilidade, setTipoRentabilidade] =
     useState<TipoRentabilidade>("ipca_mais");
   const [spreadIpcaPct, setSpreadIpcaPct] = useState(rentabilidadeRealPadraoPct);
-
-  // Os valores iniciais de %CDI e Prefixado são só um ponto de partida
-  // coerente com a premissa padrão (reaproveitando updateIndicators, que
-  // converte uma rentabilidade real nas notações equivalentes) — a partir
-  // daí cada campo vive a vida dele.
-  const indicadoresIniciais = updateIndicators(
-    rentabilidadeRealPadraoPct,
-    inflacaoProjetadaPct,
-    cdiAtualPct,
-  );
-  const [percentualCdiPct, setPercentualCdiPct] = useState(
-    indicadoresIniciais.percentualDoCdi,
-  );
-  const [prefixadaPct, setPrefixadaPct] = useState(
-    indicadoresIniciais.taxaNominalPrefixada,
-  );
+  const [percentualCdiPct, setPercentualCdiPct] = useState(percentualCdiInicial);
+  const [prefixadaPct, setPrefixadaPct] = useState(prefixadaInicial);
 
   const [cdiAtualEditavel, setCdiAtualEditavel] = useState(cdiAtualPct);
   const [inflacaoEditavel, setInflacaoEditavel] = useState(inflacaoProjetadaPct);
@@ -167,82 +136,38 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     );
   }
 
-  // A rentabilidade real usada em toda a simulação vem só do tipo
-  // atualmente selecionado — os outros dois campos ficam guardados, mas não
-  // entram na conta enquanto não forem selecionados.
-  const rentabilidadeReal =
-    tipoRentabilidade === "ipca_mais"
-      ? taxaRealIpcaMais(spreadIpcaPct)
-      : tipoRentabilidade === "percentual_cdi"
-        ? taxaRealPercentualCdi(percentualCdiPct, cdiAtualEditavel, inflacaoEditavel)
-        : taxaRealPrefixada(prefixadaPct, inflacaoEditavel);
-
   const horizonteSelecionado = HORIZONTES.find((h) => h.id === horizonte) ?? HORIZONTES[3];
-  const idadeMaxima = horizonteSelecionado.anos == null ? 100 : idade + horizonteSelecionado.anos;
-  // Mesma projeção usada por Aposentadoria, Plano de ação e apresentação —
-  // uma história só pro cliente (ver projetarPatrimonioComObjetivos).
-  const resultado = projetarPatrimonioComObjetivos({
-    idadeAtual: idade,
-    idadeAposentadoria,
-    patrimonioInicial: cliente.patrimonio_investido ?? 0,
-    aporteMensal: aporte,
-    saqueMensalAposentadoria: rendaDesejada,
-    taxaAnualPct: rentabilidadeReal,
-    objetivos,
-  });
-  const resultadoSemObjetivos = simularEvolucaoPatrimonio(
+  const {
+    rentabilidadeReal,
+    idadeAposentadoria: idadeAposentadoriaDaCurva,
+    pontosDaCurva,
+    pontosSemObjetivos,
+    idadeDeficitPreAposentadoria,
+    idadeEsgotamento,
+    patrimonioNaAposentadoria,
+    sustentavel,
+    explicacaoTendencia,
+    valorDaRecomendacao,
+    stressTests,
+    limiteAporte,
+    limiteRenda,
+  } = derivarCenarioSimulado({
     idade,
     idadeAposentadoria,
-    cliente.patrimonio_investido ?? 0,
+    expectativaVida,
+    patrimonioInicial: cliente.patrimonio_investido ?? 0,
+    objetivos,
     capacidadeAtual,
+    aporte,
     rendaDesejada,
-    rentabilidadeReal,
-    100,
-  );
-  const valorDaRecomendacao = compararCenariosAposentadoria({
-    idadeAtual: idade,
-    idadeAposentadoria,
-    patrimonioInicial: cliente.patrimonio_investido ?? 0,
-    aporteMensalAtual: 0,
-    aporteMensalRecomendado: aporte,
-    saqueMensalAposentadoria: rendaDesejada,
-    taxaAnualPct: rentabilidadeReal,
+    tipoRentabilidade,
+    spreadIpcaPct,
+    percentualCdiPct,
+    prefixadaPct,
+    cdiAtualPct: cdiAtualEditavel,
+    inflacaoPct: inflacaoEditavel,
+    anosDoHorizonte: horizonteSelecionado.anos,
   });
-  const stressTests = simularStressTestAposentadoria({
-    idadeAtual: idade,
-    idadeAposentadoria,
-    expectativaVida,
-    patrimonioInicial: cliente.patrimonio_investido ?? 0,
-    aporteMensal: aporte,
-    saqueMensalAposentadoria: rendaDesejada,
-    taxaAnualPct: rentabilidadeReal,
-  });
-  // A linha de comparação ("Sem objetivos") continua sem os descontos — é
-  // justamente a diferença entre as duas que mostra o custo dos objetivos.
-  const pontosDaCurva = pontosAteHorizonte(resultado.pontos, idadeMaxima);
-  const pontosSemObjetivos = pontosAteHorizonte(resultadoSemObjetivos.pontos, idadeMaxima);
-  const { idadeDeficitPreAposentadoria, idadeEsgotamento, patrimonioNaAposentadoria } =
-    resultado;
-  const sustentavel =
-    idadeDeficitPreAposentadoria == null &&
-    (idadeEsgotamento == null || idadeEsgotamento >= expectativaVida);
-  // Saldos reais da curva simulada — a tendência (subiu/caiu/estável) é lida
-  // deles, e não de idadeEsgotamento: não zerar até o fim da simulação não
-  // quer dizer que o principal tenha sido preservado.
-  const ultimoPontoSimulado =
-    resultado.pontos[resultado.pontos.length - 1];
-  const explicacaoTendencia = explicarTendenciaPatrimonio({
-    aporteMensal: aporte,
-    saqueMensalAposentadoria: rendaDesejada,
-    idadeEsgotamento,
-    expectativaVida,
-    saldoInicioAposentadoria: patrimonioNaAposentadoria,
-    saldoFinalSimulacao: ultimoPontoSimulado?.saldo ?? patrimonioNaAposentadoria,
-    idadeFinalSimulacao: Math.round(ultimoPontoSimulado?.idadeAnos ?? 100),
-  });
-
-  const limiteAporte = Math.max(2500, Math.round(capacidadeAtual * 2));
-  const limiteRenda = 1_000_000;
 
   return (
     <div className="space-y-6">
@@ -474,7 +399,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
           <PatrimonioEvolucaoChart
             pontos={pontosDaCurva}
             pontosComparacao={pontosSemObjetivos}
-            idadeAposentadoria={resultado.idadeAposentadoria}
+            idadeAposentadoria={idadeAposentadoriaDaCurva}
             idadeEsgotamento={idadeEsgotamento}
             objetivos={objetivos}
             mostrarNegativos={mostrarNegativos}
