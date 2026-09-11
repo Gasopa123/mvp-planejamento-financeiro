@@ -9,6 +9,7 @@ import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patri
 import {
   basesDaSimulacao,
   derivarCenarioSimulado,
+  validarDadosDaSimulacao,
   type TipoRentabilidade,
 } from "@/lib/simulacao";
 import { resolverAssumptions } from "@/lib/assumptions";
@@ -41,8 +42,7 @@ const HORIZONTES = [
 type HorizonteId = (typeof HORIZONTES)[number]["id"];
 
 export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTabProps) {
-  const { idade, idade_aposentadoria: idadeAposentadoria, expectativa_vida: expectativaVida } =
-    cliente;
+  const dados = validarDadosDaSimulacao(cliente);
   const { inflacaoProjetadaPct, cdiAtualPct, rentabilidadeRealPadraoPct } =
     resolverAssumptions(assumptions);
 
@@ -95,46 +95,14 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     };
   }, []);
 
-  if (idade == null || idadeAposentadoria == null || expectativaVida == null) {
+  if (!dados.ok) {
     return (
       <Card>
-        <p className="text-sm text-ink-60">
-          Idade, idade de aposentadoria e/ou expectativa de vida não
-          informadas — cadastre esses dados pra simular cenários.
-        </p>
+        <p className="text-sm text-ink-60">{dados.mensagem}</p>
       </Card>
     );
   }
-
-  // Sem tempo de acumulação não há cenário pra simular: melhor dizer que o
-  // dado está inconsistente do que desenhar uma curva e um veredito que não
-  // significam nada.
-  if (idadeAposentadoria <= idade) {
-    return (
-      <Card>
-        <p className="text-sm text-ink-60">
-          A idade de aposentadoria cadastrada ({idadeAposentadoria} anos) é
-          menor ou igual à idade atual ({idade} anos) — corrija esse dado pra
-          simular cenários.
-        </p>
-      </Card>
-    );
-  }
-
-  // Sem anos de aposentadoria pra simular, o drawdown não roda: o saldo nunca
-  // é sacado, idadeEsgotamento volta null e a tela diria que o patrimônio
-  // "sustenta" — conclusão falsa vinda de dado inconsistente.
-  if (expectativaVida <= idadeAposentadoria) {
-    return (
-      <Card>
-        <p className="text-sm text-ink-60">
-          A expectativa de vida cadastrada ({expectativaVida} anos) é menor ou
-          igual à idade de aposentadoria ({idadeAposentadoria} anos) — informe
-          uma expectativa de vida maior pra simular cenários.
-        </p>
-      </Card>
-    );
-  }
+  const { idade, idadeAposentadoria, expectativaVida } = dados;
 
   const horizonteSelecionado = HORIZONTES.find((h) => h.id === horizonte) ?? HORIZONTES[3];
   const {

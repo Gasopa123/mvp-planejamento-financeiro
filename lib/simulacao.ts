@@ -221,3 +221,46 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     limiteRenda: 1_000_000,
   };
 }
+
+export type DadosDaSimulacao =
+  | { ok: true; idade: number; idadeAposentadoria: number; expectativaVida: number }
+  | { ok: false; mensagem: string };
+
+/**
+ * Um cenário só pode ser simulado com idade, idade de aposentadoria e
+ * expectativa de vida coerentes entre si. Devolver a mensagem daqui, em vez
+ * de projetar em cima de dado inconsistente, é o que impede a tela de
+ * anunciar curva e veredito que não significam nada.
+ */
+export function validarDadosDaSimulacao(cliente: Cliente): DadosDaSimulacao {
+  const idade = cliente.idade;
+  const idadeAposentadoria = cliente.idade_aposentadoria;
+  const expectativaVida = cliente.expectativa_vida;
+
+  if (idade == null || idadeAposentadoria == null || expectativaVida == null) {
+    return {
+      ok: false,
+      mensagem:
+        "Idade, idade de aposentadoria e/ou expectativa de vida não informadas — cadastre esses dados pra simular cenários.",
+    };
+  }
+  // Sem tempo de acumulação não há cenário pra simular: melhor dizer que o
+  // dado está inconsistente do que desenhar uma curva e um veredito que não
+  // significam nada.
+  if (idadeAposentadoria <= idade) {
+    return {
+      ok: false,
+      mensagem: `A idade de aposentadoria cadastrada (${idadeAposentadoria} anos) é menor ou igual à idade atual (${idade} anos) — corrija esse dado pra simular cenários.`,
+    };
+  }
+  // Sem anos de aposentadoria pra simular, o drawdown não roda: o saldo nunca
+  // é sacado, idadeEsgotamento volta null e a tela diria que o patrimônio
+  // "sustenta" — conclusão falsa vinda de dado inconsistente.
+  if (expectativaVida <= idadeAposentadoria) {
+    return {
+      ok: false,
+      mensagem: `A expectativa de vida cadastrada (${expectativaVida} anos) é menor ou igual à idade de aposentadoria (${idadeAposentadoria} anos) — informe uma expectativa de vida maior pra simular cenários.`,
+    };
+  }
+  return { ok: true, idade, idadeAposentadoria, expectativaVida };
+}
