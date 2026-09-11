@@ -20,7 +20,6 @@ const SOURCE_FILES = [
 const ARQUIVOS_ACIMA_DO_TETO = [
   "lib/calculos.ts", // 761 linhas
   "components/wizard/client-wizard.tsx", // 496 linhas
-  "components/dashboard/tabs/simulacoes-tab.tsx", // 488 linhas
   "components/wizard/steps/step-pessoal.tsx", // 478 linhas
   "components/wizard/steps/step-financeiro.tsx", // 457 linhas
   "lib/wizard/schema.ts", // 402 linhas

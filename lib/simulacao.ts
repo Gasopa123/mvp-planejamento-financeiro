@@ -264,3 +264,6 @@ export function validarDadosDaSimulacao(cliente: Cliente): DadosDaSimulacao {
   }
   return { ok: true, idade, idadeAposentadoria, expectativaVida };
 }
+
+export type BasesDaSimulacao = ReturnType<typeof basesDaSimulacao>;
+export type CenarioSimulado = ReturnType<typeof derivarCenarioSimulado>;
