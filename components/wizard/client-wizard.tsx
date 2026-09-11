@@ -3,26 +3,25 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClienteCompleto } from "@/app/carteira/novo/actions";
-import { calcularIdade } from "@/lib/idade";
-import { calcularTotaisDespesa } from "@/lib/wizard/despesas";
-import { calcularTotaisRenda } from "@/lib/wizard/rendas";
-import { ESTADOS_CIVIS_COM_CONJUGE, wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
+import {
+  listaAposToggle,
+  patchDeDataNascimento,
+  patchDeDespesas,
+  patchDeEstadoCivil,
+  patchDeRendas,
+} from "@/lib/wizard/draft";
+import { wizardFormSchema, type EstadoCivil } from "@/lib/wizard/schema";
 import {
   WIZARD_STEPS,
-  criarDespesaTemporariaVazia,
   criarObjetivoVazio,
   criarPessoaVazia,
-  criarPropriedadeVazia,
-  criarRendaExtraVazia,
   criarWizardDraftInicial,
 } from "@/lib/wizard/types";
 import type { WizardDraft } from "@/lib/wizard/types";
 import { validateStep, type StepErrors } from "@/lib/wizard/validate-step";
+import { ClientWizardFinanceiro } from "./client-wizard-financeiro";
 import { StepPessoal } from "./steps/step-pessoal";
-import { StepFinanceiro } from "./steps/step-financeiro";
-import { StepPatrimonio } from "./steps/step-patrimonio";
 import { StepObjetivos } from "./steps/step-objetivos";
-import { StepSocietario } from "./steps/step-societario";
 import { StepAposentadoria } from "./steps/step-aposentadoria";
 import { StepPlanosFuturos } from "./steps/step-planos-futuros";
 
@@ -44,46 +43,25 @@ export function ClientWizard() {
   }
 
   function handleEstadoCivilChange(estadoCivil: EstadoCivil | "") {
-    setFormData((prev) => ({
-      ...prev,
-      estadoCivil,
-      conjuge:
-        estadoCivil !== "" && ESTADOS_CIVIS_COM_CONJUGE.includes(estadoCivil)
-          ? prev.conjuge
-          : null,
-    }));
+    setFormData((prev) => ({ ...prev, ...patchDeEstadoCivil(prev, estadoCivil) }));
   }
 
   function handleDataNascimentoChange(dataNascimento: string) {
-    updateFormData({
-      dataNascimento,
-      idade: dataNascimento ? calcularIdade(dataNascimento) : null,
-    });
+    updateFormData(patchDeDataNascimento(dataNascimento));
   }
 
   function updateRendas(
     salarioLiquido = formData.salarioLiquido,
     outrasRendas = formData.outrasRendas,
   ) {
-    updateFormData({
-      salarioLiquido,
-      outrasRendas,
-      rendaMensal: calcularTotaisRenda(salarioLiquido, outrasRendas).mensalRecorrente,
-    });
+    updateFormData(patchDeRendas(salarioLiquido, outrasRendas));
   }
 
   function updateDespesas(
     despesaMensalBase = formData.despesaMensalBase,
     despesasTemporarias = formData.despesasTemporarias,
   ) {
-    updateFormData({
-      despesaMensalBase,
-      despesasTemporarias,
-      despesaMensal: calcularTotaisDespesa(
-        despesaMensalBase,
-        despesasTemporarias,
-      ).mensalRecorrente,
-    });
+    updateFormData(patchDeDespesas(despesaMensalBase, despesasTemporarias));
   }
 
   function handleNext() {
@@ -94,24 +72,17 @@ export function ClientWizard() {
     setStepIndex((index) => Math.min(index + 1, visibleSteps.length - 1));
   }
 
-  // "Possui imóveis?"/"Possui automóveis?" são derivados da própria lista
-  // (lista vazia = "Não"), nunca guardados em estado à parte: assim o rádio
-  // não tem como divergir do array — remover o último bem já devolve "Não".
-  // Marcar "Sim" semeia um item em branco pro advisor preencher.
+  // listaAposToggle devolve a mesma lista quando não há o que mudar, e é por
+  // isso que a comparação por referência abaixo mantém o "Sim" com a lista já
+  // preenchida como um clique sem efeito, igual a antes.
   function handleTogglePossuiImoveis(value: boolean) {
-    if (!value) {
-      updateFormData({ imoveis: [] });
-    } else if (formData.imoveis.length === 0) {
-      updateFormData({ imoveis: [criarPropriedadeVazia()] });
-    }
+    const imoveis = listaAposToggle(formData.imoveis, value);
+    if (imoveis !== formData.imoveis) updateFormData({ imoveis });
   }
 
   function handleTogglePossuiAutomoveis(value: boolean) {
-    if (!value) {
-      updateFormData({ automoveis: [] });
-    } else if (formData.automoveis.length === 0) {
-      updateFormData({ automoveis: [criarPropriedadeVazia()] });
-    }
+    const automoveis = listaAposToggle(formData.automoveis, value);
+    if (automoveis !== formData.automoveis) updateFormData({ automoveis });
   }
 
   function handlePrevious() {
@@ -249,148 +220,15 @@ export function ClientWizard() {
         )}
 
         {currentStep.id === "financeiro" && (
-          <>
-          <StepFinanceiro
-            salarioLiquido={formData.salarioLiquido}
-            outrasRendas={formData.outrasRendas}
-            rendaMensal={formData.rendaMensal}
-            despesaMensalBase={formData.despesaMensalBase}
-            despesasTemporarias={formData.despesasTemporarias}
-            despesaMensal={formData.despesaMensal}
-            patrimonioInvestido={formData.patrimonioInvestido}
-            localAplicado={formData.localAplicado}
-            temInvestimentoExterior={formData.temInvestimentoExterior}
-            valorInvestimentoExterior={formData.valorInvestimentoExterior}
+          <ClientWizardFinanceiro
+            formData={formData}
             errors={errors}
-            onSalarioLiquidoChange={(salarioLiquido) => updateRendas(salarioLiquido)}
-            onAddOutraRenda={() =>
-              updateRendas(formData.salarioLiquido, [
-                ...formData.outrasRendas,
-                criarRendaExtraVazia(),
-              ])
-            }
-            onRemoveOutraRenda={(index) =>
-              updateRendas(
-                formData.salarioLiquido,
-                formData.outrasRendas.filter((_, i) => i !== index),
-              )
-            }
-            onChangeOutraRenda={(index, renda) =>
-              updateRendas(
-                formData.salarioLiquido,
-                formData.outrasRendas.map((r, i) => (i === index ? renda : r)),
-              )
-            }
-            onDespesaMensalBaseChange={(despesaMensalBase) =>
-              updateDespesas(despesaMensalBase)
-            }
-            onAddDespesaTemporaria={() =>
-              updateDespesas(formData.despesaMensalBase, [
-                ...formData.despesasTemporarias,
-                criarDespesaTemporariaVazia(),
-              ])
-            }
-            onRemoveDespesaTemporaria={(index) =>
-              updateDespesas(
-                formData.despesaMensalBase,
-                formData.despesasTemporarias.filter((_, i) => i !== index),
-              )
-            }
-            onChangeDespesaTemporaria={(index, despesa) =>
-              updateDespesas(
-                formData.despesaMensalBase,
-                formData.despesasTemporarias.map((d, i) =>
-                  i === index ? despesa : d,
-                ),
-              )
-            }
-            onPatrimonioInvestidoChange={(patrimonioInvestido) =>
-              updateFormData({ patrimonioInvestido })
-            }
-            onLocalAplicadoChange={(localAplicado) =>
-              updateFormData({ localAplicado })
-            }
-            onTemInvestimentoExteriorChange={(temInvestimentoExterior) =>
-              updateFormData({
-                temInvestimentoExterior,
-                valorInvestimentoExterior: temInvestimentoExterior
-                  ? formData.valorInvestimentoExterior
-                  : null,
-              })
-            }
-            onValorInvestimentoExteriorChange={(valorInvestimentoExterior) =>
-              updateFormData({ valorInvestimentoExterior })
-            }
+            updateFormData={updateFormData}
+            updateRendas={updateRendas}
+            updateDespesas={updateDespesas}
+            onTogglePossuiImoveis={handleTogglePossuiImoveis}
+            onTogglePossuiAutomoveis={handleTogglePossuiAutomoveis}
           />
-
-            <div className="border-t border-gray-200 pt-6">
-              <h2 className="mb-4 text-sm font-semibold text-gray-900">
-                Imóveis e automóveis
-              </h2>
-              <StepPatrimonio
-                imoveis={formData.imoveis}
-                automoveis={formData.automoveis}
-                errors={errors}
-                onTogglePossuiImoveis={handleTogglePossuiImoveis}
-                onTogglePossuiAutomoveis={handleTogglePossuiAutomoveis}
-                onAddImovel={() =>
-                  updateFormData({
-                    imoveis: [...formData.imoveis, criarPropriedadeVazia()],
-                  })
-                }
-                onRemoveImovel={(index) =>
-                  updateFormData({
-                    imoveis: formData.imoveis.filter((_, i) => i !== index),
-                  })
-                }
-                onChangeImovel={(index, item) =>
-                  updateFormData({
-                    imoveis: formData.imoveis.map((it, i) =>
-                      i === index ? item : it,
-                    ),
-                  })
-                }
-                onAddAutomovel={() =>
-                  updateFormData({
-                    automoveis: [...formData.automoveis, criarPropriedadeVazia()],
-                  })
-                }
-                onRemoveAutomovel={(index) =>
-                  updateFormData({
-                    automoveis: formData.automoveis.filter((_, i) => i !== index),
-                  })
-                }
-                onChangeAutomovel={(index, item) =>
-                  updateFormData({
-                    automoveis: formData.automoveis.map((it, i) =>
-                      i === index ? item : it,
-                    ),
-                  })
-                }
-              />
-            </div>
-
-            <div className="border-t border-gray-200 pt-6">
-              <h2 className="mb-4 text-sm font-semibold text-gray-900">
-                Participação societária
-              </h2>
-              <StepSocietario
-                temParticipacaoSocietaria={formData.temParticipacaoSocietaria}
-                valorParticipacao={formData.valorParticipacao}
-                percentualParticipacao={formData.percentualParticipacao}
-                errors={errors}
-                onTemParticipacaoSocietariaChange={(temParticipacaoSocietaria) =>
-                  updateFormData({ temParticipacaoSocietaria })
-                }
-                onValorParticipacaoChange={(valorParticipacao) =>
-                  updateFormData({ valorParticipacao })
-                }
-                onPercentualParticipacaoChange={(percentualParticipacao) =>
-                  updateFormData({ percentualParticipacao })
-                }
-              />
-            </div>
-          </>
         )}
 
         {currentStep.id === "aposentadoria-objetivos" && (
