@@ -74,7 +74,12 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
   // Mesma regra da aba Simulações: os objetivos com valor e prazo saem do
   // patrimônio no ano em que vencem, e a curva segue do saldo já reduzido.
   const curvaComObjetivos = simulacao
-    ? aplicarObjetivosNaCurva(simulacao.pontos, objetivos, rentabilidadeRealPadraoPct)
+    ? aplicarObjetivosNaCurva(
+        simulacao.pontos,
+        objetivos,
+        rentabilidadeRealPadraoPct,
+        inflacaoProjetadaPct,
+      )
     : null;
   const stressTests = podeSimular
     ? simularStressTestAposentadoria({

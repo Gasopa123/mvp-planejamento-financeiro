@@ -553,8 +553,9 @@ export type ResultadoCurvaComObjetivos = {
 /**
  * Aplica os objetivos como saídas de caixa pontuais sobre uma curva já
  * simulada: no ano em que cada objetivo vence (idade inicial + horizonte), o
- * valor estimado sai do patrimônio, e os pontos seguintes seguem a partir do
- * saldo já reduzido.
+ * valor estimado — corrigido pela inflação até lá, pela mesma regra da aba
+ * Objetivos (ver projecaoMetaComInflacao) — sai do patrimônio, e os pontos
+ * seguintes seguem a partir do saldo já reduzido.
  *
  * O desconto acumulado é capitalizado à mesma taxa da curva entre um ponto e
  * o próximo: o dinheiro retirado deixa de render dali em diante, então o
@@ -565,13 +566,14 @@ export type ResultadoCurvaComObjetivos = {
  * Objetivo sem valor estimado (ou <= 0) e objetivo sem horizonte não entram:
  * sem uma das duas informações não dá pra dizer quanto sai nem quando.
  *
- * É projeção, não promessa: o valor do objetivo entra como está cadastrado,
- * na idade cadastrada, sem prever mudança de plano nem de preço.
+ * É projeção, não promessa: o valor entra corrigido pela inflação projetada,
+ * na idade cadastrada, sem prever mudança de plano.
  */
 export function aplicarObjetivosNaCurva(
   pontos: PontoEvolucaoPatrimonio[],
   objetivos: ObjetivoNaCurvaInput[],
   taxaAnualPct: number,
+  inflacaoProjetadaPct: number,
 ): ResultadoCurvaComObjetivos {
   if (pontos.length === 0) {
     return { pontos, idadeEsgotamento: null, idadeDeficitPreAposentadoria: null };
@@ -586,10 +588,17 @@ export function aplicarObjetivosNaCurva(
         objetivo.horizonte_anos != null &&
         objetivo.horizonte_anos >= 0,
     )
-    .map((objetivo) => ({
-      idadeAlvo: idadeInicial + (objetivo.horizonte_anos as number),
-      valor: objetivo.valor_estimado as number,
-    }))
+    .map((objetivo) => {
+      const horizonteAnos = objetivo.horizonte_anos as number;
+      return {
+        idadeAlvo: idadeInicial + horizonteAnos,
+        valor: projecaoMetaComInflacao(
+          objetivo.valor_estimado as number,
+          inflacaoProjetadaPct,
+          horizonteAnos,
+        ),
+      };
+    })
     .sort((a, b) => a.idadeAlvo - b.idadeAlvo);
 
   if (pendentes.length === 0) {
@@ -665,6 +674,7 @@ export type ProjecaoComObjetivosInput = {
   aporteMensal: number;
   saqueMensalAposentadoria: number;
   taxaAnualPct: number;
+  inflacaoProjetadaPct: number;
   objetivos: ObjetivoNaCurvaInput[];
   idadeMaxima?: number;
 };
@@ -709,6 +719,7 @@ export function projetarPatrimonioComObjetivos(
     evolucao.pontos,
     input.objetivos,
     input.taxaAnualPct,
+    input.inflacaoProjetadaPct,
   );
 
   const idadeEsgotamento =

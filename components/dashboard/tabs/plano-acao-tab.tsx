@@ -87,7 +87,8 @@ function montarItens({
       concluido: false,
     });
   } else {
-    const { rentabilidadeRealPadraoPct } = resolverAssumptions(assumptions);
+    const { rentabilidadeRealPadraoPct, inflacaoProjetadaPct } =
+      resolverAssumptions(assumptions);
     const aporte = Math.max(
       0,
       capacidadeInvestimento(cliente.renda_mensal ?? 0, cliente.despesa_mensal ?? 0),
@@ -102,6 +103,7 @@ function montarItens({
         aporteMensal: aporte,
         saqueMensalAposentadoria: cliente.pretensao_salarial_aposentadoria ?? 0,
         taxaAnualPct: rentabilidadeRealPadraoPct,
+        inflacaoProjetadaPct,
         objetivos,
         idadeMaxima: cliente.expectativa_vida!,
       });

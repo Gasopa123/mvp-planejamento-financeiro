@@ -338,6 +338,7 @@ describe("aplicarObjetivosNaCurva", () => {
       pontos,
       [{ valor_estimado: 30000, horizonte_anos: 2 }],
       0,
+      0,
     );
 
     // Antes do horizonte, nada muda.
@@ -350,6 +351,26 @@ describe("aplicarObjetivosNaCurva", () => {
     expect(ajustados[4].saldo).toBe(70000);
   });
 
+  it("retira o objetivo pelo valor corrigido pela inflação, não pelo valor de hoje", () => {
+    const pontos = curvaPlana(30, 5, 1_000_000);
+
+    const { pontos: ajustados } = aplicarObjetivosNaCurva(
+      pontos,
+      [{ valor_estimado: 200000, horizonte_anos: 5 }],
+      0,
+      4,
+    );
+
+    // Mesma conta que a aba Objetivos mostra pro assessor: R$ 200.000 a 4% em
+    // 5 anos viram R$ 243.330,58 no ano em que a meta vence.
+    const corrigido = projecaoMetaComInflacao(200000, 4, 5);
+    expect(corrigido).toBeCloseTo(243330.58, 2);
+    expect(ajustados[5].saldo).toBeCloseTo(1_000_000 - corrigido, 2);
+    // Retirar o preço de hoje faria a curva contar o objetivo mais barato do
+    // que a tela de Objetivos promete — duas telas, duas histórias.
+    expect(ajustados[5].saldo).not.toBeCloseTo(1_000_000 - 200000, 2);
+  });
+
   it("acumula vários objetivos, cada um no seu ano", () => {
     const pontos = curvaPlana(30, 5, 100000);
 
@@ -359,6 +380,7 @@ describe("aplicarObjetivosNaCurva", () => {
         { valor_estimado: 30000, horizonte_anos: 2 },
         { valor_estimado: 10000, horizonte_anos: 4 },
       ],
+      0,
       0,
     );
 
@@ -376,6 +398,7 @@ describe("aplicarObjetivosNaCurva", () => {
       pontos,
       [{ valor_estimado: 30000, horizonte_anos: null }],
       0,
+      0,
     );
 
     expect(ajustados).toEqual(pontos);
@@ -389,6 +412,7 @@ describe("aplicarObjetivosNaCurva", () => {
       pontos,
       [{ valor_estimado: null, horizonte_anos: 2 }],
       0,
+      0,
     );
 
     expect(ajustados).toEqual(pontos);
@@ -398,11 +422,11 @@ describe("aplicarObjetivosNaCurva", () => {
     const pontos = curvaPlana(30, 3, 100000);
 
     expect(
-      aplicarObjetivosNaCurva(pontos, [{ valor_estimado: 0, horizonte_anos: 1 }], 0)
+      aplicarObjetivosNaCurva(pontos, [{ valor_estimado: 0, horizonte_anos: 1 }], 0, 0)
         .pontos,
     ).toEqual(pontos);
     expect(
-      aplicarObjetivosNaCurva(pontos, [{ valor_estimado: -500, horizonte_anos: 1 }], 0)
+      aplicarObjetivosNaCurva(pontos, [{ valor_estimado: -500, horizonte_anos: 1 }], 0, 0)
         .pontos,
     ).toEqual(pontos);
   });
@@ -414,6 +438,7 @@ describe("aplicarObjetivosNaCurva", () => {
       pontos,
       [{ valor_estimado: 10000, horizonte_anos: 1 }],
       10,
+      0,
     );
 
     expect(ajustados[1].saldo).toBe(90000);
@@ -433,6 +458,7 @@ describe("aplicarObjetivosNaCurva", () => {
       resultado.pontos,
       [{ valor_estimado: 30000, horizonte_anos: 5 }],
       4.75,
+      0,
     );
 
     expect(resultado.pontos[0]).toMatchObject({ idadeAnos: 26, saldo: 0 });
@@ -456,6 +482,7 @@ describe("aplicarObjetivosNaCurva", () => {
         resultado.pontos,
         [{ valor_estimado: 5_000_000, horizonte_anos: 2 }],
         4.75,
+        0,
       );
 
     expect(idadeEsgotamento).toBeNull();
@@ -473,6 +500,7 @@ describe("aplicarObjetivosNaCurva", () => {
         resultado.pontos,
         [{ valor_estimado: 20000, horizonte_anos: 2 }],
         4.75,
+        0,
       );
 
     expect(idadeDeficitPreAposentadoria).toBeNull();
@@ -489,6 +517,7 @@ describe("aplicarObjetivosNaCurva", () => {
       pontos,
       [{ valor_estimado: 25000, horizonte_anos: 2 }],
       0,
+      0,
     );
 
     expect(idadeEsgotamento).toBe(32);
@@ -501,6 +530,7 @@ describe("aplicarObjetivosNaCurva", () => {
       pontos,
       [{ valor_estimado: 25000, horizonte_anos: 2 }],
       0,
+      0,
     );
 
     // O desconto continua aparecendo na curva...
@@ -512,7 +542,7 @@ describe("aplicarObjetivosNaCurva", () => {
   it("devolve a curva intacta quando não há objetivos", () => {
     const pontos = curvaPlana(30, 3, 100000);
 
-    expect(aplicarObjetivosNaCurva(pontos, [], 5).pontos).toEqual(pontos);
+    expect(aplicarObjetivosNaCurva(pontos, [], 5, 0).pontos).toEqual(pontos);
   });
 });
 
@@ -541,6 +571,7 @@ describe("aplicarObjetivosNaCurva — déficit só após objetivo vencido", () =
       pontos,
       [{ valor_estimado: 30000, horizonte_anos: 5 }],
       0,
+      0,
     );
 
     expect(idadeDeficitPreAposentadoria).not.toBe(26);
@@ -556,6 +587,7 @@ describe("aplicarObjetivosNaCurva — déficit só após objetivo vencido", () =
       pontos,
       [{ valor_estimado: 30000, horizonte_anos: 5 }],
       0,
+      0,
     );
 
     expect(idadeDeficitPreAposentadoria).toBe(31);
@@ -570,6 +602,7 @@ describe("aplicarObjetivosNaCurva — déficit só após objetivo vencido", () =
         pontos,
         [{ valor_estimado: 30000, horizonte_anos: null }],
         0,
+        0,
       ).idadeDeficitPreAposentadoria,
     ).toBeNull();
   });
@@ -580,6 +613,7 @@ describe("aplicarObjetivosNaCurva — déficit só após objetivo vencido", () =
     const { idadeDeficitPreAposentadoria } = aplicarObjetivosNaCurva(
       pontos,
       [{ valor_estimado: 30000, horizonte_anos: 0 }],
+      0,
       0,
     );
 

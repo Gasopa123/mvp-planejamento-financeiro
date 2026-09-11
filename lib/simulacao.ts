@@ -150,6 +150,7 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
+    inflacaoProjetadaPct: inflacaoPct,
     objetivos,
   });
   const resultadoSemObjetivos = simularEvolucaoPatrimonio(
