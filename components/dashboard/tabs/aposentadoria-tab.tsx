@@ -145,6 +145,7 @@ export function AposentadoriaTab({ cliente, objetivos, assumptions }: Aposentado
     aporteMensal,
     saqueMensalAposentadoria: pretensaoSalarial ?? 0,
     taxaAnualPct: rentabilidadeRealPadraoPct,
+    inflacaoProjetadaPct,
     objetivos,
     idadeMaxima: expectativaVida,
   });
