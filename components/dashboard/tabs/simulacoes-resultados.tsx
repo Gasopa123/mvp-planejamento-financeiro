@@ -6,6 +6,7 @@ type ResultadosDoCenarioProps = {
   impactoDosObjetivos: BasesDaSimulacao["impactoDosObjetivos"];
   valorDaRecomendacao: CenarioSimulado["valorDaRecomendacao"];
   patrimonioNaAposentadoria: number;
+  idadeDeficitPreAposentadoria: CenarioSimulado["idadeDeficitPreAposentadoria"];
 };
 
 // Os três cartões de números do cenário simulado, entre os controles e o
@@ -14,7 +15,15 @@ export function ResultadosDoCenario({
   impactoDosObjetivos,
   valorDaRecomendacao,
   patrimonioNaAposentadoria,
+  idadeDeficitPreAposentadoria,
 }: ResultadosDoCenarioProps) {
+  // O valor criado é a diferença entre os dois cenários, e o custo dos
+  // objetivos se cancela nessa subtração: ele continua positivo mesmo quando
+  // os dois cenários afundam. Num plano comprometido, mostrá-lo em verde
+  // como se fosse conquista é o que confunde.
+  const cenarioComprometido =
+    idadeDeficitPreAposentadoria != null || valorDaRecomendacao.recomendado < 0;
+
   return (
     <>
       <Card>
@@ -58,13 +67,23 @@ export function ResultadosDoCenario({
           </div>
           <div>
             <span className="text-ink-60">Valor criado até a aposentadoria</span>
-            <b className={valorDaRecomendacao.valorCriado >= 0 ? "block text-green-ink" : "block text-gold-ink"}>
+            <b
+              className={
+                valorDaRecomendacao.valorCriado >= 0 && !cenarioComprometido
+                  ? "block text-green-ink"
+                  : "block text-gold-ink"
+              }
+            >
               {formatarMoeda(valorDaRecomendacao.valorCriado)}
             </b>
           </div>
         </div>
         <p className="mt-3 text-xs text-ink-40">
-          Compara manter só o patrimônio atual investido contra investir o aporte recomendado nesta simulação.
+          {idadeDeficitPreAposentadoria != null
+            ? `Os objetivos comprometem o patrimônio aos ${idadeDeficitPreAposentadoria} anos; este valor mostra apenas a diferença entre aportar e não aportar.`
+            : cenarioComprometido
+              ? "Mesmo com o aporte recomendado o patrimônio não chega positivo à aposentadoria; este valor mostra apenas a diferença entre aportar e não aportar."
+              : "Compara manter só o patrimônio atual investido contra investir o aporte recomendado nesta simulação."}
         </p>
       </Card>
 
