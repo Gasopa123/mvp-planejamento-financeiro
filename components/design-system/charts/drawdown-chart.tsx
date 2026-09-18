@@ -52,7 +52,10 @@ export function DrawdownChart({
   const corTraco = idadeEsgotamento ? "var(--color-gold)" : "var(--color-green)";
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Evolução do patrimônio na aposentadoria, ano a ano">
+    // max-w-full: o viewBox já deixa o desenho escalar, mas os atributos
+    // width/height dão ao SVG uma largura intrínseca de 720px que, sem isto,
+    // empurra a página inteira e cria rolagem horizontal no celular.
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Evolução do patrimônio na aposentadoria, ano a ano" className="max-w-full">
       {[0, 1, 2, 3, 4].map((g) => {
         const gy = padT + (g * (height - padT - padB)) / 4;
         return (
