@@ -167,6 +167,46 @@ describe("SimulacoesTab", () => {
 
   // Déficit antes da aposentadoria não é esgotamento de aposentadoria: a tela
   // tem que apontar os objetivos, não anunciar "esgota aos [1º ano de drawdown]".
+  it("não vende o valor criado como conquista quando o plano está comprometido", () => {
+    const clienteApertado = {
+      ...cliente,
+      idade: 30,
+      idade_aposentadoria: 60,
+      expectativa_vida: 90,
+      patrimonio_investido: 50000,
+      renda_mensal: 10000,
+      despesa_mensal: 9500,
+    } as unknown as Cliente;
+    const objetivoImpagavel = [
+      {
+        id: "obj-caro",
+        client_id: "client-1",
+        prazo: "medio" as const,
+        descricao: "Casa nova",
+        valor_estimado: 5_000_000,
+        horizonte_anos: 2,
+      },
+    ] satisfies Objetivo[];
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteApertado,
+        objetivos: objetivoImpagavel,
+        assumptions: null,
+      }),
+    );
+
+    // O número continua na tela, mas com a ressalva do que ele é — e sem a
+    // explicação neutra, que faria o cartão parecer um ganho.
+    expect(html).toContain(
+      "este valor mostra apenas a diferença entre aportar e não aportar",
+    );
+    expect(html).not.toContain(
+      "Compara manter só o patrimônio atual investido contra investir o aporte recomendado nesta simulação.",
+    );
+    expect(html).not.toContain("text-green-ink");
+  });
+
   it("aponta déficit pré-aposentadoria em vez de esgotamento quando os objetivos estouram o patrimônio", () => {
     const clienteApertado = {
       ...cliente,

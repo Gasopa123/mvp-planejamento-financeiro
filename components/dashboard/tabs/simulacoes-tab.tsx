@@ -234,6 +234,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
         impactoDosObjetivos={impactoDosObjetivos}
         valorDaRecomendacao={valorDaRecomendacao}
         patrimonioNaAposentadoria={patrimonioNaAposentadoria}
+        idadeDeficitPreAposentadoria={idadeDeficitPreAposentadoria}
       />
 
       <VerdictCard

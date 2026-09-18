@@ -117,7 +117,17 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
             <div className="font-display text-3xl font-semibold text-white">
               {recomendacao ? formatarMoeda(recomendacao.valorCriado) : "—"}
             </div>
-            <p className="mt-2 text-sm text-ink-40">Diferença estimada entre não aportar e seguir o plano.</p>
+            {/* O custo dos objetivos se cancela na diferença entre os dois
+                cenários, então este número segue positivo mesmo num plano
+                comprometido. Sem esta ressalva ele vira a manchete da
+                apresentação de um cliente cujo patrimônio não sobrevive. */}
+            <p className="mt-2 text-sm text-ink-40">
+              {curvaComObjetivos?.idadeDeficitPreAposentadoria != null
+                ? `Os objetivos comprometem o patrimônio aos ${curvaComObjetivos.idadeDeficitPreAposentadoria} anos; este valor mostra apenas a diferença entre aportar e não aportar.`
+                : recomendacao && recomendacao.recomendado < 0
+                  ? "Mesmo com o aporte recomendado o patrimônio não chega positivo à aposentadoria; este valor mostra apenas a diferença entre aportar e não aportar."
+                  : "Diferença estimada entre não aportar e seguir o plano."}
+            </p>
           </Card>
           <Card>
             <CardLabel>Capacidade de investimento</CardLabel>
