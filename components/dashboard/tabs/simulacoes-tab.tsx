@@ -134,7 +134,8 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
     percentualCdiPct,
     prefixadaPct,
     cdiAtualPct: cdiAtualEditavel,
-    inflacaoPct: inflacaoEditavel,
+    inflacaoParaTaxaRealPct: inflacaoEditavel,
+    inflacaoProjetadaPct,
     anosDoHorizonte: horizonteSelecionado.anos,
   });
 

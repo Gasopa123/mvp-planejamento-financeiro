@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { projetarPatrimonioComObjetivos } from "./calculos";
 import {
   basesDaSimulacao,
   chaveDosValoresIniciais,
@@ -47,7 +48,8 @@ const cenarioBase = {
   percentualCdiPct: 100,
   prefixadaPct: 10,
   cdiAtualPct: 10.5,
-  inflacaoPct: 4.5,
+  inflacaoParaTaxaRealPct: 4.5,
+  inflacaoProjetadaPct: 4.5,
   anosDoHorizonte: null,
 };
 
@@ -123,5 +125,64 @@ describe("chaveDosValoresIniciais", () => {
         null,
       ),
     ).toBe(base);
+  });
+});
+
+// A aba Simulações tem um campo de IPCA editável, semeado pelo Banco Central,
+// que serve para converter %CDI e Prefixado em taxa real. Ele não pode corrigir
+// os objetivos: no QA o feed veio com -3,77% e a mesma meta do mesmo cliente
+// custava um valor em Simulações e outro em Aposentadoria.
+describe("inflação dos objetivos vem sempre da premissa salva", () => {
+  const objetivo = [
+    {
+      id: "obj-1",
+      client_id: "client-1",
+      prazo: "medio" as const,
+      descricao: "Comprar imóvel",
+      valor_estimado: 200000,
+      horizonte_anos: 5,
+    },
+  ] satisfies Objetivo[];
+
+  const cenario = {
+    ...cenarioBase,
+    objetivos: objetivo,
+    // O que o painel mostra hoje, vindo do feed, bem longe da premissa.
+    inflacaoParaTaxaRealPct: -3.77,
+    inflacaoProjetadaPct: 4,
+  };
+
+  function projecaoCom(inflacao: number) {
+    return projetarPatrimonioComObjetivos({
+      idadeAtual: cenario.idade,
+      idadeAposentadoria: cenario.idadeAposentadoria,
+      patrimonioInicial: cenario.patrimonioInicial,
+      aporteMensal: cenario.aporte,
+      saqueMensalAposentadoria: cenario.rendaDesejada,
+      taxaAnualPct: derivarCenarioSimulado(cenario).rentabilidadeReal,
+      inflacaoProjetadaPct: inflacao,
+      objetivos: objetivo,
+    }).patrimonioNaAposentadoria;
+  }
+
+  it("projeta a meta pela premissa do plano, não pelo IPCA editável do painel", () => {
+    const daTela = derivarCenarioSimulado(cenario).patrimonioNaAposentadoria;
+
+    expect(daTela).toBeCloseTo(projecaoCom(4), 2);
+    expect(daTela).not.toBeCloseTo(projecaoCom(-3.77), 2);
+  });
+
+  it("o IPCA editável continua valendo para converter a taxa real", () => {
+    const comCdi = derivarCenarioSimulado({
+      ...cenario,
+      tipoRentabilidade: "percentual_cdi" as const,
+    }).rentabilidadeReal;
+    const comOutraInflacao = derivarCenarioSimulado({
+      ...cenario,
+      tipoRentabilidade: "percentual_cdi" as const,
+      inflacaoParaTaxaRealPct: 6,
+    }).rentabilidadeReal;
+
+    expect(comCdi).not.toBeCloseTo(comOutraInflacao, 6);
   });
 });
