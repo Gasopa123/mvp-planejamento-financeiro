@@ -59,6 +59,8 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         aporteMensalRecomendado: aporte,
         saqueMensalAposentadoria: cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 0,
         taxaAnualPct: rentabilidadeRealPadraoPct,
+        inflacaoProjetadaPct,
+        objetivos,
       })
     : null;
   const simulacaoSemObjetivos = podeSimular
@@ -90,6 +92,8 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         aporteMensal: aporte,
         saqueMensalAposentadoria: cliente.pretensao_salarial_aposentadoria ?? cliente.renda_mensal ?? 0,
         taxaAnualPct: rentabilidadeRealPadraoPct,
+        inflacaoProjetadaPct,
+        objetivos,
       })
     : [];
 
@@ -194,7 +198,11 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
                   <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
                   <b className="mt-1 block text-navy">{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
                   <span className="mt-1 block text-xs text-ink-40">
-                    {cenario.idadeEsgotamento == null ? `sustenta até ${cenario.idadeReferencia}` : `esgota aos ${cenario.idadeEsgotamento}`}
+                    {cenario.idadeDeficitPreAposentadoria != null
+                      ? `objetivos comprometem aos ${cenario.idadeDeficitPreAposentadoria}`
+                      : cenario.idadeEsgotamento == null
+                        ? `sustenta até ${cenario.idadeReferencia}`
+                        : `esgota aos ${cenario.idadeEsgotamento}`}
                   </span>
                 </div>
               ))}

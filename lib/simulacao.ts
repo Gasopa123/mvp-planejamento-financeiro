@@ -197,6 +197,8 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     aporteMensalRecomendado: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
+    inflacaoProjetadaPct: inflacaoPct,
+    objetivos,
   });
   const stressTests = simularStressTestAposentadoria({
     idadeAtual: idade,
@@ -206,6 +208,8 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
+    inflacaoProjetadaPct: inflacaoPct,
+    objetivos,
   });
   // A linha de comparação ("Sem objetivos") continua sem os descontos — é
   // justamente a diferença entre as duas que mostra o custo dos objetivos.

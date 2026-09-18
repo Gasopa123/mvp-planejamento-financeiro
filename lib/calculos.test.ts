@@ -11,6 +11,7 @@ import {
   compararCenariosAposentadoria,
   simularStressTestAposentadoria,
   projecaoMetaComInflacao,
+  projetarPatrimonioComObjetivos,
   reservaEmergenciaIdeal,
   simularAcumulacaoMensal,
   simularEvolucaoPatrimonio,
@@ -141,6 +142,8 @@ describe("compararCenariosAposentadoria", () => {
       aporteMensalRecomendado: 2000,
       saqueMensalAposentadoria: 8000,
       taxaAnualPct: 5,
+      inflacaoProjetadaPct: 0,
+      objetivos: [],
     });
 
     expect(resultado.recomendado).toBeGreaterThan(resultado.atual);
@@ -159,6 +162,8 @@ describe("simularStressTestAposentadoria", () => {
       aporteMensal: 2000,
       saqueMensalAposentadoria: 8000,
       taxaAnualPct: 5,
+      inflacaoProjetadaPct: 0,
+      objetivos: [],
     });
 
     expect(cenarios.map((c) => c.nome)).toEqual([
@@ -768,5 +773,58 @@ describe("aporteMensalNecessario", () => {
     const resultado = aporteMensalNecessario(100000, 200000, 5, 60);
 
     expect(resultado).toBeLessThanOrEqual(0);
+  });
+});
+
+// B4: stress test e "valor da recomendação" montavam a curva por fora, sem os
+// objetivos, enquanto o resto do planejamento usa projetarPatrimonioComObjetivos.
+// A mesma tela mostrava "sustenta até 90" ao lado de uma curva que já descontava
+// a meta.
+describe("stress test e comparação de cenários contam a mesma história", () => {
+  const comum = {
+    idadeAtual: 40,
+    idadeAposentadoria: 65,
+    patrimonioInicial: 100000,
+    saqueMensalAposentadoria: 8000,
+    taxaAnualPct: 5,
+    inflacaoProjetadaPct: 4,
+    objetivos: [{ valor_estimado: 300000, horizonte_anos: 10 }],
+  };
+
+  function projecao(aporteMensal: number) {
+    return projetarPatrimonioComObjetivos({
+      idadeAtual: comum.idadeAtual,
+      idadeAposentadoria: comum.idadeAposentadoria,
+      patrimonioInicial: comum.patrimonioInicial,
+      aporteMensal,
+      saqueMensalAposentadoria: comum.saqueMensalAposentadoria,
+      taxaAnualPct: comum.taxaAnualPct,
+      inflacaoProjetadaPct: comum.inflacaoProjetadaPct,
+      objetivos: comum.objetivos,
+    });
+  }
+
+  it("o cenário Base do stress test bate com a projeção única", () => {
+    const base = simularStressTestAposentadoria({
+      ...comum,
+      expectativaVida: 90,
+      aporteMensal: 2000,
+    }).find((c) => c.nome === "Base")!;
+
+    expect(base.patrimonioNaAposentadoria).toBeCloseTo(
+      projecao(2000).patrimonioNaAposentadoria,
+      2,
+    );
+  });
+
+  it("o valor da recomendação usa os mesmos saldos da projeção nos dois cenários", () => {
+    const comparacao = compararCenariosAposentadoria({
+      ...comum,
+      aporteMensalAtual: 0,
+      aporteMensalRecomendado: 2000,
+    });
+
+    expect(comparacao.atual).toBeCloseTo(projecao(0).patrimonioNaAposentadoria, 2);
+    expect(comparacao.recomendado).toBeCloseTo(projecao(2000).patrimonioNaAposentadoria, 2);
   });
 });
