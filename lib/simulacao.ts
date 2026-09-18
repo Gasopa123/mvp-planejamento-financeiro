@@ -128,7 +128,18 @@ export type CenarioSimuladoInput = {
   percentualCdiPct: number;
   prefixadaPct: number;
   cdiAtualPct: number;
-  inflacaoPct: number;
+  /**
+   * Inflação usada só para converter %CDI e Prefixado em taxa real. É o campo
+   * editável do painel, semeado pelo IPCA do Banco Central.
+   */
+  inflacaoParaTaxaRealPct: number;
+  /**
+   * Premissa salva do plano, usada para projetar os objetivos. É a mesma que
+   * Aposentadoria, Objetivos e a apresentação usam: se a simulação corrigisse
+   * a meta pelo IPCA vivo, a mesma meta custaria valores diferentes em cada
+   * aba do mesmo cliente.
+   */
+  inflacaoProjetadaPct: number;
   /** Anos à frente escolhidos no seletor de horizonte; null = simulação inteira. */
   anosDoHorizonte: number | null;
 };
@@ -153,7 +164,8 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     percentualCdiPct,
     prefixadaPct,
     cdiAtualPct,
-    inflacaoPct,
+    inflacaoParaTaxaRealPct,
+    inflacaoProjetadaPct,
     anosDoHorizonte,
   } = input;
 
@@ -164,8 +176,8 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     tipoRentabilidade === "ipca_mais"
       ? taxaRealIpcaMais(spreadIpcaPct)
       : tipoRentabilidade === "percentual_cdi"
-        ? taxaRealPercentualCdi(percentualCdiPct, cdiAtualPct, inflacaoPct)
-        : taxaRealPrefixada(prefixadaPct, inflacaoPct);
+        ? taxaRealPercentualCdi(percentualCdiPct, cdiAtualPct, inflacaoParaTaxaRealPct)
+        : taxaRealPrefixada(prefixadaPct, inflacaoParaTaxaRealPct);
 
   const idadeMaxima = anosDoHorizonte == null ? 100 : idade + anosDoHorizonte;
   // Mesma projeção usada por Aposentadoria, Plano de ação e apresentação —
@@ -177,7 +189,7 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
-    inflacaoProjetadaPct: inflacaoPct,
+    inflacaoProjetadaPct,
     objetivos,
   });
   const resultadoSemObjetivos = simularEvolucaoPatrimonio(
@@ -197,7 +209,7 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     aporteMensalRecomendado: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
-    inflacaoProjetadaPct: inflacaoPct,
+    inflacaoProjetadaPct,
     objetivos,
   });
   const stressTests = simularStressTestAposentadoria({
@@ -208,7 +220,7 @@ export function derivarCenarioSimulado(input: CenarioSimuladoInput) {
     aporteMensal: aporte,
     saqueMensalAposentadoria: rendaDesejada,
     taxaAnualPct: rentabilidadeReal,
-    inflacaoProjetadaPct: inflacaoPct,
+    inflacaoProjetadaPct,
     objetivos,
   });
   // A linha de comparação ("Sem objetivos") continua sem os descontos — é
