@@ -272,6 +272,8 @@ export type ComparacaoCenariosAposentadoriaInput = {
   aporteMensalRecomendado: number;
   saqueMensalAposentadoria: number;
   taxaAnualPct: number;
+  inflacaoProjetadaPct: number;
+  objetivos: ObjetivoNaCurvaInput[];
 };
 
 export function compararCenariosAposentadoria({
@@ -282,23 +284,25 @@ export function compararCenariosAposentadoria({
   aporteMensalRecomendado,
   saqueMensalAposentadoria,
   taxaAnualPct,
+  inflacaoProjetadaPct,
+  objetivos,
 }: ComparacaoCenariosAposentadoriaInput) {
-  const atual = simularEvolucaoPatrimonio(
-    idadeAtual,
-    idadeAposentadoria,
-    patrimonioInicial,
-    aporteMensalAtual,
-    saqueMensalAposentadoria,
-    taxaAnualPct,
-  ).patrimonioNaAposentadoria;
-  const recomendado = simularEvolucaoPatrimonio(
-    idadeAtual,
-    idadeAposentadoria,
-    patrimonioInicial,
-    aporteMensalRecomendado,
-    saqueMensalAposentadoria,
-    taxaAnualPct,
-  ).patrimonioNaAposentadoria;
+  // Os dois cenários passam pela mesma projeção do resto do planejamento, com
+  // os objetivos descontados: comparar saldos que ignoram a meta mostraria um
+  // patrimônio que a curva ao lado não promete.
+  const saldoNaAposentadoria = (aporteMensal: number) =>
+    projetarPatrimonioComObjetivos({
+      idadeAtual,
+      idadeAposentadoria,
+      patrimonioInicial,
+      aporteMensal,
+      saqueMensalAposentadoria,
+      taxaAnualPct,
+      inflacaoProjetadaPct,
+      objetivos,
+    }).patrimonioNaAposentadoria;
+  const atual = saldoNaAposentadoria(aporteMensalAtual);
+  const recomendado = saldoNaAposentadoria(aporteMensalRecomendado);
 
   return {
     atual,
@@ -316,6 +320,8 @@ export type StressTestAposentadoriaInput = {
   aporteMensal: number;
   saqueMensalAposentadoria: number;
   taxaAnualPct: number;
+  inflacaoProjetadaPct: number;
+  objetivos: ObjetivoNaCurvaInput[];
 };
 
 export function simularStressTestAposentadoria(input: StressTestAposentadoriaInput) {
@@ -327,20 +333,29 @@ export function simularStressTestAposentadoria(input: StressTestAposentadoriaInp
     { nome: "Viver +5 anos", taxa: input.taxaAnualPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida + 5 },
   ];
 
+  // Cada choque roda pela mesma projeção do resto do planejamento, já com os
+  // objetivos descontados. Antes o stress test montava a curva por fora e
+  // podia dizer "sustenta até 90" para um plano que a curva ao lado mostrava
+  // comprometido pela meta.
   return cenarios.map((cenario) => {
-    const resultado = simularEvolucaoPatrimonio(
-      input.idadeAtual,
-      input.idadeAposentadoria,
-      input.patrimonioInicial,
-      cenario.aporte,
-      input.saqueMensalAposentadoria,
-      cenario.taxa,
-      Math.max(100, cenario.idadeReferencia),
-    );
+    const resultado = projetarPatrimonioComObjetivos({
+      idadeAtual: input.idadeAtual,
+      idadeAposentadoria: input.idadeAposentadoria,
+      patrimonioInicial: input.patrimonioInicial,
+      aporteMensal: cenario.aporte,
+      saqueMensalAposentadoria: input.saqueMensalAposentadoria,
+      taxaAnualPct: cenario.taxa,
+      inflacaoProjetadaPct: input.inflacaoProjetadaPct,
+      objetivos: input.objetivos,
+      idadeMaxima: Math.max(100, cenario.idadeReferencia),
+    });
     return {
       nome: cenario.nome,
       patrimonioNaAposentadoria: resultado.patrimonioNaAposentadoria,
       idadeEsgotamento: resultado.idadeEsgotamento,
+      // Déficit antes da aposentadoria não é esgotamento: sem este campo o
+      // cartão cairia no "sustenta até", que é o contrário do que aconteceu.
+      idadeDeficitPreAposentadoria: resultado.idadeDeficitPreAposentadoria,
       idadeReferencia: cenario.idadeReferencia,
     };
   });
