@@ -266,7 +266,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
           {stressTests.map((cenario) => (
             <div key={cenario.nome} className="rounded-xl border border-line p-3">
               <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
-              <b className="mt-1 block text-navy">{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
+              <b className={cenario.patrimonioNaAposentadoria < 0 ? "mt-1 block text-gold-ink" : "mt-1 block text-navy"}>{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
               <span className="mt-1 block text-xs text-ink-40">
                 {cenario.idadeDeficitPreAposentadoria != null
                   ? `objetivos comprometem aos ${cenario.idadeDeficitPreAposentadoria}`
@@ -277,6 +277,15 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             </div>
           ))}
         </div>
+        {/* Com o plano furado antes da aposentadoria, o número de cada cartão
+            mede o tamanho do buraco: rentabilidade menor capitaliza menos e o
+            cenário pior aparece com valor maior. Comparar choques só faz
+            sentido depois de resolver o déficit. */}
+        {stressTests.every((c) => c.idadeDeficitPreAposentadoria != null) && (
+          <p className="mt-3 text-xs text-ink-40">
+            Todos os cenários comprometem o patrimônio antes da aposentadoria; antes de comparar choques, revise prazo, valor dos objetivos ou aporte.
+          </p>
+        )}
       </Card>
 
       <Card>

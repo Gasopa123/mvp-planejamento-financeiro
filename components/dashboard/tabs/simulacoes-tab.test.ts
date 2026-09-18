@@ -167,6 +167,43 @@ describe("SimulacoesTab", () => {
 
   // Déficit antes da aposentadoria não é esgotamento de aposentadoria: a tela
   // tem que apontar os objetivos, não anunciar "esgota aos [1º ano de drawdown]".
+  it("avisa que os choques não são comparáveis quando todos comprometem o patrimônio", () => {
+    const clienteApertado = {
+      ...cliente,
+      idade: 30,
+      idade_aposentadoria: 60,
+      expectativa_vida: 90,
+      patrimonio_investido: 50000,
+      renda_mensal: 10000,
+      despesa_mensal: 9500,
+    } as unknown as Cliente;
+    const objetivoImpagavel = [
+      {
+        id: "obj-caro",
+        client_id: "client-1",
+        prazo: "medio" as const,
+        descricao: "Casa nova",
+        valor_estimado: 5_000_000,
+        horizonte_anos: 2,
+      },
+    ] satisfies Objetivo[];
+
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, {
+        cliente: clienteApertado,
+        objetivos: objetivoImpagavel,
+        assumptions: null,
+      }),
+    );
+
+    expect(html).toContain(
+      "Todos os cenários comprometem o patrimônio antes da aposentadoria",
+    );
+    // Patrimônio negativo não pode sair no mesmo navy de um plano saudável.
+    expect(html).toContain("mt-1 block text-gold-ink");
+    expect(html).not.toContain("mt-1 block text-navy");
+  });
+
   it("não vende o valor criado como conquista quando o plano está comprometido", () => {
     const clienteApertado = {
       ...cliente,
