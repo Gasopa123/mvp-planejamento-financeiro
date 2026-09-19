@@ -62,6 +62,23 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Aporte -30%");
   });
 
+  // B8: sem objetivo futuro com prazo a inflação não tem o que corrigir, então
+  // "Inflação +2%" empata com Base. É correto, mas dois cartões com o mesmo
+  // número e rótulos diferentes parecem bug — a nota diz por que empatam.
+  it("explica o empate do choque de inflação só quando falta objetivo com prazo", () => {
+    const nota = "Sem objetivos futuros com prazo, o choque de inflação não altera esta projeção.";
+
+    const semPrazo = renderToStaticMarkup(
+      createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos: [], assumptions: null }),
+    );
+    const comPrazo = renderToStaticMarkup(
+      createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos, assumptions: null }),
+    );
+
+    expect(semPrazo).toContain(nota);
+    expect(comPrazo).not.toContain(nota);
+  });
+
   // Regressão da dupla contagem: os objetivos já saem da curva como retirada
   // pontual no ano do horizonte, então o aporte mensal NÃO pode vir reduzido
   // por eles também — senão o mesmo objetivo é pago duas vezes.

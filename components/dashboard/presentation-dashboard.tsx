@@ -9,6 +9,7 @@ import {
   impactoObjetivos,
   simularEvolucaoPatrimonio,
   simularStressTestAposentadoria,
+  temObjetivoFuturoComPrazo,
 } from "@/lib/calculos";
 import { formatarMoeda } from "@/lib/format";
 import type { Assumptions, Cliente, Objetivo } from "@/lib/types/cliente";
@@ -223,6 +224,11 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
             {stressTests.every((c) => c.idadeDeficitPreAposentadoria != null) && (
               <p className="mt-3 text-xs text-ink-40">
                 Todos os cenários comprometem o patrimônio antes da aposentadoria; antes de comparar choques, revise prazo, valor dos objetivos ou aporte.
+              </p>
+            )}
+            {!temObjetivoFuturoComPrazo(objetivos) && (
+              <p className="mt-3 text-xs text-ink-40">
+                Sem objetivos futuros com prazo, o choque de inflação não altera esta projeção.
               </p>
             )}
           </Card>

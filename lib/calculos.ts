@@ -552,6 +552,25 @@ export type ObjetivoNaCurvaInput = {
   horizonte_anos: number | null;
 };
 
+/**
+ * Se algum objetivo entra na curva com prazo FUTURO. É o que decide se o
+ * cenário "Inflação +2%" do stress test tem onde morder: a inflação só
+ * altera a projeção corrigindo objetivos, e um objetivo de horizonte 0 vence
+ * hoje — projecaoMetaComInflacao devolve o mesmo valor com qualquer taxa.
+ * Por isso o horizonte aqui é > 0, e não >= 0 como no filtro da curva.
+ */
+export function temObjetivoFuturoComPrazo(
+  objetivos: ObjetivoNaCurvaInput[],
+): boolean {
+  return objetivos.some(
+    (objetivo) =>
+      objetivo.valor_estimado != null &&
+      objetivo.valor_estimado > 0 &&
+      objetivo.horizonte_anos != null &&
+      objetivo.horizonte_anos > 0,
+  );
+}
+
 export type ResultadoCurvaComObjetivos = {
   pontos: PontoEvolucaoPatrimonio[];
   /**
