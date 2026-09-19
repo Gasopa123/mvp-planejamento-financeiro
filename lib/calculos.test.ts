@@ -176,6 +176,30 @@ describe("simularStressTestAposentadoria", () => {
     expect(cenarios[3].patrimonioNaAposentadoria).toBeLessThan(cenarios[0].patrimonioNaAposentadoria);
     expect(cenarios[4].idadeReferencia).toBe(95);
   });
+
+  it("separa o choque de inflação do choque de rentabilidade", () => {
+    const [base, inflacao, rentabilidade] = simularStressTestAposentadoria({
+      idadeAtual: 40,
+      idadeAposentadoria: 65,
+      expectativaVida: 90,
+      patrimonioInicial: 100000,
+      aporteMensal: 2000,
+      saqueMensalAposentadoria: 8000,
+      taxaAnualPct: 5,
+      inflacaoProjetadaPct: 4,
+      objetivos: [{ valor_estimado: 300000, horizonte_anos: 10 }],
+    });
+
+    // Os dois cartões mostravam o mesmo número porque ambos faziam taxa - 2.
+    expect(inflacao.patrimonioNaAposentadoria).not.toBeCloseTo(
+      rentabilidade.patrimonioNaAposentadoria,
+      2,
+    );
+    // Inflação maior encarece a meta, então o cenário é pior que o Base.
+    expect(inflacao.patrimonioNaAposentadoria).toBeLessThan(
+      base.patrimonioNaAposentadoria,
+    );
+  });
 });
 
 describe("updateIndicators", () => {
