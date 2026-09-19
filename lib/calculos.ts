@@ -325,12 +325,22 @@ export type StressTestAposentadoriaInput = {
 };
 
 export function simularStressTestAposentadoria(input: StressTestAposentadoriaInput) {
+  // Cada cenário carrega a própria inflação porque ela e a rentabilidade são
+  // choques diferentes. Antes "Inflação +2%" derrubava a taxa em 2 pontos,
+  // exatamente como "Rentabilidade -2%", e os dois cartões sempre mostravam o
+  // mesmo número.
+  //
+  // Nesta curva a inflação só tem onde pegar nos objetivos: aporte e saque já
+  // estão em valor de hoje e são capitalizados pela taxa real. Sem objetivo
+  // com prazo, portanto, o choque de inflação empata com o Base — é o alcance
+  // que o modelo atual permite, e é verdade, diferente de rotular um choque de
+  // rentabilidade como se fosse de inflação.
   const cenarios = [
-    { nome: "Base", taxa: input.taxaAnualPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
-    { nome: "Inflação +2%", taxa: input.taxaAnualPct - 2, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
-    { nome: "Rentabilidade -2%", taxa: input.taxaAnualPct - 2, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
-    { nome: "Aporte -30%", taxa: input.taxaAnualPct, aporte: input.aporteMensal * 0.7, idadeReferencia: input.expectativaVida },
-    { nome: "Viver +5 anos", taxa: input.taxaAnualPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida + 5 },
+    { nome: "Base", taxa: input.taxaAnualPct, inflacao: input.inflacaoProjetadaPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
+    { nome: "Inflação +2%", taxa: input.taxaAnualPct, inflacao: input.inflacaoProjetadaPct + 2, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
+    { nome: "Rentabilidade -2%", taxa: input.taxaAnualPct - 2, inflacao: input.inflacaoProjetadaPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida },
+    { nome: "Aporte -30%", taxa: input.taxaAnualPct, inflacao: input.inflacaoProjetadaPct, aporte: input.aporteMensal * 0.7, idadeReferencia: input.expectativaVida },
+    { nome: "Viver +5 anos", taxa: input.taxaAnualPct, inflacao: input.inflacaoProjetadaPct, aporte: input.aporteMensal, idadeReferencia: input.expectativaVida + 5 },
   ];
 
   // Cada choque roda pela mesma projeção do resto do planejamento, já com os
@@ -345,7 +355,7 @@ export function simularStressTestAposentadoria(input: StressTestAposentadoriaInp
       aporteMensal: cenario.aporte,
       saqueMensalAposentadoria: input.saqueMensalAposentadoria,
       taxaAnualPct: cenario.taxa,
-      inflacaoProjetadaPct: input.inflacaoProjetadaPct,
+      inflacaoProjetadaPct: cenario.inflacao,
       objetivos: input.objetivos,
       idadeMaxima: Math.max(100, cenario.idadeReferencia),
     });
