@@ -74,6 +74,19 @@ describe("PresentationDashboard", () => {
     expect(html).not.toContain("Projeção indisponível");
   });
 
+  // B8: a apresentação mostra o mesmo stress test, então precisa da mesma
+  // explicação do empate entre Base e "Inflação +2%".
+  it("explica o empate do choque de inflação só quando falta objetivo com prazo", () => {
+    const nota = "Sem objetivos futuros com prazo, o choque de inflação não altera esta projeção.";
+    const render = (lista: Objetivo[]) =>
+      renderToStaticMarkup(
+        createElement(PresentationDashboard, { cliente, objetivos: lista, assumptions: null }),
+      );
+
+    expect(render([])).toContain(nota);
+    expect(render(objetivos)).not.toContain(nota);
+  });
+
   // Antes a apresentação só escondia curva e stress test, sem dizer por quê —
   // numa reunião com o cliente isso parece uma tela quebrada.
   it.each([
