@@ -29,7 +29,7 @@ export function GaugeChart({ percent, size = 120 }: GaugeChartProps) {
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${Math.round(clamped)}%`}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#EDF1F7" strokeWidth={strokeWidth} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--color-track)" strokeWidth={strokeWidth} />
       <circle
         cx={cx}
         cy={cy}
@@ -45,8 +45,8 @@ export function GaugeChart({ percent, size = 120 }: GaugeChartProps) {
       />
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#0057FF" />
-          <stop offset="100%" stopColor="#2ECC71" />
+          <stop offset="0%" stopColor="var(--color-blue)" />
+          <stop offset="100%" stopColor="var(--color-green)" />
         </linearGradient>
       </defs>
       <text
@@ -56,7 +56,7 @@ export function GaugeChart({ percent, size = 120 }: GaugeChartProps) {
         className="font-display"
         fontSize={size * 0.183}
         fontWeight={600}
-        fill="#0B1F3A"
+        fill="var(--color-navy)"
       >
         {Math.round(clamped)}%
       </text>

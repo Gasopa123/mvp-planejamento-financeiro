@@ -11,7 +11,7 @@ export function ProgressTrack({ percent, className = "" }: ProgressTrackProps) {
 
   return (
     <div
-      className={`h-2.5 w-full overflow-hidden rounded-full bg-[#EDF1F7] ${className}`}
+      className={`h-2.5 w-full overflow-hidden rounded-full bg-track ${className}`}
       role="progressbar"
       aria-valuenow={Math.round(clamped)}
       aria-valuemin={0}

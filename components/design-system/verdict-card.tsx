@@ -12,8 +12,8 @@ type VerdictCardProps = {
 // o plano se sustenta, dourado quando precisa de ajuste.
 export function VerdictCard({ positivo, titulo, subtitulo, badgeLabel }: VerdictCardProps) {
   const toneClass = positivo
-    ? "bg-green-soft border-[#c8ecd8]"
-    : "bg-gold-soft border-[#f0e2b8]";
+    ? "bg-green-soft border-green-line"
+    : "bg-gold-soft border-gold-line";
   const iconBg = positivo ? "bg-green" : "bg-gold";
   const titleColor = positivo ? "text-green-ink" : "text-gold-ink";
 

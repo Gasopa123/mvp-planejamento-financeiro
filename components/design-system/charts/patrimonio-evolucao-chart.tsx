@@ -132,7 +132,7 @@ export function PatrimonioEvolucaoChart({
 
       {[0, 1, 2, 3, 4].map((g) => {
         const gy = padT + (g * plotH) / 4;
-        return <line key={g} x1={padL} x2={width - padR} y1={gy} y2={gy} stroke="#EDF1F7" strokeWidth={1} />;
+        return <line key={g} x1={padL} x2={width - padR} y1={gy} y2={gy} stroke="var(--color-track)" strokeWidth={1} />;
       })}
 
       {idadeAposentadoria >= idadeInicio && idadeAposentadoria <= idadeFim && (
@@ -168,7 +168,7 @@ export function PatrimonioEvolucaoChart({
           <g key={`ano-${ano}`}>
             <line x1={xAt(ano)} x2={xAt(ano)} y1={height - padB} y2={height - padB + 5} stroke="#AAB4C3" opacity={0.8} />
             {mostrarLabel && (
-              <text x={xAt(ano)} y={height - 48} textAnchor="middle" fontSize={10.5} fill="#5C6A82">
+              <text x={xAt(ano)} y={height - 48} textAnchor="middle" fontSize={10.5} fill="var(--color-ink-60)">
                 {ano}
               </text>
             )}
@@ -183,7 +183,7 @@ export function PatrimonioEvolucaoChart({
         return (
           <g key={objetivo.id}>
             <circle cx={xAt(idadeObjetivo)} cy={yAt(ponto.saldo)} r={4.5} fill="var(--color-gold)" stroke="white" strokeWidth={2} />
-            <text x={xAt(idadeObjetivo)} y={yAt(ponto.saldo) - 10} textAnchor="middle" fontSize={11} fontWeight={600} fill="#a9821f">
+            <text x={xAt(idadeObjetivo)} y={yAt(ponto.saldo) - 10} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--color-gold-ink)">
               {objetivo.descricao}
             </text>
           </g>
@@ -193,7 +193,7 @@ export function PatrimonioEvolucaoChart({
       {idadeEsgotamento != null && idadeEsgotamento >= idadeInicio && idadeEsgotamento <= idadeFim && (
         <>
           <circle cx={xAt(idadeEsgotamento)} cy={yAt(0)} r={5.5} fill="var(--color-gold)" opacity={1} />
-          <text x={xAt(idadeEsgotamento)} y={yAt(0) - 12} textAnchor="middle" fontSize={12} fontWeight={600} fill="#a9821f">
+          <text x={xAt(idadeEsgotamento)} y={yAt(0) - 12} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-gold-ink)">
             esgota aos {idadeEsgotamento}
           </text>
         </>
@@ -216,7 +216,7 @@ export function PatrimonioEvolucaoChart({
 
       <rect x={padL} y={padT} width={plotW} height={plotH} fill="transparent" />
 
-      <g fontSize={11.5} fill="#5C6A82">
+      <g fontSize={11.5} fill="var(--color-ink-60)">
         <circle cx={padL} cy={height - 24} r={4} fill="var(--color-blue)" />
         <text x={padL + 10} y={height - 20}>Com objetivos</text>
         <line x1={padL + 128} x2={padL + 148} y1={height - 24} y2={height - 24} stroke="var(--color-green)" strokeWidth={2.5} strokeDasharray="6 4" />
