@@ -65,7 +65,7 @@ export function DrawdownChart({
             x2={width - padR}
             y1={gy}
             y2={gy}
-            stroke="#EDF1F7"
+            stroke="var(--color-track)"
             strokeWidth={1}
           />
         );
@@ -99,10 +99,10 @@ export function DrawdownChart({
         />
       )}
 
-      <text x={padL} y={height - 12} fontSize={11.5} fill="#5C6A82">
+      <text x={padL} y={height - 12} fontSize={11.5} fill="var(--color-ink-60)">
         {idadeInicio} anos
       </text>
-      <text x={width - padR} y={height - 12} textAnchor="end" fontSize={11.5} fill="#5C6A82">
+      <text x={width - padR} y={height - 12} textAnchor="end" fontSize={11.5} fill="var(--color-ink-60)">
         {idadeFim} anos
       </text>
       {idadeEsgotamento != null && (
@@ -112,7 +112,7 @@ export function DrawdownChart({
           textAnchor="middle"
           fontSize={12}
           fontWeight={600}
-          fill="#a9821f"
+          fill="var(--color-gold-ink)"
         >
           esgota aos {idadeEsgotamento}
         </text>

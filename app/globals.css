@@ -8,13 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
   /* Tipografia do design system "wealth planning" (reference/Planejamento-Priscila.html).
      Referenciam as variáveis geradas pelo next/font em app/layout.tsx — por isso
-     ficam neste bloco "inline" (igual font-sans/font-mono acima), não no bloco
-     de cores estáticas abaixo. */
+     ficam neste bloco "inline", não no bloco de cores estáticas abaixo. */
   --font-display: var(--font-fraunces), serif;
   --font-body: var(--font-inter), sans-serif;
 }
@@ -44,6 +40,15 @@
   --color-line: #e4e9f1;
   --color-canvas: #f5f7fa;
 
+  /* Estados fora do vocabulário financeiro. danger é SÓ para erro de entrada
+     e ação destrutiva (excluir) — estado financeiro ruim continua gold. */
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  /* Trilha de barras/anéis/grades e bordas dos cartões de veredito. */
+  --color-track: #edf1f7;
+  --color-green-line: #c8ecd8;
+  --color-gold-line: #f0e2b8;
+
   --shadow-brand-sm: 0 4px 16px rgba(11, 31, 58, 0.06);
   --shadow-brand-md: 0 12px 32px rgba(11, 31, 58, 0.1);
   --shadow-brand-lg: 0 24px 64px rgba(11, 31, 58, 0.16);
@@ -52,17 +57,10 @@
   --radius-card-sm: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 /* ---------- range slider (reference .range-input / .slider-value) ----------

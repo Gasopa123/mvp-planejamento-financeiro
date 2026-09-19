@@ -81,18 +81,18 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
         <div className="flex justify-center">
           <DonutChart
             segments={[
-              { label: "Despesas", value: Math.max(0, despesa), color: "#93A0B4" },
+              { label: "Despesas", value: Math.max(0, despesa), color: "var(--color-ink-40)" },
               {
                 label: "Capacidade de investimento",
                 value: Math.max(0, capacidade),
-                color: "#2ECC71",
+                color: "var(--color-green)",
               },
             ]}
           />
         </div>
         <div className="flex flex-col gap-5">
           <div className="flex items-center gap-3.5">
-            <span className="inline-block h-3.5 w-3.5 rounded-[4px] bg-[#93A0B4]" />
+            <span className="inline-block h-3.5 w-3.5 rounded-[4px] bg-ink-40" />
             <div className="flex-1">
               <b className="font-display text-base">Despesas</b>
               <div className="text-[13px] text-ink-60">
