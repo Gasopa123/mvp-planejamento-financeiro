@@ -31,9 +31,14 @@
   --color-green: #2ecc71;
   --color-green-soft: #e9fbf1;
   --color-green-ink: #1e9e5a;
+  /* Variantes -strong: mesmo papel semântico de green-ink/gold-ink, com
+     contraste suficiente para texto pequeno, label e badge. Os tokens
+     originais seguem valendo em texto grande e elemento gráfico. */
+  --color-green-ink-strong: #167a45;
   --color-gold: #d4af37;
   --color-gold-soft: #fbf4df;
   --color-gold-ink: #a9821f;
+  --color-gold-ink-strong: #8a6a12;
   --color-ink: #0b1f3a;
   --color-ink-60: #5c6a82;
   --color-ink-40: #93a0b4;
