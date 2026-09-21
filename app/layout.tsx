@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Lyzon Planejamento",
+  title: "MVP Planejamento Financeiro",
   description: "Planejamento financeiro dinâmico para assessores.",
 };
 

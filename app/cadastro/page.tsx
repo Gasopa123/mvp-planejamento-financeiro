@@ -4,6 +4,14 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import {
+  AuthShell,
+  authErrorClass,
+  authInlineLinkClass,
+  authPrimaryButtonClass,
+  authSuccessClass,
+} from "@/components/auth/auth-shell";
+import { inputClass, labelClass } from "@/lib/wizard/field-styles";
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -48,88 +56,79 @@ export default function CadastroPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-1 items-center justify-center bg-gray-50 px-4 py-16">
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-2xl font-semibold text-gray-900">Criar conta</h1>
+    <AuthShell title="Criar conta" subtitle="Cadastre-se como assessor para montar a sua carteira.">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="nome" className={labelClass}>
+            Nome
+          </label>
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            autoComplete="name"
+            required
+            value={nome}
+            onChange={(event) => setNome(event.target.value)}
+            className={inputClass()}
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="nome"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nome
-            </label>
-            <input
-              id="nome"
-              name="nome"
-              type="text"
-              autoComplete="name"
-              required
-              value={nome}
-              onChange={(event) => setNome(event.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        <div>
+          <label htmlFor="email" className={labelClass}>
+            E-mail
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className={inputClass()}
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              E-mail
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        <div>
+          <label htmlFor="password" className={labelClass}>
+            Senha
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className={inputClass()}
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Senha
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={6}
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        {error && (
+          <p role="alert" className={authErrorClass}>
+            {error}
+          </p>
+        )}
+        {message && (
+          <p role="status" className={authSuccessClass}>
+            {message}
+          </p>
+        )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {message && <p className="text-sm text-green-700">{message}</p>}
+        <button type="submit" disabled={loading} className={authPrimaryButtonClass}>
+          {loading ? "Criando conta..." : "Criar conta"}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-          >
-            {loading ? "Criando conta..." : "Criar conta"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Já tem conta?{" "}
-          <Link href="/login" className="font-medium text-gray-900 underline">
-            Entrar
-          </Link>
-        </p>
-      </div>
-    </main>
+      <p className="mt-6 text-center text-sm text-ink-60">
+        Já tem conta?{" "}
+        <Link href="/login" className={authInlineLinkClass}>
+          Entrar
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

@@ -4,6 +4,13 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import {
+  AuthShell,
+  authErrorClass,
+  authLinkClass,
+  authPrimaryButtonClass,
+} from "@/components/auth/auth-shell";
+import { inputClass, labelClass } from "@/lib/wizard/field-styles";
 
 export default function RedefinirSenhaPage() {
   const router = useRouter();
@@ -73,112 +80,95 @@ export default function RedefinirSenhaPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-1 items-center justify-center bg-gray-50 px-4 py-16">
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-3 text-2xl font-semibold text-gray-900">Redefinir senha</h1>
-        <p className="mb-6 text-sm text-gray-600">
-          Informe o e-mail, copie o código recebido e escolha uma nova senha.
-        </p>
+    <AuthShell
+      title="Redefinir senha"
+      subtitle="Informe o e-mail, copie o código recebido e escolha uma nova senha."
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="email" className={labelClass}>
+            E-mail
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className={inputClass()}
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              E-mail
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        <div>
+          <label htmlFor="token" className={labelClass}>
+            Código de recuperação
+          </label>
+          <input
+            id="token"
+            name="token"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            required
+            value={token}
+            onChange={(event) => setToken(event.target.value)}
+            placeholder="Digite o código recebido por e-mail"
+            className={inputClass()}
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="token"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Código de recuperação
-            </label>
-            <input
-              id="token"
-              name="token"
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              required
-              value={token}
-              onChange={(event) => setToken(event.target.value)}
-              placeholder="Digite o código recebido por e-mail"
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        <div>
+          <label htmlFor="password" className={labelClass}>
+            Nova senha
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className={inputClass()}
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nova senha
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={6}
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        <div>
+          <label htmlFor="confirmPassword" className={labelClass}>
+            Confirmar nova senha
+          </label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            className={inputClass()}
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Confirmar nova senha
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              minLength={6}
-              required
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-            />
-          </div>
+        {error && (
+          <p role="alert" className={authErrorClass}>
+            {error}
+          </p>
+        )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+        <button type="submit" disabled={loading} className={authPrimaryButtonClass}>
+          {loading ? "Salvando..." : "Salvar nova senha"}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-          >
-            {loading ? "Salvando..." : "Salvar nova senha"}
-          </button>
-        </form>
-
-        <Link
-          href="/login"
-          className="mt-4 block text-center text-sm font-medium text-gray-900 underline"
-        >
+      <p className="mt-6 text-center text-sm">
+        <Link href="/login" className={authLinkClass}>
           Voltar para o login
         </Link>
-      </div>
-    </main>
+      </p>
+    </AuthShell>
   );
 }
