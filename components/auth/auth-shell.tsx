@@ -20,7 +20,7 @@ export const authErrorClass =
 export const authSuccessClass =
   "rounded-xl border border-green-line bg-green-soft px-4 py-3 text-sm text-green-ink-strong";
 
-function Marca({ className }: { className: string }) {
+export function Marca({ className }: { className: string }) {
   return (
     <div className="flex items-center gap-[9px]">
       <span aria-hidden="true" className="size-[7px] flex-none rounded-full bg-gold" />
