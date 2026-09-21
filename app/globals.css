@@ -43,6 +43,9 @@
   --color-ink-60: #5c6a82;
   --color-ink-40: #93a0b4;
   --color-line: #e4e9f1;
+  /* Borda de campo de formulário. line (1,2:1) é decorativo; campo branco
+     sobre card branco precisa de borda que bata 3:1 — esta dá 3,2:1. */
+  --color-field-line: #8390a5;
   --color-canvas: #f5f7fa;
 
   /* Estados fora do vocabulário financeiro. danger é SÓ para erro de entrada
