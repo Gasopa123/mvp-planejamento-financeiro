@@ -35,6 +35,15 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
   const percentualPoupanca = Math.max(0, taxa * 100);
   const percentualDespesa = renda > 0 ? (despesa / renda) * 100 : 0;
   const percentualCapacidade = 100 - percentualDespesa;
+  // Renda zero passa no schema, mas proporção sobre renda zero não existe:
+  // sem ela, as notas e a legenda não mostram "X% da renda".
+  const semRenda = renda <= 0;
+  const notaDespesa = semRenda
+    ? "renda não informada"
+    : `${formatarPercentual(percentualDespesa, 0)} da renda`;
+  const notaCapacidade = semRenda
+    ? "renda não informada"
+    : `${formatarPercentual(percentualCapacidade, 0)} da renda`;
 
   // Reserva: mesma regra da seção Patrimônio — o patrimônio investido contra
   // 4× a despesa, pela mesma função, pra os dois números nunca divergirem.
@@ -55,13 +64,13 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
         <StatCard
           label="Despesa mensal"
           value={formatarMoeda(despesa)}
-          note={`${formatarPercentual(percentualDespesa, 0)} da renda`}
+          note={notaDespesa}
           accent="muted"
         />
         <StatCard
           label="Capacidade de investimento"
           value={formatarMoeda(capacidade)}
-          note={`${formatarPercentual(percentualCapacidade, 0)} da renda`}
+          note={notaCapacidade}
           accent={capacidade >= 0 ? "green" : "gold"}
         />
         <StatCard
@@ -125,7 +134,7 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
             <div className="flex-1">
               <b className="font-display text-base">Despesas</b>
               <div className="text-[13px] text-ink-60">
-                {formatarMoeda(despesa)} · {formatarPercentual(percentualDespesa, 0)} da renda
+                {formatarMoeda(despesa)} · {notaDespesa}
               </div>
             </div>
           </div>
@@ -134,7 +143,7 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
             <div className="flex-1">
               <b className="font-display text-base">Capacidade de investimento</b>
               <div className="text-[13px] text-ink-60">
-                {formatarMoeda(capacidade)} · {formatarPercentual(percentualCapacidade, 0)} da renda
+                {formatarMoeda(capacidade)} · {notaCapacidade}
               </div>
             </div>
           </div>
