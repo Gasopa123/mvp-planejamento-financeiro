@@ -44,6 +44,9 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
   const notaCapacidade = semRenda
     ? "renda não informada"
     : `${formatarPercentual(percentualCapacidade, 0)} da renda`;
+  const fraseTaxaPoupanca = semRenda
+    ? "Renda não informada para calcular taxa de poupança."
+    : `${formatarPercentual(percentualPoupanca, 0)} da renda é investida todos os meses`;
 
   // Reserva: mesma regra da seção Patrimônio — o patrimônio investido contra
   // 4× a despesa, pela mesma função, pra os dois números nunca divergirem.
@@ -108,8 +111,7 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
         <div className="flex-1">
           <CardLabel>Taxa de poupança</CardLabel>
           <div className="mb-3 font-display text-2xl font-semibold text-navy">
-            {formatarPercentual(percentualPoupanca, 0)} da renda é investida
-            todos os meses
+            {fraseTaxaPoupanca}
           </div>
           <ProgressTrack percent={percentualPoupanca} />
         </div>

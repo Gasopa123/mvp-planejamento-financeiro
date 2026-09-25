@@ -44,6 +44,7 @@ describe("DiagnosticoTab", () => {
     expect(notaDe(html, "Capacidade de investimento")).toBe("50% da renda");
     expect(notaDe(html, "Reserva de emergência")).toBe(`60% de ${formatarMoeda(20000)}`);
     expect(html).not.toContain("da receita");
+    expect(html).toContain("50% da renda é investida todos os meses");
   });
 
   it("marca a reserva acima do ideal e não inventa nota sem patrimônio", () => {
@@ -66,5 +67,9 @@ describe("DiagnosticoTab", () => {
     // A legenda do donut usa as mesmas notas.
     expect(html).toContain(`${formatarMoeda(5000)} · renda não informada`);
     expect(html).toContain(`${formatarMoeda(-5000)} · renda não informada`);
+
+    // A taxa de poupança também é proporção da renda.
+    expect(html).toContain("Renda não informada para calcular taxa de poupança.");
+    expect(html).not.toContain("0% da renda é investida todos os meses");
   });
 });
