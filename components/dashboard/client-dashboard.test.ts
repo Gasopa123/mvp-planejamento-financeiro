@@ -110,6 +110,17 @@ describe("ClientDashboard", () => {
     expect(ancoras).toEqual(ORDEM_ESPERADA);
   });
 
+  // A barra de âncoras é sticky e cresce quando as pílulas quebram (193px
+  // até 375px, 105px até 1023px). Sem margem de rolagem responsiva, clicar
+  // numa âncora deixa o título da seção atrás da barra.
+  it("dá às seções margem de rolagem que cobre a barra de âncoras", () => {
+    const html = renderDashboard();
+
+    const classe = "scroll-mt-[200px] sm:scroll-mt-28 lg:scroll-mt-24";
+    expect(html.split(classe).length - 1).toBe(ORDEM_ESPERADA.length);
+    expect(html).not.toContain('className="scroll-mt-24"');
+  });
+
   // Cada seção abre com uma linha dizendo o que ela responde, como no canvas.
   it("mostra a linha de leitura de cada seção", () => {
     const html = renderDashboard();
