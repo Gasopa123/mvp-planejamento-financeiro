@@ -110,6 +110,12 @@ describe("ClientDashboard", () => {
     expect(ancoras).toEqual(ORDEM_ESPERADA);
   });
 
+  it("usa offset maior para âncoras no mobile", () => {
+    const html = renderDashboard();
+
+    expect(html).toContain('class="scroll-mt-[210px] sm:scroll-mt-24"');
+  });
+
   // Cada seção abre com uma linha dizendo o que ela responde, como no canvas.
   it("mostra a linha de leitura de cada seção", () => {
     const html = renderDashboard();

@@ -176,7 +176,7 @@ function DashboardSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24">
+    <section id={id} className="scroll-mt-[210px] sm:scroll-mt-24">
       <div className="mb-4">
         <h2 className="font-display text-2xl font-semibold text-navy">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-ink-60">{subtitle}</p>}
