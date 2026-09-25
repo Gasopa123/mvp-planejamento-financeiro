@@ -68,7 +68,7 @@ export function StatCard({ label, value, note, accent = "blue" }: StatCardProps)
       <div className="font-display text-[32px] font-semibold text-navy">
         {value}
       </div>
-      {note && <div className="mt-1.5 text-xs text-ink-40">{note}</div>}
+      {note && <div className="mt-1.5 text-xs text-ink-60">{note}</div>}
     </div>
   );
 }

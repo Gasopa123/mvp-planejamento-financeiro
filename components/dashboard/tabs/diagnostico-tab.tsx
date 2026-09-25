@@ -3,7 +3,11 @@ import { Card, CardLabel, StatCard } from "@/components/design-system/card";
 import { GaugeChart } from "@/components/design-system/charts/gauge-chart";
 import { DonutChart } from "@/components/design-system/charts/donut-chart";
 import { ProgressTrack } from "@/components/design-system/progress-track";
-import { capacidadeInvestimento, taxaPoupanca } from "@/lib/calculos";
+import {
+  capacidadeInvestimento,
+  reservaEmergenciaIdeal,
+  taxaPoupanca,
+} from "@/lib/calculos";
 import { formatarMoeda, formatarPercentual } from "@/lib/format";
 import type { Cliente } from "@/lib/types/cliente";
 
@@ -30,16 +34,50 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
   const taxa = renda > 0 ? taxaPoupanca(renda, despesa) : 0;
   const percentualPoupanca = Math.max(0, taxa * 100);
   const percentualDespesa = renda > 0 ? (despesa / renda) * 100 : 0;
+  const percentualCapacidade = 100 - percentualDespesa;
+  // Renda zero passa no schema, mas proporção sobre renda zero não existe:
+  // sem ela, as notas e a legenda não mostram "X% da renda".
+  const semRenda = renda <= 0;
+  const notaDespesa = semRenda
+    ? "renda não informada"
+    : `${formatarPercentual(percentualDespesa, 0)} da renda`;
+  const notaCapacidade = semRenda
+    ? "renda não informada"
+    : `${formatarPercentual(percentualCapacidade, 0)} da renda`;
+
+  // Reserva: mesma regra da seção Patrimônio — o patrimônio investido contra
+  // 4× a despesa, pela mesma função, pra os dois números nunca divergirem.
+  const patrimonio = cliente.patrimonio_investido;
+  const reservaIdeal = reservaEmergenciaIdeal(despesa);
+  const reservaAtingida = patrimonio != null && reservaIdeal > 0 && patrimonio >= reservaIdeal;
+  const notaReserva =
+    patrimonio == null || reservaIdeal <= 0
+      ? undefined
+      : reservaAtingida
+        ? `acima do ideal de ${formatarMoeda(reservaIdeal)}`
+        : `${formatarPercentual((patrimonio / reservaIdeal) * 100, 0)} de ${formatarMoeda(reservaIdeal)}`;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <StatCard label="Renda mensal" value={formatarMoeda(renda)} accent="navy" />
-        <StatCard label="Despesa mensal" value={formatarMoeda(despesa)} accent="muted" />
+        <StatCard
+          label="Despesa mensal"
+          value={formatarMoeda(despesa)}
+          note={notaDespesa}
+          accent="muted"
+        />
         <StatCard
           label="Capacidade de investimento"
           value={formatarMoeda(capacidade)}
+          note={notaCapacidade}
           accent={capacidade >= 0 ? "green" : "gold"}
+        />
+        <StatCard
+          label="Reserva de emergência"
+          value={patrimonio != null ? formatarMoeda(patrimonio) : "não informado"}
+          note={notaReserva}
+          accent={patrimonio == null ? "muted" : reservaAtingida ? "green" : "gold"}
         />
       </div>
 
@@ -96,7 +134,7 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
             <div className="flex-1">
               <b className="font-display text-base">Despesas</b>
               <div className="text-[13px] text-ink-60">
-                {formatarMoeda(despesa)} · {formatarPercentual(percentualDespesa, 0)} da receita
+                {formatarMoeda(despesa)} · {notaDespesa}
               </div>
             </div>
           </div>
@@ -105,7 +143,7 @@ export function DiagnosticoTab({ cliente }: DiagnosticoTabProps) {
             <div className="flex-1">
               <b className="font-display text-base">Capacidade de investimento</b>
               <div className="text-[13px] text-ink-60">
-                {formatarMoeda(capacidade)} · {formatarPercentual(100 - percentualDespesa, 0)} da receita
+                {formatarMoeda(capacidade)} · {notaCapacidade}
               </div>
             </div>
           </div>
