@@ -88,23 +88,43 @@ export function ClientDashboard({
         </nav>
 
         <div className="mt-8 space-y-10">
-          <DashboardSection id="perfil" title="Perfil">
+          <DashboardSection
+            id="perfil"
+            title="Perfil"
+            subtitle="Quem é o cliente e quem depende dele."
+          >
             <PerfilTab cliente={cliente} conjuge={conjuge} filhos={filhos} />
           </DashboardSection>
-          <DashboardSection id="diagnostico" title="Diagnóstico">
+          <DashboardSection
+            id="diagnostico"
+            title="Diagnóstico"
+            subtitle="Quanto entra, quanto sai e quanto sobra para investir todo mês."
+          >
             <DiagnosticoTab cliente={cliente} />
           </DashboardSection>
-          <DashboardSection id="aposentadoria" title="Aposentadoria">
+          <DashboardSection
+            id="aposentadoria"
+            title="Aposentadoria"
+            subtitle="Quanto o patrimônio acumula e por quanto tempo ele sustenta a renda desejada."
+          >
             <AposentadoriaTab
               cliente={cliente}
               objetivos={objetivos}
               assumptions={assumptions}
             />
           </DashboardSection>
-          <DashboardSection id="objetivos" title="Objetivos">
+          <DashboardSection
+            id="objetivos"
+            title="Objetivos"
+            subtitle="O que ainda é meta."
+          >
             <ObjetivosTab objetivos={objetivos} assumptions={assumptions} cliente={cliente} />
           </DashboardSection>
-          <DashboardSection id="simulacoes" title="Simulações">
+          <DashboardSection
+            id="simulacoes"
+            title="Simulações"
+            subtitle="Mexa nos três controles e veja a curva e o veredito mudarem na hora, na frente do cliente."
+          >
             <SimulacoesTab
               key={chaveDosValoresIniciais(cliente, assumptions)}
               cliente={cliente}
@@ -112,14 +132,22 @@ export function ClientDashboard({
               assumptions={assumptions}
             />
           </DashboardSection>
-          <DashboardSection id="patrimonio" title="Patrimônio">
+          <DashboardSection
+            id="patrimonio"
+            title="Patrimônio"
+            subtitle="O que já existe."
+          >
             <PatrimonioTab
               cliente={cliente}
               imoveis={imoveis}
               automoveis={automoveis}
             />
           </DashboardSection>
-          <DashboardSection id="plano-acao" title="Plano de ação">
+          <DashboardSection
+            id="plano-acao"
+            title="Plano de ação"
+            subtitle="O que fazer em seguida."
+          >
             <PlanoAcaoTab
               cliente={cliente}
               conjuge={conjuge}
@@ -138,17 +166,21 @@ export function ClientDashboard({
 function DashboardSection({
   id,
   title,
+  subtitle,
   children,
 }: {
   id: string;
   title: string;
+  /** Uma linha dizendo o que a seção responde, como no canvas aprovado. */
+  subtitle?: string;
   children: ReactNode;
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="mb-4 font-display text-2xl font-semibold text-navy">
-        {title}
-      </h2>
+      <div className="mb-4">
+        <h2 className="font-display text-2xl font-semibold text-navy">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-ink-60">{subtitle}</p>}
+      </div>
       {children}
     </section>
   );

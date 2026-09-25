@@ -109,4 +109,26 @@ describe("ClientDashboard", () => {
     const ancoras = [...html.matchAll(/href="#([a-z-]+)"/g)].map((m) => m[1]);
     expect(ancoras).toEqual(ORDEM_ESPERADA);
   });
+
+  // Cada seção abre com uma linha dizendo o que ela responde, como no canvas.
+  it("mostra a linha de leitura de cada seção", () => {
+    const html = renderDashboard();
+
+    const legendas = [
+      "Quem é o cliente e quem depende dele.",
+      "Quanto entra, quanto sai e quanto sobra para investir todo mês.",
+      "Quanto o patrimônio acumula e por quanto tempo ele sustenta a renda desejada.",
+      "O que ainda é meta.",
+      "Mexa nos três controles e veja a curva e o veredito mudarem na hora, na frente do cliente.",
+      "O que já existe.",
+      "O que fazer em seguida.",
+    ];
+
+    for (const legenda of legendas) {
+      expect(html).toContain(legenda);
+    }
+    // Na ordem das seções, não espalhadas pela página.
+    const posicoes = legendas.map((l) => html.indexOf(l));
+    expect(posicoes).toEqual([...posicoes].sort((a, b) => a - b));
+  });
 });
