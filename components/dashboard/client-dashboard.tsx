@@ -176,7 +176,13 @@ function DashboardSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24">
+    // A barra de âncoras é sticky e muda de altura conforme as pílulas
+    // quebram: 193px até 375px, 105px até 1023px e 61px daí pra cima. A
+    // margem de rolagem acompanha, senão a âncora esconde o título atrás dela.
+    <section
+      id={id}
+      className="scroll-mt-[200px] sm:scroll-mt-28 lg:scroll-mt-24"
+    >
       <div className="mb-4">
         <h2 className="font-display text-2xl font-semibold text-navy">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-ink-60">{subtitle}</p>}
