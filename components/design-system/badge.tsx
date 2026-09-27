@@ -7,8 +7,8 @@ type BadgeProps = {
 };
 
 const TONE_CLASS: Record<BadgeProps["tone"], string> = {
-  green: "bg-green-soft text-green-ink",
-  gold: "bg-gold-soft text-gold-ink",
+  green: "bg-green-soft text-green-ink-strong",
+  gold: "bg-gold-soft text-gold-ink-strong",
   blue: "bg-blue-soft text-blue",
 };
 

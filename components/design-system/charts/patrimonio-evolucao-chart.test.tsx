@@ -52,6 +52,28 @@ describe("PatrimonioEvolucaoChart", () => {
     expect(html).toContain("Com objetivos");
   });
 
+  it("usa tinta forte nos rótulos dourados pequenos", () => {
+    const html = renderToStaticMarkup(
+      createElement(PatrimonioEvolucaoChart, {
+        pontos,
+        idadeAposentadoria: 37,
+        idadeEsgotamento: 38,
+        objetivos: [
+          {
+            id: "obj-1",
+            client_id: "client-1",
+            descricao: "Meta",
+            valor_estimado: 10000,
+            horizonte_anos: 1,
+            prazo: "curto",
+          },
+        ],
+      }),
+    );
+
+    expect(html.split("var(--color-gold-ink-strong)").length - 1).toBe(2);
+  });
+
   it("renderiza a curva visível já no HTML inicial", () => {
     const html = renderToStaticMarkup(
       createElement(PatrimonioEvolucaoChart, {

@@ -183,7 +183,7 @@ export function PatrimonioEvolucaoChart({
         return (
           <g key={objetivo.id}>
             <circle cx={xAt(idadeObjetivo)} cy={yAt(ponto.saldo)} r={4.5} fill="var(--color-gold)" stroke="white" strokeWidth={2} />
-            <text x={xAt(idadeObjetivo)} y={yAt(ponto.saldo) - 10} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--color-gold-ink)">
+            <text x={xAt(idadeObjetivo)} y={yAt(ponto.saldo) - 10} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--color-gold-ink-strong)">
               {objetivo.descricao}
             </text>
           </g>
@@ -193,7 +193,7 @@ export function PatrimonioEvolucaoChart({
       {idadeEsgotamento != null && idadeEsgotamento >= idadeInicio && idadeEsgotamento <= idadeFim && (
         <>
           <circle cx={xAt(idadeEsgotamento)} cy={yAt(0)} r={5.5} fill="var(--color-gold)" opacity={1} />
-          <text x={xAt(idadeEsgotamento)} y={yAt(0) - 12} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-gold-ink)">
+          <text x={xAt(idadeEsgotamento)} y={yAt(0) - 12} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-gold-ink-strong)">
             esgota aos {idadeEsgotamento}
           </text>
         </>

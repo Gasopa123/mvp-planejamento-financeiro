@@ -21,4 +21,12 @@ describe("DrawdownChart", () => {
     expect(html).toContain('viewBox="0 0 720 280"');
     expect(html).toContain("max-w-full");
   });
+
+  it("usa tinta forte no rótulo dourado pequeno", () => {
+    const html = renderToStaticMarkup(
+      createElement(DrawdownChart, { pontos, idadeEsgotamento: 67 }),
+    );
+
+    expect(html).toContain("var(--color-gold-ink-strong)");
+  });
 });
