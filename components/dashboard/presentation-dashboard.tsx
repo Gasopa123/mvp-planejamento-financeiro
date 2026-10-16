@@ -147,7 +147,7 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
 
         <Card>
           <CardLabel>Objetivos — leitura alternativa (poupar mês a mês)</CardLabel>
-          <p className="mb-3 text-xs text-ink-40">
+          <p className="mb-3 text-xs text-ink-60">
             Na curva os objetivos saem do patrimônio de uma vez, no ano em que
             vencem. Abaixo, o outro caminho: reservar um valor todo mês até lá.
             São formas alternativas de pagar o mesmo objetivo — não se somam.
@@ -208,7 +208,7 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
                 <div key={cenario.nome} className="rounded-xl border border-line p-3">
                   <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
                   <b className={cenario.patrimonioNaAposentadoria < 0 ? "mt-1 block text-gold-ink-strong" : "mt-1 block text-navy"}>{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
-                  <span className="mt-1 block text-xs text-ink-40">
+                  <span className="mt-1 block text-xs text-ink-60">
                     {cenario.idadeDeficitPreAposentadoria != null
                       ? `objetivos comprometem aos ${cenario.idadeDeficitPreAposentadoria}`
                       : cenario.idadeEsgotamento == null
@@ -222,12 +222,12 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
                 cartão mede o tamanho do buraco: rentabilidade menor capitaliza
                 menos e o cenário pior aparece com valor maior. */}
             {stressTests.every((c) => c.idadeDeficitPreAposentadoria != null) && (
-              <p className="mt-3 text-xs text-ink-40">
+              <p className="mt-3 text-xs text-ink-60">
                 Todos os cenários comprometem o patrimônio antes da aposentadoria; antes de comparar choques, revise prazo, valor dos objetivos ou aporte.
               </p>
             )}
             {!temObjetivoFuturoComPrazo(objetivos) && (
-              <p className="mt-3 text-xs text-ink-40">
+              <p className="mt-3 text-xs text-ink-60">
                 Sem objetivos futuros com prazo, o choque de inflação não altera esta projeção.
               </p>
             )}

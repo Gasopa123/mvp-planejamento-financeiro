@@ -113,7 +113,7 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                     </div>
                   ) : (
                     objetivo.valor_estimado != null && (
-                      <div className="mt-1.5 border-t border-line pt-1.5 text-[13px] text-ink-40">
+                      <div className="mt-1.5 border-t border-line pt-1.5 text-[13px] text-ink-60">
                         Defina um prazo para calcular o aporte mensal sugerido.
                       </div>
                     )
@@ -166,7 +166,7 @@ function ImpactoObjetivos({ impacto }: { impacto: ReturnType<typeof impactoObjet
         <div><span className="text-ink-60">Capacidade após objetivos</span><b className={impacto.capacidadeRestante >= 0 ? "block text-green-ink-strong" : "block text-gold-ink-strong"}>{formatarMoeda(impacto.capacidadeRestante)}</b></div>
         <div><span className="text-ink-60">Patrimônio após objetivos</span><b className={impacto.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink-strong"}>{formatarMoeda(impacto.patrimonioDepoisObjetivos)}</b></div>
       </div>
-      <p className="mt-3 text-xs text-ink-40">
+      <p className="mt-3 text-xs text-ink-60">
         O aporte mensal sugerido é uma divisão linear simples: o valor da meta
         corrigido pela inflação, dividido pelos meses até o prazo informado. Não
         considera rendimento sobre o que for guardado nem promete rentabilidade.

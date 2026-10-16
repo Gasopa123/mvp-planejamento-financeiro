@@ -66,6 +66,9 @@ describe("PresentationDashboard", () => {
     // retirada no ano do horizonte, então não podem encolher o aporte também.
     expect(html).toContain("Capacidade de investimento");
     expect(html).toContain("não se somam");
+    // Notas e resultado do stress test são conteúdo, não decoração: ink-60.
+    expect(html).toContain('text-ink-60">Na curva os objetivos saem do patrimônio');
+    expect(html).toMatch(/text-ink-60">(sustenta até|esgota aos) \d+</);
     expect(html).toContain("Stress test");
     expect(html).toContain("Sem objetivos");
     expect(html).toContain("Comprar imóvel");
@@ -83,8 +86,29 @@ describe("PresentationDashboard", () => {
         createElement(PresentationDashboard, { cliente, objetivos: lista, assumptions: null }),
       );
 
-    expect(render([])).toContain(nota);
+    expect(render([])).toContain(`text-ink-60">${nota}`);
     expect(render(objetivos)).not.toContain(nota);
+  });
+
+  it("mostra o aviso de cenários comprometidos com contraste de conteúdo", () => {
+    const clienteApertado = {
+      ...cliente,
+      idade: 30,
+      idade_aposentadoria: 60,
+      patrimonio_investido: 50000,
+      despesa_mensal_base: 9500,
+      despesa_mensal: 9500,
+    };
+    const objetivoImpagavel: Objetivo[] = [
+      { id: "o2", client_id: "client-1", prazo: "medio", descricao: "Casa nova", valor_estimado: 5_000_000, horizonte_anos: 2 },
+    ];
+
+    const html = renderToStaticMarkup(
+      createElement(PresentationDashboard, { cliente: clienteApertado, objetivos: objetivoImpagavel, assumptions: null }),
+    );
+
+    expect(html).toContain('text-ink-60">Todos os cenários comprometem o patrimônio');
+    expect(html).toMatch(/text-ink-60">objetivos comprometem aos \d+</);
   });
 
   // Antes a apresentação só escondia curva e stress test, sem dizer por quê —

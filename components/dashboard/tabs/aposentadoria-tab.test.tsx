@@ -24,6 +24,8 @@ describe("AposentadoriaTab", () => {
     expect(html).toContain('name="idade_aposentadoria"');
     expect(html).toContain('name="expectativa_vida"');
     expect(html).toContain('name="pretensao_salarial_aposentadoria"');
+    // Nota que explica real x nominal é conteúdo: ink-60, não ink-40.
+    expect(html).toContain('text-ink-60">Valor real é quanto');
   });
 
   it("pede correção quando a idade de aposentadoria é menor ou igual à atual", () => {
