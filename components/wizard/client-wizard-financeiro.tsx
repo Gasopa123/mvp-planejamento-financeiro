@@ -116,8 +116,8 @@ export function ClientWizardFinanceiro({
         }
       />
 
-      <div className="border-t border-gray-200 pt-6">
-        <h2 className="mb-4 text-sm font-semibold text-gray-900">
+      <div className="border-t border-line pt-6">
+        <h2 className="mb-4 text-sm font-semibold text-navy">
           Imóveis e automóveis
         </h2>
         <StepPatrimonio
@@ -163,8 +163,8 @@ export function ClientWizardFinanceiro({
         />
       </div>
 
-      <div className="border-t border-gray-200 pt-6">
-        <h2 className="mb-4 text-sm font-semibold text-gray-900">
+      <div className="border-t border-line pt-6">
+        <h2 className="mb-4 text-sm font-semibold text-navy">
           Participação societária
         </h2>
         <StepSocietario

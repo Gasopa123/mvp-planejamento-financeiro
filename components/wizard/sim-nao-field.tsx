@@ -1,3 +1,5 @@
+import { labelClass } from "@/lib/wizard/field-styles";
+
 type SimNaoFieldProps = {
   label: string;
   name: string;
@@ -10,25 +12,25 @@ type SimNaoFieldProps = {
 export function SimNaoField({ label, name, value, onChange }: SimNaoFieldProps) {
   return (
     <div>
-      <span className="block text-sm font-medium text-gray-700">{label}</span>
+      <span className={labelClass}>{label}</span>
       <div className="mt-1 flex gap-4">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="radio"
             name={name}
             checked={value === true}
             onChange={() => onChange(true)}
-            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+            className="h-4 w-4 accent-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
           />
           Sim
         </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="radio"
             name={name}
             checked={value === false}
             onChange={() => onChange(false)}
-            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+            className="h-4 w-4 accent-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
           />
           Não
         </label>

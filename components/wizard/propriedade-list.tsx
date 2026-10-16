@@ -33,26 +33,26 @@ export function PropriedadeList({
 }: PropriedadeListProps) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-900">{titulo}</h3>
+      <h3 className="text-sm font-semibold text-navy">{titulo}</h3>
 
       <div className="mt-3 space-y-4">
         {items.length === 0 && (
-          <p className="text-sm text-gray-600">{emptyLabel}</p>
+          <p className="text-sm text-ink-60">{emptyLabel}</p>
         )}
 
         {items.map((item, index) => (
           <div
             key={index}
-            className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+            className="rounded-card-sm border border-line bg-canvas p-4"
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm font-semibold text-navy">
                 {itemLabel} {index + 1}
               </span>
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="text-sm font-medium text-red-600 hover:underline"
+                className="text-sm font-semibold text-danger hover:underline"
               >
                 Remover
               </button>
@@ -99,7 +99,7 @@ export function PropriedadeList({
         <button
           type="button"
           onClick={onAdd}
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-full border border-line px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-blue-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
         >
           {addLabel}
         </button>

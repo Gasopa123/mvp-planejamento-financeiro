@@ -28,7 +28,7 @@ export function ResultadosDoCenario({
     <>
       <Card>
         <CardLabel>Objetivos — leitura alternativa (poupar mês a mês)</CardLabel>
-        <p className="mb-3 text-xs text-ink-40">
+        <p className="mb-3 text-xs text-ink-60">
           Na curva acima os objetivos saem do patrimônio de uma vez, no ano em
           que vencem. Os números abaixo mostram o outro caminho: reservar um
           valor todo mês até lá. São formas alternativas de pagar o mesmo
@@ -41,13 +41,13 @@ export function ResultadosDoCenario({
           </div>
           <div>
             <span className="text-ink-60">Livre para aposentadoria</span>
-            <b className={impactoDosObjetivos.capacidadeRestante >= 0 ? "block text-green-ink" : "block text-gold-ink"}>
+            <b className={impactoDosObjetivos.capacidadeRestante >= 0 ? "block text-green-ink-strong" : "block text-gold-ink-strong"}>
               {formatarMoeda(impactoDosObjetivos.capacidadeRestante)}
             </b>
           </div>
           <div>
             <span className="text-ink-60">Patrimônio após objetivos</span>
-            <b className={impactoDosObjetivos.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink"}>
+            <b className={impactoDosObjetivos.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink-strong"}>
               {formatarMoeda(impactoDosObjetivos.patrimonioDepoisObjetivos)}
             </b>
           </div>
@@ -70,15 +70,15 @@ export function ResultadosDoCenario({
             <b
               className={
                 valorDaRecomendacao.valorCriado >= 0 && !cenarioComprometido
-                  ? "block text-green-ink"
-                  : "block text-gold-ink"
+                  ? "block text-green-ink-strong"
+                  : "block text-gold-ink-strong"
               }
             >
               {formatarMoeda(valorDaRecomendacao.valorCriado)}
             </b>
           </div>
         </div>
-        <p className="mt-3 text-xs text-ink-40">
+        <p className="mt-3 text-xs text-ink-60">
           {idadeDeficitPreAposentadoria != null
             ? `Os objetivos comprometem o patrimônio aos ${idadeDeficitPreAposentadoria} anos; este valor mostra apenas a diferença entre aportar e não aportar.`
             : cenarioComprometido

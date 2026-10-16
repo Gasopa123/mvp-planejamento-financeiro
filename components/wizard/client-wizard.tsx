@@ -25,6 +25,16 @@ import { StepObjetivos } from "./steps/step-objetivos";
 import { StepAposentadoria } from "./steps/step-aposentadoria";
 import { StepPlanosFuturos } from "./steps/step-planos-futuros";
 
+// Três estados visuais do stepper: etapa atual (navy cheio), etapas já
+// concluídas (verde do design system) e as que faltam (trilha neutra).
+// Exportado pra o teste cobrir os três sem navegar o wizard.
+export function stepperChipClass(index: number, stepIndex: number) {
+  if (index === stepIndex) return "bg-navy text-white";
+  return index < stepIndex
+    ? "bg-green-soft text-green-ink-strong"
+    : "bg-track text-ink-60";
+}
+
 export function ClientWizard() {
   const router = useRouter();
   const [formData, setFormData] = useState<WizardDraft>(criarWizardDraftInicial);
@@ -117,25 +127,21 @@ export function ClientWizard() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <ol className="mb-8 flex flex-wrap gap-x-4 gap-y-2">
+      <ol className="mb-8 flex flex-wrap gap-x-4 gap-y-3 sm:gap-x-6">
         {visibleSteps.map((step, index) => (
-          <li key={step.id} className="flex items-center gap-2">
+          <li
+            key={step.id}
+            className="flex items-center gap-2"
+            aria-current={index === stepIndex ? "step" : undefined}
+          >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
-                index === stepIndex
-                  ? "bg-gray-900 text-white"
-                  : index < stepIndex
-                    ? "bg-gray-300 text-gray-700"
-                    : "bg-gray-100 text-gray-500"
-              }`}
+              className={`flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-semibold ${stepperChipClass(index, stepIndex)}`}
             >
               {index + 1}
             </span>
             <span
               className={`text-xs ${
-                index === stepIndex
-                  ? "font-medium text-gray-900"
-                  : "text-gray-500"
+                index === stepIndex ? "font-semibold text-navy" : "text-ink-60"
               }`}
             >
               {step.label}
@@ -144,8 +150,8 @@ export function ClientWizard() {
         ))}
       </ol>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-xl font-semibold text-gray-900">
+      <div className="rounded-card border border-line bg-white p-5 shadow-brand-sm sm:p-8">
+        <h1 className="mb-6 font-display text-2xl font-semibold text-navy">
           {currentStep.label}
         </h1>
 
@@ -252,11 +258,11 @@ export function ClientWizard() {
               ) => updateFormData({ pretensaoSalarialAposentadoria })}
             />
 
-            <div className="mt-8 border-t border-gray-200 pt-6">
-              <h2 className="mb-1 text-sm font-semibold text-gray-900">
+            <div className="mt-8 border-t border-line pt-6">
+              <h2 className="mb-1 text-sm font-semibold text-navy">
                 Objetivos
               </h2>
-              <p className="mb-4 text-sm text-gray-600">
+              <p className="mb-4 text-sm text-ink-60">
                 Complementares à aposentadoria — curto, médio e longo prazo.
               </p>
               <StepObjetivos
@@ -294,7 +300,12 @@ export function ClientWizard() {
         )}
 
         {submitError && (
-          <p className="mt-6 text-sm text-red-600">{submitError}</p>
+          <p
+            role="alert"
+            className="mt-6 rounded-xl border border-danger bg-danger-soft px-4 py-3 text-sm text-danger"
+          >
+            {submitError}
+          </p>
         )}
 
         <div className="mt-8 flex justify-between">
@@ -302,7 +313,7 @@ export function ClientWizard() {
             type="button"
             onClick={handlePrevious}
             disabled={isFirstStep || isPending}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-full border border-line px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-blue-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue disabled:opacity-50"
           >
             Anterior
           </button>
@@ -312,7 +323,7 @@ export function ClientWizard() {
               type="button"
               onClick={handleSubmit}
               disabled={isPending}
-              className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+              className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-navy-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? "Salvando..." : "Salvar cliente"}
             </button>
@@ -321,7 +332,7 @@ export function ClientWizard() {
               type="button"
               onClick={handleNext}
               disabled={isPending}
-              className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+              className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-navy-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue disabled:cursor-not-allowed disabled:opacity-50"
             >
               Próxima
             </button>

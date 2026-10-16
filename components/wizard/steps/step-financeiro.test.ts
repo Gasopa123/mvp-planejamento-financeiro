@@ -75,6 +75,17 @@ describe("deveAlertarDespesaMaiorQueRenda", () => {
 
     expect(html).toContain('role="alert"');
     expect(html).toContain("Atenção: a despesa mensal é maior que a renda mensal.");
+    // Estado financeiro ruim é dourado, não danger: danger fica reservado a
+    // erro de entrada e ação destrutiva.
+    expect(html).toContain("border-gold-line bg-gold-soft text-gold-ink-strong");
+    expect(html).not.toContain("border-danger bg-danger-soft");
+  });
+
+  it("mantém o resumo financeiro neutro quando a despesa não supera a renda", () => {
+    const html = renderToStaticMarkup(createElement(StepFinanceiro, propsBase));
+
+    expect(html).toContain("border-line bg-canvas text-ink-60");
+    expect(html).not.toContain("border-gold-line bg-gold-soft text-gold-ink-strong");
   });
 });
 

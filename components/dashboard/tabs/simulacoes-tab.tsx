@@ -205,7 +205,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             />
           </div>
 
-          <p className="mt-3 text-xs text-ink-40">
+          <p className="mt-3 text-xs text-ink-60">
             Rentabilidade real usada na simulação: {rentabilidadeReal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% a.a.
           </p>
         </div>
@@ -213,7 +213,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
         <div className="grid grid-cols-1 gap-4 border-t border-line pt-5 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <CardLabel>IPCA/CDI automáticos</CardLabel>
-            <p className="text-xs text-ink-40">
+            <p className="text-xs text-ink-60">
               Fonte: Banco Central SGS. Campos continuam editáveis manualmente, com 2 casas decimais.
               {indicadoresAtualizadosEm ? ` Atualizado em ${indicadoresAtualizadosEm}.` : ""}
             </p>
@@ -267,8 +267,8 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
           {stressTests.map((cenario) => (
             <div key={cenario.nome} className="rounded-xl border border-line p-3">
               <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
-              <b className={cenario.patrimonioNaAposentadoria < 0 ? "mt-1 block text-gold-ink" : "mt-1 block text-navy"}>{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
-              <span className="mt-1 block text-xs text-ink-40">
+              <b className={cenario.patrimonioNaAposentadoria < 0 ? "mt-1 block text-gold-ink-strong" : "mt-1 block text-navy"}>{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
+              <span className="mt-1 block text-xs text-ink-60">
                 {cenario.idadeDeficitPreAposentadoria != null
                   ? `objetivos comprometem aos ${cenario.idadeDeficitPreAposentadoria}`
                   : cenario.idadeEsgotamento == null
@@ -283,12 +283,12 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
             cenário pior aparece com valor maior. Comparar choques só faz
             sentido depois de resolver o déficit. */}
         {stressTests.every((c) => c.idadeDeficitPreAposentadoria != null) && (
-          <p className="mt-3 text-xs text-ink-40">
+          <p className="mt-3 text-xs text-ink-60">
             Todos os cenários comprometem o patrimônio antes da aposentadoria; antes de comparar choques, revise prazo, valor dos objetivos ou aporte.
           </p>
         )}
         {!temObjetivoFuturoComPrazo(objetivos) && (
-          <p className="mt-3 text-xs text-ink-40">
+          <p className="mt-3 text-xs text-ink-60">
             Sem objetivos futuros com prazo, o choque de inflação não altera esta projeção.
           </p>
         )}

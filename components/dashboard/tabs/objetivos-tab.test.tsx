@@ -66,7 +66,7 @@ describe("ObjetivosTab", () => {
       }),
     );
 
-    expect(html).toContain("Defina um prazo para calcular o aporte mensal sugerido.");
+    expect(html).toContain('text-ink-60">Defina um prazo para calcular o aporte mensal sugerido.');
     expect(html).not.toContain("Guardar por mês até a meta");
     // O valor cheio da meta não pode vazar como "aporte mensal" no agregado:
     // sem prazo, o aporte mensal dos objetivos tem que ficar zerado.
@@ -80,7 +80,7 @@ describe("ObjetivosTab", () => {
       createElement(ObjetivosTab, { objetivos, assumptions: null, cliente }),
     );
 
-    expect(html).toContain("divisão linear simples");
+    expect(html).toContain('text-ink-60">O aporte mensal sugerido é uma divisão linear simples');
     expect(html).toContain("considera rendimento");
     expect(html).toContain("promete rentabilidade");
   });

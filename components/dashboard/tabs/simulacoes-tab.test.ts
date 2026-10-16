@@ -35,6 +35,9 @@ describe("SimulacoesTab", () => {
     expect(html).toContain('max="1000000"');
     expect(html).toContain("IPCA/CDI automáticos");
     expect(html).toContain("2 casas decimais");
+    expect(html).toContain('text-ink-60">Rentabilidade real usada na simulação');
+    expect(html).toContain('text-ink-60">Fonte: Banco Central SGS');
+    expect(html).toMatch(/text-ink-60">(sustenta até|esgota aos) \d+</);
   });
 
   it("mostra curva única com horizontes, negativos e objetivos marcados", () => {
@@ -75,7 +78,7 @@ describe("SimulacoesTab", () => {
       createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos, assumptions: null }),
     );
 
-    expect(semPrazo).toContain(nota);
+    expect(semPrazo).toContain(`text-ink-60">${nota}`);
     expect(comPrazo).not.toContain(nota);
   });
 
@@ -107,6 +110,7 @@ describe("SimulacoesTab", () => {
 
     expect(html).toContain("não se somam");
     expect(html).toContain("saem do patrimônio de uma vez, no ano em que");
+    expect(html).toContain('text-ink-60">Na curva acima os objetivos saem');
   });
 
   // Regressão do bug reportado: cliente de 26 anos, sem patrimônio investido,
@@ -214,10 +218,11 @@ describe("SimulacoesTab", () => {
     );
 
     expect(html).toContain(
-      "Todos os cenários comprometem o patrimônio antes da aposentadoria",
+      'text-ink-60">Todos os cenários comprometem o patrimônio antes da aposentadoria',
     );
+    expect(html).toMatch(/text-ink-60">objetivos comprometem aos \d+</);
     // Patrimônio negativo não pode sair no mesmo navy de um plano saudável.
-    expect(html).toContain("mt-1 block text-gold-ink");
+    expect(html).toContain("mt-1 block text-gold-ink-strong");
     expect(html).not.toContain("mt-1 block text-navy");
   });
 
@@ -252,8 +257,8 @@ describe("SimulacoesTab", () => {
 
     // O número continua na tela, mas com a ressalva do que ele é — e sem a
     // explicação neutra, que faria o cartão parecer um ganho.
-    expect(html).toContain(
-      "este valor mostra apenas a diferença entre aportar e não aportar",
+    expect(html).toMatch(
+      /text-ink-60">(Os objetivos comprometem|Mesmo com o aporte)[^<]*este valor mostra apenas a diferença entre aportar e não aportar/,
     );
     expect(html).not.toContain(
       "Compara manter só o patrimônio atual investido contra investir o aporte recomendado nesta simulação.",

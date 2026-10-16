@@ -15,7 +15,7 @@ export function VerdictCard({ positivo, titulo, subtitulo, badgeLabel }: Verdict
     ? "bg-green-soft border-green-line"
     : "bg-gold-soft border-gold-line";
   const iconBg = positivo ? "bg-green" : "bg-gold";
-  const titleColor = positivo ? "text-green-ink" : "text-gold-ink";
+  const titleColor = positivo ? "text-green-ink-strong" : "text-gold-ink-strong";
 
   return (
     <div className={`flex items-start gap-4 rounded-card border p-6 ${toneClass}`}>

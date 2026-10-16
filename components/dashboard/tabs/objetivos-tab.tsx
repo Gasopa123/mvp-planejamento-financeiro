@@ -103,7 +103,7 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                         {objetivo.horizonte_anos != null &&
                           ` (${objetivo.horizonte_anos} anos)`}
                       </span>
-                      <b className="text-gold-ink">{formatarMoeda(valorFuturo)}</b>
+                      <b className="text-gold-ink-strong">{formatarMoeda(valorFuturo)}</b>
                     </div>
                   )}
                   {valorMensalSugerido != null ? (
@@ -113,7 +113,7 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                     </div>
                   ) : (
                     objetivo.valor_estimado != null && (
-                      <div className="mt-1.5 border-t border-line pt-1.5 text-[13px] text-ink-40">
+                      <div className="mt-1.5 border-t border-line pt-1.5 text-[13px] text-ink-60">
                         Defina um prazo para calcular o aporte mensal sugerido.
                       </div>
                     )
@@ -121,7 +121,7 @@ export function ObjetivosTab({ objetivos, assumptions, cliente }: ObjetivosTabPr
                   <form action={removerObjetivo} className="mt-4">
                     <input type="hidden" name="clientId" value={cliente.id} />
                     <input type="hidden" name="objetivoId" value={objetivo.id} />
-                    <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">
+                    <button type="submit" className="rounded-full border border-danger px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue">
                       Remover objetivo
                     </button>
                   </form>
@@ -163,10 +163,10 @@ function ImpactoObjetivos({ impacto }: { impacto: ReturnType<typeof impactoObjet
       <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-4">
         <div><span className="text-ink-60">Total futuro</span><b className="block text-navy">{formatarMoeda(impacto.totalObjetivos)}</b></div>
         <div><span className="text-ink-60">Aporte mensal pros objetivos</span><b className="block text-navy">{formatarMoeda(impacto.aporteMensalObjetivos)}</b></div>
-        <div><span className="text-ink-60">Capacidade após objetivos</span><b className={impacto.capacidadeRestante >= 0 ? "block text-green-ink" : "block text-gold-ink"}>{formatarMoeda(impacto.capacidadeRestante)}</b></div>
-        <div><span className="text-ink-60">Patrimônio após objetivos</span><b className={impacto.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink"}>{formatarMoeda(impacto.patrimonioDepoisObjetivos)}</b></div>
+        <div><span className="text-ink-60">Capacidade após objetivos</span><b className={impacto.capacidadeRestante >= 0 ? "block text-green-ink-strong" : "block text-gold-ink-strong"}>{formatarMoeda(impacto.capacidadeRestante)}</b></div>
+        <div><span className="text-ink-60">Patrimônio após objetivos</span><b className={impacto.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink-strong"}>{formatarMoeda(impacto.patrimonioDepoisObjetivos)}</b></div>
       </div>
-      <p className="mt-3 text-xs text-ink-40">
+      <p className="mt-3 text-xs text-ink-60">
         O aporte mensal sugerido é uma divisão linear simples: o valor da meta
         corrigido pela inflação, dividido pelos meses até o prazo informado. Não
         considera rendimento sobre o que for guardado nem promete rentabilidade.
