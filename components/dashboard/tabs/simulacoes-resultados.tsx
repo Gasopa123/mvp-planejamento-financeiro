@@ -41,13 +41,13 @@ export function ResultadosDoCenario({
           </div>
           <div>
             <span className="text-ink-60">Livre para aposentadoria</span>
-            <b className={impactoDosObjetivos.capacidadeRestante >= 0 ? "block text-green-ink" : "block text-gold-ink"}>
+            <b className={impactoDosObjetivos.capacidadeRestante >= 0 ? "block text-green-ink-strong" : "block text-gold-ink-strong"}>
               {formatarMoeda(impactoDosObjetivos.capacidadeRestante)}
             </b>
           </div>
           <div>
             <span className="text-ink-60">Patrimônio após objetivos</span>
-            <b className={impactoDosObjetivos.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink"}>
+            <b className={impactoDosObjetivos.patrimonioDepoisObjetivos >= 0 ? "block text-navy" : "block text-gold-ink-strong"}>
               {formatarMoeda(impactoDosObjetivos.patrimonioDepoisObjetivos)}
             </b>
           </div>
@@ -70,8 +70,8 @@ export function ResultadosDoCenario({
             <b
               className={
                 valorDaRecomendacao.valorCriado >= 0 && !cenarioComprometido
-                  ? "block text-green-ink"
-                  : "block text-gold-ink"
+                  ? "block text-green-ink-strong"
+                  : "block text-gold-ink-strong"
               }
             >
               {formatarMoeda(valorDaRecomendacao.valorCriado)}

@@ -23,7 +23,7 @@ export function StepObjetivos({
   return (
     <div className="space-y-4">
       {objetivos.length === 0 && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-ink-60">
           Nenhum objetivo cadastrado ainda.
         </p>
       )}
@@ -31,16 +31,16 @@ export function StepObjetivos({
       {objetivos.map((objetivo, index) => (
         <div
           key={index}
-          className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+          className="rounded-card-sm border border-line bg-canvas p-4"
         >
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-semibold text-navy">
               Objetivo {index + 1}
             </span>
             <button
               type="button"
               onClick={() => onRemove(index)}
-              className="text-sm font-medium text-red-600 hover:underline"
+              className="text-sm font-semibold text-danger hover:underline"
             >
               Remover
             </button>
@@ -160,7 +160,7 @@ export function StepObjetivos({
       <button
         type="button"
         onClick={onAdd}
-        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        className="rounded-full border border-line px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-blue-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
       >
         + Adicionar objetivo
       </button>
@@ -212,7 +212,7 @@ function ResumoObjetivos({ objetivos }: { objetivos: ObjetivoDraft[] }) {
   const resumo = resumirObjetivos(objetivos);
 
   return (
-    <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+    <div className="rounded-card-sm border border-line bg-canvas p-4 text-sm text-ink-60">
       <p>
         Total de objetivos:{" "}
         <span className="font-medium">{resumo.total}</span>

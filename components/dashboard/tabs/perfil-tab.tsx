@@ -73,7 +73,7 @@ function RemoverPessoaForm({ clienteId, pessoaId, tabela, label }: { clienteId: 
       <input type="hidden" name="clientId" value={clienteId} />
       <input type="hidden" name="pessoaId" value={pessoaId} />
       <input type="hidden" name="tabela" value={tabela} />
-      <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">
+      <button type="submit" className="rounded-full border border-danger px-4 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue">
         {label}
       </button>
     </form>

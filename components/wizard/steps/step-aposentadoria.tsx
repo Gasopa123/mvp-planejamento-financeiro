@@ -139,7 +139,7 @@ export function StepAposentadoria({
 
 function ResumoAposentadoriaCard({ resumo }: { resumo: ResumoAposentadoria }) {
   return (
-    <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+    <div className="rounded-card-sm border border-line bg-canvas p-4 text-sm text-ink-60">
       <p>
         Idade atual: <span className="font-medium">{resumo.idadeAtual}</span>
       </p>

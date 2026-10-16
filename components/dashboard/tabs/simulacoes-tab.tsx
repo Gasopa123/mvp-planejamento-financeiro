@@ -267,7 +267,7 @@ export function SimulacoesTab({ cliente, objetivos, assumptions }: SimulacoesTab
           {stressTests.map((cenario) => (
             <div key={cenario.nome} className="rounded-xl border border-line p-3">
               <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
-              <b className={cenario.patrimonioNaAposentadoria < 0 ? "mt-1 block text-gold-ink" : "mt-1 block text-navy"}>{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
+              <b className={cenario.patrimonioNaAposentadoria < 0 ? "mt-1 block text-gold-ink-strong" : "mt-1 block text-navy"}>{formatarMoeda(cenario.patrimonioNaAposentadoria)}</b>
               <span className="mt-1 block text-xs text-ink-40">
                 {cenario.idadeDeficitPreAposentadoria != null
                   ? `objetivos comprometem aos ${cenario.idadeDeficitPreAposentadoria}`

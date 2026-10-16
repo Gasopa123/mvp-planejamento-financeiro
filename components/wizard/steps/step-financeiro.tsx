@@ -85,33 +85,33 @@ export function StepFinanceiro({
         )}
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <div className="rounded-card-sm border border-line bg-canvas p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-900">Outras rendas</span>
+          <span className="text-sm font-semibold text-navy">Outras rendas</span>
           <button
             type="button"
             onClick={onAddOutraRenda}
-            className="text-sm font-medium text-gray-700 hover:underline"
+            className="text-sm font-semibold text-blue hover:underline"
           >
             + Adicionar
           </button>
         </div>
 
         {outrasRendas.length === 0 && (
-          <p className="mt-3 text-sm text-gray-600">Nenhuma outra renda cadastrada.</p>
+          <p className="mt-3 text-sm text-ink-60">Nenhuma outra renda cadastrada.</p>
         )}
 
         <div className="mt-3 space-y-3">
           {outrasRendas.map((renda, index) => (
-            <div key={index} className="rounded-md border border-gray-200 bg-white p-3">
+            <div key={index} className="rounded-card-sm border border-line bg-white p-3">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-semibold text-navy">
                   Renda {index + 1}
                 </span>
                 <button
                   type="button"
                   onClick={() => onRemoveOutraRenda(index)}
-                  className="text-sm font-medium text-red-600 hover:underline"
+                  className="text-sm font-semibold text-danger hover:underline"
                 >
                   Remover
                 </button>
@@ -208,33 +208,33 @@ export function StepFinanceiro({
 
 
 
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <div className="rounded-card-sm border border-line bg-canvas p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-900">Despesas temporárias</span>
+          <span className="text-sm font-semibold text-navy">Despesas temporárias</span>
           <button
             type="button"
             onClick={onAddDespesaTemporaria}
-            className="text-sm font-medium text-gray-700 hover:underline"
+            className="text-sm font-semibold text-blue hover:underline"
           >
             + Adicionar
           </button>
         </div>
 
         {despesasTemporarias.length === 0 && (
-          <p className="mt-3 text-sm text-gray-600">Nenhuma despesa temporária cadastrada.</p>
+          <p className="mt-3 text-sm text-ink-60">Nenhuma despesa temporária cadastrada.</p>
         )}
 
         <div className="mt-3 space-y-3">
           {despesasTemporarias.map((despesa, index) => (
-            <div key={index} className="rounded-md border border-gray-200 bg-white p-3">
+            <div key={index} className="rounded-card-sm border border-line bg-white p-3">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-semibold text-navy">
                   Despesa {index + 1}
                 </span>
                 <button
                   type="button"
                   onClick={() => onRemoveDespesaTemporaria(index)}
-                  className="text-sm font-medium text-red-600 hover:underline"
+                  className="text-sm font-semibold text-danger hover:underline"
                 >
                   Remover
                 </button>
@@ -314,7 +314,7 @@ export function StepFinanceiro({
         </div>
       </div>
 
-      <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+      <div className="rounded-card-sm border border-line bg-canvas p-4 text-sm text-ink-60">
         <p>
           Despesa mensal total: <span className="font-medium">{formatarMoeda(totaisDespesa.mensalRecorrente)}</span>
         </p>
@@ -353,12 +353,13 @@ export function StepFinanceiro({
         />
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+      <div className="rounded-card-sm border border-line bg-canvas p-4">
+        <label className="flex items-center gap-2 text-sm font-semibold text-ink">
           <input
             type="checkbox"
             checked={temInvestimentoExterior}
             onChange={(event) => onTemInvestimentoExteriorChange(event.target.checked)}
+            className="h-4 w-4 accent-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
           />
           Investimento no exterior
         </label>
@@ -378,7 +379,7 @@ export function StepFinanceiro({
         )}
       </div>
 
-      <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+      <div className="rounded-card-sm border border-line bg-canvas p-4 text-sm text-ink-60">
         <p>
           Renda mensal total: <span className="font-medium">{formatarMoeda(totaisRenda.mensalRecorrente)}</span>
         </p>
@@ -430,10 +431,10 @@ function ResumoFinanceiro({
 
   return (
     <div
-      className={`rounded-md border p-4 text-sm ${
+      className={`rounded-card-sm border p-4 text-sm ${
         despesaMaiorQueRenda
-          ? "border-red-400 bg-red-50 text-red-700"
-          : "border-gray-200 bg-gray-50 text-gray-700"
+          ? "border-gold-line bg-gold-soft text-gold-ink-strong"
+          : "border-line bg-canvas text-ink-60"
       }`}
     >
       <p>

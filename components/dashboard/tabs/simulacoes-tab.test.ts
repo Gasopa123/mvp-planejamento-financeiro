@@ -217,7 +217,7 @@ describe("SimulacoesTab", () => {
       "Todos os cenários comprometem o patrimônio antes da aposentadoria",
     );
     // Patrimônio negativo não pode sair no mesmo navy de um plano saudável.
-    expect(html).toContain("mt-1 block text-gold-ink");
+    expect(html).toContain("mt-1 block text-gold-ink-strong");
     expect(html).not.toContain("mt-1 block text-navy");
   });
 

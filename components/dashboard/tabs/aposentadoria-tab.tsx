@@ -267,7 +267,7 @@ export function AposentadoriaTab({ cliente, objetivos, assumptions }: Aposentado
           </div>
           <div>
             <span className="text-ink-60">Diferença (efeito da inflação)</span>
-            <b className="block text-gold-ink">{formatarMoeda(diferencaNominalReal)}</b>
+            <b className="block text-gold-ink-strong">{formatarMoeda(diferencaNominalReal)}</b>
           </div>
         </div>
         <p className="mt-3 text-xs text-ink-40">
