@@ -112,7 +112,7 @@ export function DrawdownChart({
           textAnchor="middle"
           fontSize={12}
           fontWeight={600}
-          fill="var(--color-gold-ink)"
+          fill="var(--color-gold-ink-strong)"
         >
           esgota aos {idadeEsgotamento}
         </text>
