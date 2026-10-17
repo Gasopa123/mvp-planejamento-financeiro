@@ -65,6 +65,18 @@ describe("SimulacoesTab", () => {
     expect(html).toContain("Aporte -30%");
   });
 
+  // Mesma progressão da Apresentação: cinco colunas em sm (640px) deixavam
+  // ~69px úteis por cartão e os valores do stress test cruzavam a borda.
+  it("só usa 5 colunas no stress test a partir de lg", () => {
+    const html = renderToStaticMarkup(
+      createElement(SimulacoesTab, { cliente: clienteCompleto, objetivos, assumptions: null }),
+    );
+
+    expect(html).toMatch(
+      /<div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5"><div class="rounded-xl border border-line p-3"><span[^>]*>Base</,
+    );
+  });
+
   // B8: sem objetivo futuro com prazo a inflação não tem o que corrigir, então
   // "Inflação +2%" empata com Base. É correto, mas dois cartões com o mesmo
   // número e rótulos diferentes parecem bug — a nota diz por que empatam.
