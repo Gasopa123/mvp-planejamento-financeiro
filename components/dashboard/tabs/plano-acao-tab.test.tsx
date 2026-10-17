@@ -91,3 +91,41 @@ describe("PlanoAcaoTab — considera objetivos", () => {
     expect(comObjetivos).not.toContain("sustentar a aposentadoria");
   });
 });
+
+describe("PlanoAcaoTab — objetivos por prazo", () => {
+  const ITEM = "Ter objetivos de curto, médio e longo prazo formalizados no planejamento";
+
+  const obj = (id: string, prazo: Objetivo["prazo"]): Objetivo => ({
+    id,
+    client_id: "client-1",
+    prazo,
+    descricao: `Objetivo ${id}`,
+    valor_estimado: null,
+    horizonte_anos: null,
+  });
+
+  // Estado do item "Ter objetivos…", lido só do card dele: cada item do plano
+  // é um bloco que começa com o mesmo wrapper e tem o círculo antes do texto.
+  function itemObjetivosConcluido(objetivos: Objetivo[]) {
+    const html = render({}, objetivos);
+    const blocos = html.split('<div class="flex items-center gap-4');
+    const bloco = blocos.find((b) => b.includes(ITEM));
+    if (!bloco) throw new Error("item de objetivos não renderizado");
+    return bloco.includes("border-green bg-green");
+  }
+
+  it.each([
+    ["nenhum objetivo", []],
+    ["somente longo", [obj("l", "longo")]],
+    ["curto + médio", [obj("c", "curto"), obj("m", "medio")]],
+    ["repetidos sem médio", [obj("c1", "curto"), obj("c2", "curto"), obj("l1", "longo"), obj("l2", "longo")]],
+  ])("fica pendente com %s", (_caso, objetivos) => {
+    expect(itemObjetivosConcluido(objetivos as Objetivo[])).toBe(false);
+  });
+
+  it("fica concluído com curto + médio + longo", () => {
+    expect(
+      itemObjetivosConcluido([obj("c", "curto"), obj("m", "medio"), obj("l", "longo")]),
+    ).toBe(true);
+  });
+});

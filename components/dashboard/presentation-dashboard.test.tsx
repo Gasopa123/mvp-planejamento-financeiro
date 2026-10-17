@@ -49,6 +49,22 @@ const cliente: Cliente = {
 const objetivos: Objetivo[] = [{ id: "o1", client_id: "client-1", prazo: "medio", descricao: "Comprar imóvel", valor_estimado: 200000, horizonte_anos: 5 }];
 
 describe("PresentationDashboard", () => {
+  // Exportação: o root marcado é o que vira arquivo; Voltar e os botões ficam
+  // num grupo marcado para sair do arquivo e da impressão.
+  it("traz Exportar HTML e Exportar PDF fora do arquivo e da impressão", () => {
+    const html = renderToStaticMarkup(
+      createElement(PresentationDashboard, { cliente, objetivos, assumptions: null }),
+    );
+
+    expect(html).toMatch(/^<main data-export-root="" class="bg-canvas -m-6/);
+    const grupo = html.match(/<div data-export-ignore="" class="([^"]*)">([\s\S]*?)<\/div><\/div>/);
+    expect(grupo?.[1]).toContain("print:hidden");
+    expect(grupo?.[1]).toContain("flex-wrap");
+    expect(grupo?.[2]).toContain("Voltar ao dashboard");
+    expect(grupo?.[2]).toMatch(/<button type="button"[^>]*>Exportar HTML<\/button>/);
+    expect(grupo?.[2]).toMatch(/<button type="button"[^>]*>Exportar PDF<\/button>/);
+  });
+
   it("renderiza narrativa de reunião sem abas de edição", () => {
     const html = renderToStaticMarkup(
       createElement(PresentationDashboard, {

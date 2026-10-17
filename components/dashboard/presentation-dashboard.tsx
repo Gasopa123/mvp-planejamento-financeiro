@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardLabel } from "@/components/design-system/card";
 import { PatrimonioEvolucaoChart } from "@/components/design-system/charts/patrimonio-evolucao-chart";
+import { PresentationExportActions } from "@/components/dashboard/presentation-export-actions";
 import { resolverAssumptions } from "@/lib/assumptions";
 import {
   aplicarObjetivosNaCurva,
@@ -99,7 +100,7 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
     : [];
 
   return (
-    <main className="bg-canvas -m-6 min-h-[calc(100vh-65px)] p-6 print:m-0 print:min-h-0 print:bg-white print:p-0">
+    <main data-export-root="" className="bg-canvas -m-6 min-h-[calc(100vh-65px)] p-6 print:m-0 print:min-h-0 print:bg-white print:p-0">
       <div className="mx-auto max-w-5xl space-y-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -107,9 +108,13 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
             <h1 className="mt-2 font-display text-4xl font-semibold text-navy">{cliente.nome}</h1>
             <p className="mt-1 text-ink-60">Diagnóstico executivo para conversa assessor-cliente</p>
           </div>
-          <Link href={`/carteira/${cliente.id}`} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-navy print:hidden">
-            Voltar ao dashboard
-          </Link>
+          {/* Controles de tela: saem do HTML exportado (data-export-ignore) e da impressão. */}
+          <div data-export-ignore="" className="flex flex-wrap items-center justify-end gap-2 print:hidden">
+            <Link href={`/carteira/${cliente.id}`} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-navy hover:bg-blue-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue">
+              Voltar ao dashboard
+            </Link>
+            <PresentationExportActions nomeCliente={cliente.nome} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
