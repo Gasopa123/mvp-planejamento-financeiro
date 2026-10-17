@@ -90,6 +90,22 @@ describe("PresentationDashboard", () => {
     expect(render(objetivos)).not.toContain(nota);
   });
 
+  // No tablet (768px) três colunas deixavam ~164px úteis no card navy e o valor
+  // de 7 dígitos (~232px) invadia o card vizinho; cinco colunas no stress test
+  // deixavam ~94px para ~110px de valor. Máximo de colunas só a partir de lg.
+  it("só usa 3 colunas nos cards principais e 5 no stress test a partir de lg", () => {
+    const html = renderToStaticMarkup(
+      createElement(PresentationDashboard, { cliente, objetivos, assumptions: null }),
+    );
+
+    expect(html).toMatch(
+      /<div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"><div class="[^"]*bg-navy/,
+    );
+    expect(html).toMatch(
+      /<div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5"><div class="rounded-xl border border-line p-3"><span[^>]*>Base</,
+    );
+  });
+
   it("mostra o aviso de cenários comprometidos com contraste de conteúdo", () => {
     const clienteApertado = {
       ...cliente,

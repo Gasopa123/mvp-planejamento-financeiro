@@ -112,7 +112,7 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           <Card tone="navy">
             <CardLabel>Valor visual para o cliente</CardLabel>
             <div className="font-display text-3xl font-semibold text-white">
@@ -203,7 +203,7 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         {stressTests.length > 0 && (
           <Card>
             <CardLabel>Stress test</CardLabel>
-            <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
               {stressTests.map((cenario) => (
                 <div key={cenario.nome} className="rounded-xl border border-line p-3">
                   <span className="block text-xs font-semibold text-ink-60">{cenario.nome}</span>
