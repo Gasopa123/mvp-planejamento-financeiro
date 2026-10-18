@@ -64,9 +64,12 @@ function montarItens({
     });
   }
 
+  // Só conta como formalizado com as três faixas cobertas: um objetivo de
+  // longo prazo sozinho (ou vários na mesma faixa) não fecha o item.
+  const prazos = new Set(objetivos.map((o) => o.prazo));
   itens.push({
     texto: "Ter objetivos de curto, médio e longo prazo formalizados no planejamento",
-    concluido: objetivos.length > 0,
+    concluido: prazos.has("curto") && prazos.has("medio") && prazos.has("longo"),
   });
 
   // Mesmas guardas das abas Aposentadoria e Simulações: com idade de
