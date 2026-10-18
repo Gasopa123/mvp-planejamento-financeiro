@@ -65,6 +65,32 @@ describe("PresentationDashboard", () => {
     expect(grupo?.[2]).toMatch(/<button type="button"[^>]*>Exportar PDF<\/button>/);
   });
 
+  // Chrome imprime sem fundos por padrão: valor branco sobre navy viraria
+  // branco sobre papel. O card principal precisa de fallback próprio de print.
+  it("imprime o card Valor visual em branco com texto escuro, sem depender de fundos", () => {
+    const html = renderToStaticMarkup(
+      createElement(PresentationDashboard, { cliente, objetivos, assumptions: null }),
+    );
+
+    const card = html
+      .split('<div class="rounded-card ')
+      .find((parte) => parte.includes("Valor visual para o cliente"));
+    expect(card).toBeDefined();
+    const [, classeCard, classeRotulo, classeValor, classeNota] =
+      card!.match(
+        /^([^"]*)"><div class="([^"]*)">Valor visual para o cliente<\/div><div class="([^"]*)">[^<]*<\/div><p class="([^"]*)">/,
+      ) ?? [];
+
+    expect(classeCard).toContain("bg-navy");
+    expect(classeCard).toContain("print:bg-white");
+    expect(classeCard).toContain("print:border-line");
+    expect(classeCard).toContain("print:text-navy");
+    expect(classeRotulo).toContain("print:text-ink-60");
+    expect(classeValor).toContain("text-white");
+    expect(classeValor).toContain("print:text-navy");
+    expect(classeNota).toContain("print:text-ink-60");
+  });
+
   it("renderiza narrativa de reunião sem abas de edição", () => {
     const html = renderToStaticMarkup(
       createElement(PresentationDashboard, {

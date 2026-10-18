@@ -118,16 +118,18 @@ export function PresentationDashboard({ cliente, objetivos, assumptions }: Prese
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <Card tone="navy">
-            <CardLabel>Valor visual para o cliente</CardLabel>
-            <div className="font-display text-3xl font-semibold text-white">
+          {/* Chrome imprime sem fundos por padrão: no print o card vira branco
+              com borda e texto escuro, pra não sair branco sobre papel. */}
+          <Card tone="navy" className="print:border-line print:bg-white print:text-navy">
+            <CardLabel className="print:text-ink-60">Valor visual para o cliente</CardLabel>
+            <div className="font-display text-3xl font-semibold text-white print:text-navy">
               {recomendacao ? formatarMoeda(recomendacao.valorCriado) : "—"}
             </div>
             {/* O custo dos objetivos se cancela na diferença entre os dois
                 cenários, então este número segue positivo mesmo num plano
                 comprometido. Sem esta ressalva ele vira a manchete da
                 apresentação de um cliente cujo patrimônio não sobrevive. */}
-            <p className="mt-2 text-sm text-ink-40">
+            <p className="mt-2 text-sm text-ink-40 print:text-ink-60">
               {curvaComObjetivos?.idadeDeficitPreAposentadoria != null
                 ? `Os objetivos comprometem o patrimônio aos ${curvaComObjetivos.idadeDeficitPreAposentadoria} anos; este valor mostra apenas a diferença entre aportar e não aportar.`
                 : recomendacao && recomendacao.recomendado < 0
